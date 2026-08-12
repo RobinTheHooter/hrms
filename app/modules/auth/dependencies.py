@@ -6,6 +6,7 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.acl import Permission, role_has_permission
 from app.common.enums import UserRole
 from app.common.exceptions import AuthError, PermissionError
 from app.core.config import get_settings
@@ -45,6 +46,19 @@ def require_roles(
 
     async def _guard(user: CurrentUser) -> User:
         if user.role not in roles:
+            raise PermissionError()
+        return user
+
+    return _guard
+
+
+def require_permission(
+    *permissions: Permission,
+) -> Callable[[User], Coroutine[Any, Any, User]]:
+    """Dependency factory guarding an endpoint by permission (ACL)."""
+
+    async def _guard(user: CurrentUser) -> User:
+        if not all(role_has_permission(user.role, p) for p in permissions):
             raise PermissionError()
         return user
 

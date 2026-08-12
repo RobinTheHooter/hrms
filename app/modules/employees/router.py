@@ -3,10 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.enums import UserRole
+from app.common.acl import Permission
 from app.common.pagination import Page, PageParams
 from app.core.database import get_db
-from app.modules.auth.dependencies import get_current_user, require_roles
+from app.modules.auth.dependencies import require_permission
 from app.modules.employees.schemas import (
     EmployeeCreate,
     EmployeeRead,
@@ -14,9 +14,9 @@ from app.modules.employees.schemas import (
 )
 from app.modules.employees.service import EmployeeService
 
-# Reads: any authenticated user. Writes: ADMIN or HR only.
-read_access = Depends(get_current_user)
-write_access = Depends(require_roles(UserRole.ADMIN, UserRole.HR))
+# ACL: reads need employees:view, writes need employees:manage.
+read_access = Depends(require_permission(Permission.EMPLOYEES_VIEW))
+write_access = Depends(require_permission(Permission.EMPLOYEES_MANAGE))
 
 router = APIRouter(prefix="/employees", tags=["employees"])
 
