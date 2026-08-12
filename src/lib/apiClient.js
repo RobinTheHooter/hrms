@@ -2,8 +2,10 @@ import axios from 'axios'
 import { DEV_AUTH_ENABLED } from '@/features/auth/devUser'
 import { useAuthStore } from '@/features/auth/store'
 
+// In dev, '/api/v1' is proxied to the local backend by Vite. In production,
+// set VITE_API_URL to the deployed backend, e.g. https://hrms-backend.onrender.com/api/v1
 export const apiClient = axios.create({
-  baseURL: '/api/v1',
+  baseURL: import.meta.env.VITE_API_URL ?? '/api/v1',
   headers: { 'Content-Type': 'application/json' },
 })
 
