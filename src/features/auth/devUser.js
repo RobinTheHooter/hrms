@@ -3,7 +3,7 @@
 // backend or real login. Set DEV_AUTH_ENABLED to false (or delete this file's
 // usages) once real auth works.
 // ---------------------------------------------------------------------------
-export const DEV_AUTH_ENABLED = true
+export const DEV_AUTH_ENABLED = false
 
 export const DEV_TOKEN = 'dev-token'
 

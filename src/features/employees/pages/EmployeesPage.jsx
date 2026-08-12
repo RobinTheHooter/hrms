@@ -5,6 +5,8 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/ui/data-table'
 import { Input } from '@/components/ui/input'
+import { useCurrentUser } from '@/features/auth/hooks'
+import { canManageEmployees } from '@/features/auth/permissions'
 import { getEmployeeColumns } from '@/features/employees/columns'
 import { EmployeeFormDialog } from '@/features/employees/components/EmployeeFormDialog'
 import {
@@ -14,6 +16,11 @@ import {
   useUpdateEmployee,
 } from '@/features/employees/hooks'
 import { toFormValues } from '@/features/employees/schema'
+
+const errorMessage = (error, fallback) =>
+  error?.response?.status === 403
+    ? "You don't have permission to do that."
+    : fallback
 
 export function EmployeesPage() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
@@ -25,6 +32,9 @@ export function EmployeesPage() {
     size: pagination.pageSize,
     search,
   })
+
+  const { data: currentUser } = useCurrentUser()
+  const canWrite = canManageEmployees(currentUser?.role)
 
   const createMut = useCreateEmployee()
   const updateMut = useUpdateEmployee()
@@ -41,7 +51,8 @@ export function EmployeesPage() {
       return
     deleteMut.mutate(employee.id, {
       onSuccess: () => toast.success('Employee deleted'),
-      onError: () => toast.error('Failed to delete employee'),
+      onError: (e) =>
+        toast.error(errorMessage(e, 'Failed to delete employee')),
     })
   }
 
@@ -54,7 +65,8 @@ export function EmployeesPage() {
             toast.success('Employee updated')
             closeDialog()
           },
-          onError: () => toast.error('Failed to update employee'),
+          onError: (e) =>
+            toast.error(errorMessage(e, 'Failed to update employee')),
         },
       )
     } else {
@@ -63,15 +75,16 @@ export function EmployeesPage() {
           toast.success('Employee created')
           closeDialog()
         },
-        onError: () => toast.error('Failed to create employee'),
+        onError: (e) =>
+          toast.error(errorMessage(e, 'Failed to create employee')),
       })
     }
   }
 
   const columns = useMemo(
-    () => getEmployeeColumns({ onEdit: openEdit, onDelete: handleDelete }),
+    () => getEmployeeColumns({ onEdit: openEdit, onDelete: handleDelete, canWrite }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [canWrite],
   )
 
   return (
@@ -83,10 +96,12 @@ export function EmployeesPage() {
             {data?.total ?? 0} total
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="size-4" />
-          Add employee
-        </Button>
+        {canWrite && (
+          <Button onClick={openCreate}>
+            <Plus className="size-4" />
+            Add employee
+          </Button>
+        )}
       </div>
 
       <Input

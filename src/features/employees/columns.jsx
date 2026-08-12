@@ -15,10 +15,10 @@ const statusClass = {
 }
 
 /**
- * @param {{ onEdit: (row:any)=>void, onDelete: (row:any)=>void }} handlers
+ * @param {{ onEdit: (row:any)=>void, onDelete: (row:any)=>void, canWrite?: boolean }} opts
  */
-export function getEmployeeColumns({ onEdit, onDelete }) {
-  return [
+export function getEmployeeColumns({ onEdit, onDelete, canWrite = false }) {
+  const columns = [
     {
       accessorFn: (row) => `${row.first_name} ${row.last_name}`,
       id: 'name',
@@ -62,7 +62,10 @@ export function getEmployeeColumns({ onEdit, onDelete }) {
         )
       },
     },
-    {
+  ]
+
+  if (canWrite) {
+    columns.push({
       id: 'actions',
       header: '',
       cell: ({ row }) => (
@@ -83,6 +86,8 @@ export function getEmployeeColumns({ onEdit, onDelete }) {
           </Button>
         </div>
       ),
-    },
-  ]
+    })
+  }
+
+  return columns
 }
