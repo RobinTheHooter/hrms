@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": "http://localhost:3000",
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}
