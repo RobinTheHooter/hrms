@@ -41,6 +41,9 @@ class EmployeeUpdate(BaseModel):
 class EmployeeRead(EmployeeBase):
     model_config = ConfigDict(from_attributes=True)
 
+    # Read responses use plain str (data is already validated on write); this
+    # also tolerates internal domains like .local that EmailStr rejects.
+    email: str
     id: int
     created_at: datetime
     updated_at: datetime
