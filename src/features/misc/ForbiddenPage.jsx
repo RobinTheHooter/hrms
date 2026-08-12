@@ -9,7 +9,7 @@ import { landingPathFor } from '@/features/auth/acl'
 export function ForbiddenPage() {
   const { data: user } = useCurrentUser()
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center p-6">
       <Card className="max-w-md text-center">
         <CardContent className="p-10">
           <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">

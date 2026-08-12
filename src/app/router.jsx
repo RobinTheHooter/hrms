@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 
+import { BlankLayout } from '@/layouts/BlankLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { PERMISSIONS, can, landingPathFor } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
@@ -13,13 +14,14 @@ import { ComingSoonPage } from '@/features/misc/ComingSoonPage'
 import { ForbiddenPage } from '@/features/misc/ForbiddenPage'
 import { UsersPage } from '@/features/users/pages/UsersPage'
 
-function ProtectedRoute() {
+/** Not logged in -> bounce to login. */
+function RequireAuth() {
   const token = useAuthStore((s) => s.token)
   if (!token) return <Navigate to="/login" replace />
   return <Outlet />
 }
 
-/** Gate a route by a required permission. Unauthorized -> 403 page. */
+/** Logged in but lacking permission -> full-screen 403. */
 function RequirePermission({ permission, children }) {
   const { data: user, isLoading } = useCurrentUser()
   if (isLoading) return null
@@ -39,10 +41,23 @@ const guarded = (permission, element) => (
 )
 
 export const router = createBrowserRouter([
-  { path: '/login', element: <LoginPage /> },
+  // Public, full-screen (no auth, no chrome)
   {
-    element: <ProtectedRoute />,
+    element: <BlankLayout />,
+    children: [{ path: '/login', element: <LoginPage /> }],
+  },
+
+  // Authenticated
+  {
+    element: <RequireAuth />,
     children: [
+      // Full-screen authenticated pages (no app chrome)
+      {
+        element: <BlankLayout />,
+        children: [{ path: '/403', element: <ForbiddenPage /> }],
+      },
+
+      // App shell (sidebar + header)
       {
         element: <DashboardLayout />,
         children: [
@@ -53,9 +68,11 @@ export const router = createBrowserRouter([
           { path: '/employees', element: guarded(PERMISSIONS.EMPLOYEES_VIEW, <EmployeesPage />) },
           { path: '/users', element: guarded(PERMISSIONS.USERS_MANAGE, <UsersPage />) },
           { path: '/coming-soon', element: <ComingSoonPage /> },
-          { path: '/403', element: <ForbiddenPage /> },
         ],
       },
     ],
   },
+
+  // Unknown path -> home (which re-routes by auth/role)
+  { path: '*', element: <Navigate to="/" replace /> },
 ])
