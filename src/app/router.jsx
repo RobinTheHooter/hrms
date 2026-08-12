@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/features/auth/hooks'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { EmployeeDashboardPage } from '@/features/dashboard/pages/EmployeeDashboardPage'
+import { HRDashboardPage } from '@/features/dashboard/pages/HRDashboardPage'
 import { EmployeesPage } from '@/features/employees/pages/EmployeesPage'
 import { ComingSoonPage } from '@/features/misc/ComingSoonPage'
 
@@ -19,8 +20,11 @@ function ProtectedRoute() {
 function RoleHome() {
   const { data: user, isLoading } = useCurrentUser()
   if (isLoading) return null
-  const target = user?.role === 'employee' ? '/employee-dashboard' : '/dashboard'
-  return <Navigate to={target} replace />
+  const byRole = {
+    employee: '/employee-dashboard',
+    hr: '/hr-dashboard',
+  }
+  return <Navigate to={byRole[user?.role] ?? '/dashboard'} replace />
 }
 
 export const router = createBrowserRouter([
@@ -33,6 +37,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/', element: <RoleHome /> },
           { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/hr-dashboard', element: <HRDashboardPage /> },
           { path: '/employee-dashboard', element: <EmployeeDashboardPage /> },
           { path: '/employees', element: <EmployeesPage /> },
           { path: '/coming-soon', element: <ComingSoonPage /> },
