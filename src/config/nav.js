@@ -8,21 +8,26 @@ import {
   Mail,
   MessagesSquare,
   Settings,
+  ShieldCheck,
   Target,
   UserPlus,
   Users,
   Wallet,
 } from 'lucide-react'
 
+import { PERMISSIONS } from '@/features/auth/acl'
+
+// Items with a `permission` are shown only to users who hold it.
 // `soon: true` items are visual placeholders for modules not built yet.
 export const NAV_SECTIONS = [
   {
     label: 'Main Menu',
     items: [
-      { to: '/dashboard', label: 'Admin Dashboard', icon: LayoutDashboard, badge: { text: 'Hot', variant: 'hot' } },
-      { to: '/hr-dashboard', label: 'HR Dashboard', icon: LayoutDashboard },
-      { to: '/employee-dashboard', label: 'Employee Dashboard', icon: LayoutDashboard },
-      { to: '/employees', label: 'Employees', icon: Users },
+      { to: '/dashboard', label: 'Admin Dashboard', icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_ADMIN, badge: { text: 'Hot', variant: 'hot' } },
+      { to: '/hr-dashboard', label: 'HR Dashboard', icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_HR },
+      { to: '/employee-dashboard', label: 'Employee Dashboard', icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_EMPLOYEE },
+      { to: '/employees', label: 'Employees', icon: Users, permission: PERMISSIONS.EMPLOYEES_VIEW },
+      { to: '/users', label: 'User Management', icon: ShieldCheck, permission: PERMISSIONS.USERS_MANAGE },
       { to: '/recruitment', label: 'Recruitment', icon: UserPlus, soon: true, badge: { text: 'New', variant: 'new' } },
       { to: '/attendance', label: 'Attendance', icon: CalendarCheck, soon: true, badge: { text: 'New', variant: 'new' } },
       { to: '/payroll', label: 'Payroll', icon: Wallet, soon: true, badge: { text: 'New', variant: 'new' } },

@@ -16,6 +16,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { NAV_SECTIONS } from '@/config/nav'
+import { can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useAuthStore } from '@/features/auth/store'
 import { cn } from '@/lib/utils'
@@ -61,13 +62,20 @@ export function DashboardLayout() {
       <aside className="fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r bg-card">
         <BrandMark />
         <div className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
-          {NAV_SECTIONS.map((section) => (
+          {NAV_SECTIONS.map((section) => {
+            // Hide items the user lacks permission for; items without a
+            // permission (placeholders) are always visible.
+            const items = section.items.filter(
+              (item) => !item.permission || can(user, item.permission),
+            )
+            if (items.length === 0) return null
+            return (
             <div key={section.label}>
               <p className="px-3 pb-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                 {section.label}
               </p>
               <nav className="space-y-0.5">
-                {section.items.map((item) => (
+                {items.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.soon ? '/coming-soon' : item.to}
@@ -91,7 +99,8 @@ export function DashboardLayout() {
                 ))}
               </nav>
             </div>
-          ))}
+            )
+          })}
         </div>
       </aside>
 
