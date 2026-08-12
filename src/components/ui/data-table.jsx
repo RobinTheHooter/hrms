@@ -20,24 +20,36 @@ import {
 
 /**
  * Reusable table built on TanStack Table.
- *
- * @param {object} props
- * @param {import('@tanstack/react-table').ColumnDef[]} props.columns
- * @param {any[]} props.data
- * @param {boolean} [props.isLoading]
+ * Supports client-side pagination (default) or server-side pagination
+ * when `manualPagination` + `pageCount` + `pagination`/`onPaginationChange`
+ * are supplied.
  */
-export function DataTable({ columns, data = [], isLoading = false }) {
+export function DataTable({
+  columns,
+  data = [],
+  isLoading = false,
+  manualPagination = false,
+  pageCount,
+  pagination,
+  onPaginationChange,
+}) {
   const [sorting, setSorting] = useState([])
 
   const table = useReactTable({
     data,
     columns,
-    state: { sorting },
+    state: {
+      sorting,
+      ...(manualPagination ? { pagination } : {}),
+    },
     onSortingChange: setSorting,
+    onPaginationChange,
+    manualPagination,
+    pageCount: manualPagination ? pageCount : undefined,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
   })
 
   return (
