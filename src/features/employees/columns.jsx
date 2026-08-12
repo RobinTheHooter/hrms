@@ -1,5 +1,7 @@
 import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
 
+import { Avatar } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   EMPLOYEE_STATUSES,
@@ -7,11 +9,11 @@ import {
   labelOf,
 } from '@/features/employees/constants'
 
-const statusClass = {
-  active: 'bg-green-100 text-green-800',
-  probation: 'bg-amber-100 text-amber-800',
-  on_leave: 'bg-blue-100 text-blue-800',
-  terminated: 'bg-red-100 text-red-800',
+const statusVariant = {
+  active: 'success',
+  probation: 'warning',
+  on_leave: 'info',
+  terminated: 'destructive',
 }
 
 /**
@@ -29,12 +31,24 @@ export function getEmployeeColumns({ onEdit, onDelete, canWrite = false }) {
           className="-ml-2"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Name
+          Employee
           <ArrowUpDown className="size-3.5" />
         </Button>
       ),
+      cell: ({ row }) => {
+        const e = row.original
+        const name = `${e.first_name} ${e.last_name}`
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar name={name} />
+            <div className="leading-tight">
+              <div className="font-medium">{name}</div>
+              <div className="text-xs text-muted-foreground">{e.email}</div>
+            </div>
+          </div>
+        )
+      },
     },
-    { accessorKey: 'email', header: 'Email' },
     { accessorKey: 'job_title', header: 'Job title' },
     {
       accessorKey: 'department',
@@ -44,7 +58,11 @@ export function getEmployeeColumns({ onEdit, onDelete, canWrite = false }) {
     {
       accessorKey: 'employment_type',
       header: 'Type',
-      cell: ({ getValue }) => labelOf(EMPLOYMENT_TYPES, getValue()),
+      cell: ({ getValue }) => (
+        <Badge variant="secondary">
+          {labelOf(EMPLOYMENT_TYPES, getValue())}
+        </Badge>
+      ),
     },
     {
       accessorKey: 'status',
@@ -52,13 +70,9 @@ export function getEmployeeColumns({ onEdit, onDelete, canWrite = false }) {
       cell: ({ getValue }) => {
         const value = getValue()
         return (
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-              statusClass[value] ?? 'bg-secondary'
-            }`}
-          >
+          <Badge variant={statusVariant[value] ?? 'secondary'}>
             {labelOf(EMPLOYEE_STATUSES, value)}
-          </span>
+          </Badge>
         )
       },
     },

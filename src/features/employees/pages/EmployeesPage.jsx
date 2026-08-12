@@ -1,10 +1,12 @@
-import { Plus } from 'lucide-react'
+import { Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { DataTable } from '@/components/ui/data-table'
 import { Input } from '@/components/ui/input'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { canManageEmployees } from '@/features/auth/permissions'
 import { getEmployeeColumns } from '@/features/employees/columns'
@@ -88,47 +90,52 @@ export function EmployeesPage() {
   )
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Employees</h1>
-          <p className="text-sm text-muted-foreground">
-            {data?.total ?? 0} total
-          </p>
-        </div>
-        {canWrite && (
-          <Button onClick={openCreate}>
-            <Plus className="size-4" />
-            Add employee
-          </Button>
-        )}
-      </div>
-
-      <Input
-        placeholder="Search by name, email, or title…"
-        value={search}
-        onChange={(e) => {
-          setSearch(e.target.value)
-          setPagination((p) => ({ ...p, pageIndex: 0 }))
-        }}
-        className="max-w-sm"
+    <div>
+      <PageHeader
+        title="Employees"
+        breadcrumb={['HR', 'Employees']}
+        actions={
+          canWrite && (
+            <Button onClick={openCreate} size="sm">
+              <Plus className="size-4" />
+              Add employee
+            </Button>
+          )
+        }
       />
 
-      {isError ? (
-        <p className="text-sm text-destructive">
-          Couldn't load employees. Is the backend running?
-        </p>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={data?.items ?? []}
-          isLoading={isLoading}
-          manualPagination
-          pageCount={data?.pages ?? 0}
-          pagination={pagination}
-          onPaginationChange={setPagination}
-        />
-      )}
+      <Card>
+        <div className="flex items-center gap-3 border-b p-4">
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, email, or title…"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPagination((p) => ({ ...p, pageIndex: 0 }))
+              }}
+              className="pl-9"
+            />
+          </div>
+        </div>
+
+        {isError ? (
+          <p className="p-6 text-sm text-destructive">
+            Couldn't load employees. Is the backend running?
+          </p>
+        ) : (
+          <DataTable
+            columns={columns}
+            data={data?.items ?? []}
+            isLoading={isLoading}
+            manualPagination
+            pageCount={data?.pages ?? 0}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+          />
+        )}
+      </Card>
 
       <EmployeeFormDialog
         open={dialog.open}

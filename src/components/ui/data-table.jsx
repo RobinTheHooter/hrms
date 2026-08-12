@@ -53,10 +53,11 @@ export function DataTable({
   })
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+    <div>
+      <div className="overflow-hidden">
+        <Table className="[&_td]:px-4 [&_th]:px-4">
+          <TableHeader className="bg-muted/40 [&_th]:h-11">
+            {/* header groups below */}
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -109,7 +110,12 @@ export function DataTable({
         </Table>
       </div>
 
-      <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center justify-between gap-2 border-t px-4 py-3">
+        <span className="text-xs text-muted-foreground">
+          Page {(pagination?.pageIndex ?? 0) + 1}
+          {pageCount ? ` of ${pageCount}` : ''}
+        </span>
+        <div className="flex gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -126,6 +132,7 @@ export function DataTable({
         >
           Next
         </Button>
+        </div>
       </div>
     </div>
   )
