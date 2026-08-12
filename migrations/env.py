@@ -10,6 +10,7 @@ from app.models.base import Base
 
 # Import all models so they register on Base.metadata for autogenerate.
 from app.modules.auth import models as _auth_models  # noqa: F401
+from app.modules.employees import models as _employee_models  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().DATABASE_URL)
