@@ -3,11 +3,8 @@ import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useCurrentUser } from '@/features/auth/hooks'
-import { landingPathFor } from '@/features/auth/acl'
 
 export function ForbiddenPage() {
-  const { data: user } = useCurrentUser()
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <Card className="max-w-md text-center">
@@ -21,7 +18,7 @@ export function ForbiddenPage() {
             mistake, contact your administrator.
           </p>
           <Button asChild className="mt-6">
-            <Link to={landingPathFor(user)}>Back to my dashboard</Link>
+            <Link to="/">Back to my dashboard</Link>
           </Button>
         </CardContent>
       </Card>

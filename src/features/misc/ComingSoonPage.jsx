@@ -18,7 +18,7 @@ export function ComingSoonPage() {
             Dashboard and Employees sections are fully functional.
           </p>
           <Button asChild className="mt-6">
-            <Link to="/dashboard">Back to Dashboard</Link>
+            <Link to="/">Back to Dashboard</Link>
           </Button>
         </CardContent>
       </Card>

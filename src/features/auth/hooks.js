@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { getCurrentUser, login } from '@/features/auth/api'
 import { DEV_AUTH_ENABLED, DEV_USER } from '@/features/auth/devUser'
@@ -6,9 +6,14 @@ import { useAuthStore } from '@/features/auth/store'
 
 export function useLogin() {
   const setToken = useAuthStore((s) => s.setToken)
+  const qc = useQueryClient()
   return useMutation({
     mutationFn: login,
-    onSuccess: (data) => setToken(data.access_token),
+    onSuccess: (data) => {
+      setToken(data.access_token)
+      // Drop any previously cached user so we refetch for the new token.
+      qc.removeQueries({ queryKey: ['auth', 'me'] })
+    },
   })
 }
 

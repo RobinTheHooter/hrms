@@ -26,7 +26,8 @@ export function LoginPage() {
 
   const onSubmit = (values) => {
     login.mutate(values, {
-      onSuccess: () => navigate('/dashboard', { replace: true }),
+      // Go to the role router, which lands each role on its own dashboard.
+      onSuccess: () => navigate('/', { replace: true }),
       onError: () => toast.error('Login failed. Check your credentials.'),
     })
   }
