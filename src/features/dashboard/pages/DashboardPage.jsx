@@ -35,6 +35,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Panel } from '@/components/ui/panel'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useEmployees } from '@/features/employees/hooks'
 
@@ -64,18 +65,6 @@ function StatCard({ icon: Icon, tone, label, value, link = 'View All' }) {
         <p className="mt-0.5 text-2xl font-bold tracking-tight">{value}</p>
         <p className="mt-3 border-t pt-2 text-sm text-primary">{link}</p>
       </CardContent>
-    </Card>
-  )
-}
-
-function Panel({ title, action, children, className = '', bodyClass = 'p-5' }) {
-  return (
-    <Card className={className}>
-      <div className="flex items-center justify-between border-b px-5 py-3.5">
-        <h3 className="font-semibold">{title}</h3>
-        {action}
-      </div>
-      <div className={bodyClass}>{children}</div>
     </Card>
   )
 }

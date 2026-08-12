@@ -19,7 +19,8 @@ export const NAV_SECTIONS = [
   {
     label: 'Main Menu',
     items: [
-      { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, badge: { text: 'Hot', variant: 'hot' } },
+      { to: '/dashboard', label: 'Admin Dashboard', icon: LayoutDashboard, badge: { text: 'Hot', variant: 'hot' } },
+      { to: '/employee-dashboard', label: 'Employee Dashboard', icon: LayoutDashboard },
       { to: '/employees', label: 'Employees', icon: Users },
       { to: '/recruitment', label: 'Recruitment', icon: UserPlus, soon: true, badge: { text: 'New', variant: 'new' } },
       { to: '/attendance', label: 'Attendance', icon: CalendarCheck, soon: true, badge: { text: 'New', variant: 'new' } },
