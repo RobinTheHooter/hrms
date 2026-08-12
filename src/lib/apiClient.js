@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { DEV_AUTH_ENABLED } from '@/features/auth/devUser'
 import { useAuthStore } from '@/features/auth/store'
 
 export const apiClient = axios.create({
@@ -19,7 +20,8 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // In dev-auth mode, don't bounce to login on 401 (backend may be absent).
+    if (error.response?.status === 401 && !DEV_AUTH_ENABLED) {
       useAuthStore.getState().logout()
       if (window.location.pathname !== '/login') {
         window.location.assign('/login')
