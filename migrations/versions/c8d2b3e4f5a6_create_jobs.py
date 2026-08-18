@@ -8,22 +8,21 @@ from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision: str = "c8d2b3e4f5a6"
 down_revision: str | None = "b7c1a2d3e4f5"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
+# employment_type already exists (created with the employees table) -> reference
+# it without creating. job_status is new -> we create it explicitly below.
+employment_type = postgresql.ENUM(name="employment_type", create_type=False)
+job_status = postgresql.ENUM("OPEN", "CLOSED", name="job_status", create_type=False)
+
 
 def upgrade() -> None:
-    # job_status is new; employment_type already exists (created with employees),
-    # so reuse it without re-creating the type.
-    employment_type = sa.Enum(
-        "FULL_TIME", "PART_TIME", "CONTRACT", "INTERN",
-        name="employment_type",
-        create_type=False,
-    )
-    job_status = sa.Enum("OPEN", "CLOSED", name="job_status")
+    job_status.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         "jobs",
@@ -47,4 +46,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table("jobs")
-    sa.Enum(name="job_status").drop(op.get_bind(), checkfirst=True)
+    job_status.drop(op.get_bind(), checkfirst=True)
