@@ -13,9 +13,9 @@ class UserService:
         self.repo = UserRepository(db)
 
     async def list(
-        self, params: PageParams, search: str | None = None
+        self, params: PageParams, search: str | None = None, role=None
     ) -> Page[UserRead]:
-        items, total = await self.repo.list(params, search)
+        items, total = await self.repo.list(params, search, role)
         return Page.create(
             items=[UserRead.model_validate(u) for u in items],
             total=total,

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
+from app.common.enums import UserRole
 from app.common.pagination import Page, PageParams
 from app.core.database import get_db
 from app.modules.auth.dependencies import CurrentUser, require_permission
@@ -24,8 +25,9 @@ async def list_users(
     page: int = Query(1, ge=1),
     size: int = Query(20, ge=1, le=100),
     search: str | None = Query(None),
+    role: UserRole | None = Query(None),
 ) -> Page[UserRead]:
-    return await UserService(db).list(PageParams(page=page, size=size), search)
+    return await UserService(db).list(PageParams(page=page, size=size), search, role)
 
 
 @router.post("", response_model=UserRead, status_code=status.HTTP_201_CREATED)

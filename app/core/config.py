@@ -42,6 +42,39 @@ class Settings(BaseSettings):
     # CORS origins (frontend dev server)
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
+    # Frontend base URL (used for OAuth redirects back into the app)
+    FRONTEND_URL: str = "http://localhost:5173"
+
+    # Timezone used for calendar events (IANA name).
+    APP_TIMEZONE: str = "Asia/Kolkata"
+    INTERVIEW_DURATION_MINUTES: int = 60
+
+    # Google Calendar integration (optional; features are gated on these)
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = (
+        "http://localhost:8000/api/v1/integrations/google/callback"
+    )
+
+    @property
+    def google_enabled(self) -> bool:
+        return bool(self.GOOGLE_CLIENT_ID and self.GOOGLE_CLIENT_SECRET)
+
+    # Email (SMTP) — works with Resend, Mailtrap, Gmail, SendGrid, etc.
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_STARTTLS: bool = True
+    EMAIL_FROM: str = ""
+    EMAIL_FROM_NAME: str = "Recruitment Team"
+    # Auto-send the "application received" acknowledgment on new candidates.
+    AUTO_EMAIL_APPLICATION_RECEIVED: bool = True
+
+    @property
+    def email_enabled(self) -> bool:
+        return bool(self.SMTP_HOST and self.EMAIL_FROM)
+
 
 @lru_cache
 def get_settings() -> Settings:

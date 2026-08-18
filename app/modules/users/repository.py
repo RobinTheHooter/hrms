@@ -1,6 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.enums import UserRole
 from app.common.pagination import PageParams
 from app.modules.auth.models import User
 
@@ -17,7 +18,10 @@ class UserRepository:
         return result.scalar_one_or_none()
 
     async def list(
-        self, params: PageParams, search: str | None = None
+        self,
+        params: PageParams,
+        search: str | None = None,
+        role: UserRole | None = None,
     ) -> tuple[list[User], int]:
         stmt = select(User)
         count_stmt = select(func.count()).select_from(User)
@@ -27,6 +31,9 @@ class UserRepository:
             condition = User.full_name.ilike(pattern) | User.email.ilike(pattern)
             stmt = stmt.where(condition)
             count_stmt = count_stmt.where(condition)
+        if role is not None:
+            stmt = stmt.where(User.role == role)
+            count_stmt = count_stmt.where(User.role == role)
 
         stmt = stmt.order_by(User.id.desc()).offset(params.offset).limit(params.size)
         items = (await self.db.execute(stmt)).scalars().all()
