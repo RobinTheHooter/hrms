@@ -1,52 +1,44 @@
 import {
-  Boxes,
   Briefcase,
-  CalendarCheck,
-  DollarSign,
+  CalendarClock,
   LayoutDashboard,
-  LifeBuoy,
-  Mail,
-  MessagesSquare,
-  Settings,
+  Plug,
   ShieldCheck,
-  Target,
-  UserPlus,
   Users,
-  Wallet,
 } from 'lucide-react'
 
 import { PERMISSIONS } from '@/features/auth/acl'
 
 // Items with a `permission` are shown only to users who hold it.
-// `soon: true` items are visual placeholders for modules not built yet.
+// `soon: true` items are placeholders that route to the "coming soon" page
+// until the ATS screens are built.
 export const NAV_SECTIONS = [
   {
-    label: 'Main Menu',
+    label: 'Overview',
     items: [
-      { to: '/dashboard', label: 'Admin Dashboard', icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_ADMIN, badge: { text: 'Hot', variant: 'hot' } },
-      { to: '/hr-dashboard', label: 'HR Dashboard', icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_HR },
-      { to: '/employee-dashboard', label: 'Employee Dashboard', icon: LayoutDashboard, permission: PERMISSIONS.DASHBOARD_EMPLOYEE },
-      { to: '/employees', label: 'Employees', icon: Users, permission: PERMISSIONS.EMPLOYEES_VIEW },
+      // No permission -> visible to every signed-in user.
+      { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: 'Recruitment',
+    items: [
+      { to: '/jobs', label: 'Jobs', icon: Briefcase, permission: PERMISSIONS.JOBS_VIEW },
+      { to: '/candidates', label: 'Candidates', icon: Users, permission: PERMISSIONS.CANDIDATES_VIEW },
+      { to: '/interviews', label: 'Interviews', icon: CalendarClock, permission: PERMISSIONS.INTERVIEWS_VIEW },
+    ],
+  },
+  {
+    label: 'Administration',
+    items: [
       { to: '/users', label: 'User Management', icon: ShieldCheck, permission: PERMISSIONS.USERS_MANAGE },
-      { to: '/recruitment', label: 'Recruitment', icon: UserPlus, soon: true, badge: { text: 'New', variant: 'new' } },
-      { to: '/attendance', label: 'Attendance', icon: CalendarCheck, soon: true, badge: { text: 'New', variant: 'new' } },
-      { to: '/payroll', label: 'Payroll', icon: Wallet, soon: true, badge: { text: 'New', variant: 'new' } },
-      { to: '/finance', label: 'Finance', icon: DollarSign, soon: true, badge: { text: 'New', variant: 'new' } },
-      { to: '/assets', label: 'Assets', icon: Boxes, soon: true, badge: { text: 'New', variant: 'new' } },
-      { to: '/helpdesk', label: 'Help Desk', icon: LifeBuoy, soon: true, badge: { text: 'New', variant: 'new' } },
     ],
   },
   {
-    label: 'Applications',
+    label: 'Account',
     items: [
-      { to: '/deals', label: 'Deals', icon: Briefcase, soon: true },
-      { to: '/leads', label: 'Leads', icon: Target, soon: true },
-      { to: '/chat', label: 'Chat', icon: MessagesSquare, soon: true },
-      { to: '/email', label: 'Email', icon: Mail, soon: true },
+      // No permission -> visible to every signed-in user (connect their own calendar).
+      { to: '/integrations', label: 'Integrations', icon: Plug },
     ],
-  },
-  {
-    label: 'System',
-    items: [{ to: '/settings', label: 'Settings', icon: Settings, soon: true }],
   },
 ]

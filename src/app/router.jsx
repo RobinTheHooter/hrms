@@ -6,13 +6,17 @@ import { PERMISSIONS, can, landingPathFor } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { useAuthStore } from '@/features/auth/store'
+import { CandidatesPage } from '@/features/candidates/pages/CandidatesPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
-import { EmployeeDashboardPage } from '@/features/dashboard/pages/EmployeeDashboardPage'
-import { HRDashboardPage } from '@/features/dashboard/pages/HRDashboardPage'
-import { EmployeesPage } from '@/features/employees/pages/EmployeesPage'
+import { IntegrationsPage } from '@/features/integrations/pages/IntegrationsPage'
+import { InterviewsPage } from '@/features/interviews/pages/InterviewsPage'
+import { JobsPage } from '@/features/jobs/pages/JobsPage'
 import { ComingSoonPage } from '@/features/misc/ComingSoonPage'
 import { ForbiddenPage } from '@/features/misc/ForbiddenPage'
 import { UsersPage } from '@/features/users/pages/UsersPage'
+
+// NOTE: the dashboards and Employees module are hidden during the ATS pivot.
+// Their page components still exist under features/ but aren't routed here.
 
 /** Not logged in -> bounce to login. */
 function RequireAuth() {
@@ -29,7 +33,7 @@ function RequirePermission({ permission, children }) {
   return children
 }
 
-/** Land users on the right dashboard for their role/permissions. */
+/** Land users on the right page for their role/permissions. */
 function RoleHome() {
   const { data: user, isLoading } = useCurrentUser()
   if (isLoading) return null
@@ -41,7 +45,7 @@ const guarded = (permission, element) => (
 )
 
 export const router = createBrowserRouter([
-  // Public, full-screen (no auth, no chrome)
+  // Public, full-screen
   {
     element: <BlankLayout />,
     children: [{ path: '/login', element: <LoginPage /> }],
@@ -51,28 +55,29 @@ export const router = createBrowserRouter([
   {
     element: <RequireAuth />,
     children: [
-      // Full-screen authenticated pages (no app chrome)
+      // Full-screen authenticated pages (no chrome)
       {
         element: <BlankLayout />,
         children: [{ path: '/403', element: <ForbiddenPage /> }],
       },
 
-      // App shell (sidebar + header)
+      // App shell
       {
         element: <DashboardLayout />,
         children: [
           { path: '/', element: <RoleHome /> },
-          { path: '/dashboard', element: guarded(PERMISSIONS.DASHBOARD_ADMIN, <DashboardPage />) },
-          { path: '/hr-dashboard', element: guarded(PERMISSIONS.DASHBOARD_HR, <HRDashboardPage />) },
-          { path: '/employee-dashboard', element: guarded(PERMISSIONS.DASHBOARD_EMPLOYEE, <EmployeeDashboardPage />) },
-          { path: '/employees', element: guarded(PERMISSIONS.EMPLOYEES_VIEW, <EmployeesPage />) },
+          { path: '/dashboard', element: <DashboardPage /> },
+          { path: '/jobs', element: guarded(PERMISSIONS.JOBS_VIEW, <JobsPage />) },
+          { path: '/candidates', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidatesPage />) },
+          { path: '/interviews', element: guarded(PERMISSIONS.INTERVIEWS_VIEW, <InterviewsPage />) },
           { path: '/users', element: guarded(PERMISSIONS.USERS_MANAGE, <UsersPage />) },
+          { path: '/integrations', element: <IntegrationsPage /> },
           { path: '/coming-soon', element: <ComingSoonPage /> },
         ],
       },
     ],
   },
 
-  // Unknown path -> home (which re-routes by auth/role)
+  // Unknown path -> home (re-routes by auth/role)
   { path: '*', element: <Navigate to="/" replace /> },
 ])

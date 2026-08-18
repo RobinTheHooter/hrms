@@ -17,11 +17,12 @@ import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
+  SelectEmpty,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ROLE_OPTIONS } from '@/features/users/constants'
+import { useOptions } from '@/features/meta/hooks'
 
 const passwordField = (required) =>
   required
@@ -33,7 +34,7 @@ const makeSchema = (isEdit) =>
     full_name: z.string().min(1, 'Required'),
     email: z.string().email('Enter a valid email'),
     password: passwordField(!isEdit),
-    role: z.enum(['admin', 'hr', 'manager', 'employee']),
+    role: z.string().min(1, 'Required'),
     is_active: z.enum(['true', 'false']),
   })
 
@@ -56,6 +57,8 @@ export function UserFormDialog({
   mode = 'create',
 }) {
   const isEdit = mode === 'edit'
+  const { data: options } = useOptions()
+  const roles = options?.user_roles ?? []
   const {
     register,
     handleSubmit,
@@ -132,11 +135,15 @@ export function UserFormDialog({
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ROLE_OPTIONS.map((r) => (
-                        <SelectItem key={r.value} value={r.value}>
-                          {r.label}
-                        </SelectItem>
-                      ))}
+                      {roles.length === 0 ? (
+                        <SelectEmpty>No roles found</SelectEmpty>
+                      ) : (
+                        roles.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 )}

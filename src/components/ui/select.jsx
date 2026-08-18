@@ -31,13 +31,17 @@ function SelectContent({ className, children, position = 'popper', ...props }) {
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         className={cn(
-          'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md',
+          'relative z-50 max-h-96 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md',
+          // Match the panel width to the trigger button.
+          position === 'popper' &&
+            'w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)]',
           className,
         )}
         position={position}
+        sideOffset={4}
         {...props}
       >
-        <SelectPrimitive.Viewport className="p-1">
+        <SelectPrimitive.Viewport className="w-full p-1">
           {children}
         </SelectPrimitive.Viewport>
       </SelectPrimitive.Content>
@@ -65,6 +69,20 @@ function SelectItem({ className, children, ...props }) {
   )
 }
 
+/** Empty-state row for a dropdown with no options, e.g. <SelectEmpty>No jobs found</SelectEmpty>. */
+function SelectEmpty({ className, children }) {
+  return (
+    <div
+      className={cn(
+        'px-2 py-4 text-center text-sm text-muted-foreground',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
 export {
   Select,
   SelectGroup,
@@ -72,4 +90,5 @@ export {
   SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectEmpty,
 }

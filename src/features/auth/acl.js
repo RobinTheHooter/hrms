@@ -2,29 +2,38 @@
 // security boundary; this drives UX (routes, nav, buttons).
 
 export const PERMISSIONS = {
-  DASHBOARD_ADMIN: 'dashboard:admin',
-  DASHBOARD_HR: 'dashboard:hr',
-  DASHBOARD_EMPLOYEE: 'dashboard:employee',
-  EMPLOYEES_VIEW: 'employees:view',
-  EMPLOYEES_MANAGE: 'employees:manage',
   USERS_MANAGE: 'users:manage',
-  SETTINGS_MANAGE: 'settings:manage',
+  JOBS_VIEW: 'jobs:view',
+  JOBS_MANAGE: 'jobs:manage',
+  CANDIDATES_VIEW: 'candidates:view',
+  CANDIDATES_MANAGE: 'candidates:manage',
+  INTERVIEWS_VIEW: 'interviews:view',
+  INTERVIEWS_SCHEDULE: 'interviews:schedule',
+  INTERVIEWS_CONDUCT: 'interviews:conduct',
 }
 
 const ALL = Object.values(PERMISSIONS)
 
-const HR_LIKE = [
-  PERMISSIONS.DASHBOARD_HR,
-  PERMISSIONS.DASHBOARD_EMPLOYEE,
-  PERMISSIONS.EMPLOYEES_VIEW,
-  PERMISSIONS.EMPLOYEES_MANAGE,
-]
-
 export const ROLE_PERMISSIONS = {
+  // Super-admin and HR Admin: full access.
   admin: ALL,
-  hr: HR_LIKE,
-  manager: HR_LIKE,
-  employee: [PERMISSIONS.DASHBOARD_EMPLOYEE],
+  hr: ALL,
+  // Recruiter: candidates on assigned jobs + booking interviews.
+  consultant: [
+    PERMISSIONS.JOBS_VIEW,
+    PERMISSIONS.CANDIDATES_VIEW,
+    PERMISSIONS.CANDIDATES_MANAGE,
+    PERMISSIONS.INTERVIEWS_VIEW,
+    PERMISSIONS.INTERVIEWS_SCHEDULE,
+  ],
+  // Hiring manager: conducts interviews, views candidates.
+  hiring_manager: [
+    PERMISSIONS.INTERVIEWS_VIEW,
+    PERMISSIONS.INTERVIEWS_CONDUCT,
+    PERMISSIONS.CANDIDATES_VIEW,
+  ],
+  // Candidate: external (phase 2).
+  candidate: [],
 }
 
 export function permissionsForRole(role) {
@@ -37,10 +46,12 @@ export function can(user, permission) {
   return permissionsForRole(user.role).includes(permission)
 }
 
-/** The default route a user should land on, based on their permissions. */
+/**
+ * Default route for a user. ATS screens aren't built yet, so admins/HR land
+ * on User Management and everyone else on a placeholder until we ship them.
+ */
 export function landingPathFor(user) {
-  const perms = permissionsForRole(user?.role)
-  if (perms.includes(PERMISSIONS.DASHBOARD_ADMIN)) return '/dashboard'
-  if (perms.includes(PERMISSIONS.DASHBOARD_HR)) return '/hr-dashboard'
-  return '/employee-dashboard'
+  // Everyone with any ATS access lands on the adaptive dashboard.
+  if (user?.role && user.role !== 'candidate') return '/dashboard'
+  return '/coming-soon'
 }

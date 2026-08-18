@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { DataTable } from '@/components/ui/data-table'
 import { Input } from '@/components/ui/input'
 import { useCurrentUser } from '@/features/auth/hooks'
+import { useOptions } from '@/features/meta/hooks'
 import { getUserColumns } from '@/features/users/columns'
 import { UserFormDialog } from '@/features/users/components/UserFormDialog'
 import {
@@ -23,6 +24,7 @@ const errorMessage = (error, fallback) =>
 
 export function UsersPage() {
   const { data: currentUser } = useCurrentUser()
+  const { data: options } = useOptions()
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
   const [search, setSearch] = useState('')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', user: null })
@@ -78,9 +80,10 @@ export function UsersPage() {
         onEdit: openEdit,
         onDelete: handleDelete,
         currentUserId: currentUser?.id,
+        options,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [currentUser?.id],
+    [currentUser?.id, options],
   )
 
   const editInitial =

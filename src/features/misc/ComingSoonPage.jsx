@@ -14,11 +14,11 @@ export function ComingSoonPage() {
           </div>
           <h2 className="text-xl font-semibold">Coming soon</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            This module is part of the SmartHR layout but isn't built yet. The
-            Dashboard and Employees sections are fully functional.
+            This module isn't built yet. The recruitment screens (Jobs,
+            Candidates, Interviews) are on the way.
           </p>
           <Button asChild className="mt-6">
-            <Link to="/">Back to Dashboard</Link>
+            <Link to="/">Back to home</Link>
           </Button>
         </CardContent>
       </Card>
