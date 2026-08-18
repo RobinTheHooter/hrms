@@ -45,3 +45,20 @@ class CandidateStage(StrEnum):
     OFFER = "offer"
     HIRED = "hired"
     REJECTED = "rejected"
+
+
+class InterviewMode(StrEnum):
+    VIRTUAL = "virtual"
+    WALK_IN = "walk_in"
+
+
+class InterviewStatus(StrEnum):
+    SCHEDULED = "scheduled"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class InterviewOutcome(StrEnum):
+    PENDING = "pending"
+    SELECTED = "selected"
+    REJECTED = "rejected"

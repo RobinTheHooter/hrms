@@ -1,0 +1,68 @@
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.common.enums import InterviewMode, InterviewOutcome, InterviewStatus
+
+
+class _JobBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+
+
+class InterviewCandidate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+    job: _JobBrief | None
+
+
+class PersonBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+
+
+class InterviewCreate(BaseModel):
+    candidate_id: int
+    hiring_manager_id: int | None = None
+    mode: InterviewMode = InterviewMode.VIRTUAL
+    scheduled_at: datetime
+    location_or_link: str | None = Field(default=None, max_length=500)
+    notes: str | None = None
+
+
+class InterviewUpdate(BaseModel):
+    hiring_manager_id: int | None = None
+    mode: InterviewMode | None = None
+    scheduled_at: datetime | None = None
+    location_or_link: str | None = Field(default=None, max_length=500)
+    status: InterviewStatus | None = None
+    notes: str | None = None
+
+
+class InterviewOutcomeUpdate(BaseModel):
+    outcome: InterviewOutcome
+    notes: str | None = None
+
+
+class InterviewRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    candidate_id: int
+    candidate: InterviewCandidate | None
+    hiring_manager_id: int | None
+    hiring_manager: PersonBrief | None
+    mode: InterviewMode
+    scheduled_at: datetime
+    location_or_link: str | None
+    status: InterviewStatus
+    outcome: InterviewOutcome
+    notes: str | None
+    created_at: datetime
+    updated_at: datetime

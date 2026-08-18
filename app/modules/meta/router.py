@@ -2,17 +2,26 @@
 
 The backend is the single source of truth for every selectable option.
 """
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.enums import (
     CandidateSource,
     CandidateStage,
     EmploymentType,
+    InterviewMode,
+    InterviewOutcome,
+    InterviewStatus,
     JobStatus,
     UserRole,
 )
+from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user
+from app.modules.auth.models import User
 
 router = APIRouter(
     prefix="/meta",
@@ -40,6 +49,9 @@ class OptionsResponse(BaseModel):
     job_statuses: list[Option]
     candidate_sources: list[Option]
     candidate_stages: list[Option]
+    interview_modes: list[Option]
+    interview_statuses: list[Option]
+    interview_outcomes: list[Option]
     user_roles: list[Option]
 
 
@@ -58,6 +70,9 @@ async def get_options() -> OptionsResponse:
         job_statuses=_options(JobStatus),
         candidate_sources=_options(CandidateSource),
         candidate_stages=_options(CandidateStage),
+        interview_modes=_options(InterviewMode),
+        interview_statuses=_options(InterviewStatus),
+        interview_outcomes=_options(InterviewOutcome),
         # Only the assignable ATS roles (legacy manager/employee excluded).
         user_roles=_options(
             [
@@ -69,3 +84,24 @@ async def get_options() -> OptionsResponse:
             ]
         ),
     )
+
+
+class PersonBrief(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    full_name: str
+
+
+@router.get("/users", response_model=list[PersonBrief])
+async def assignable_users(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    role: UserRole = Query(...),
+) -> list[PersonBrief]:
+    """Minimal (id, name) list of active users for a role — for pickers."""
+    result = await db.execute(
+        select(User.id, User.full_name)
+        .where(User.role == role, User.is_active.is_(True))
+        .order_by(User.full_name)
+    )
+    return [PersonBrief(id=r.id, full_name=r.full_name) for r in result]
