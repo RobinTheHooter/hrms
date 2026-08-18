@@ -6,27 +6,37 @@ from app.common.enums import UserRole
 
 
 class Permission(StrEnum):
-    DASHBOARD_ADMIN = "dashboard:admin"
-    DASHBOARD_HR = "dashboard:hr"
-    DASHBOARD_EMPLOYEE = "dashboard:employee"
-    EMPLOYEES_VIEW = "employees:view"
-    EMPLOYEES_MANAGE = "employees:manage"
     USERS_MANAGE = "users:manage"
-    SETTINGS_MANAGE = "settings:manage"
+    JOBS_VIEW = "jobs:view"
+    JOBS_MANAGE = "jobs:manage"
+    CANDIDATES_VIEW = "candidates:view"
+    CANDIDATES_MANAGE = "candidates:manage"
+    INTERVIEWS_VIEW = "interviews:view"
+    INTERVIEWS_SCHEDULE = "interviews:schedule"
+    INTERVIEWS_CONDUCT = "interviews:conduct"
 
-
-_HR_LIKE = {
-    Permission.DASHBOARD_HR,
-    Permission.DASHBOARD_EMPLOYEE,
-    Permission.EMPLOYEES_VIEW,
-    Permission.EMPLOYEES_MANAGE,
-}
 
 ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
-    UserRole.ADMIN: set(Permission),  # all permissions
-    UserRole.HR: set(_HR_LIKE),
-    UserRole.MANAGER: set(_HR_LIKE),  # manager == hr for now
-    UserRole.EMPLOYEE: {Permission.DASHBOARD_EMPLOYEE},
+    # Super-admin: everything, including future permissions.
+    UserRole.ADMIN: set(Permission),
+    # HR Admin: full access to the ATS.
+    UserRole.HR: set(Permission),
+    # Recruiter: manages candidates on assigned jobs, books interviews.
+    UserRole.CONSULTANT: {
+        Permission.JOBS_VIEW,
+        Permission.CANDIDATES_VIEW,
+        Permission.CANDIDATES_MANAGE,
+        Permission.INTERVIEWS_VIEW,
+        Permission.INTERVIEWS_SCHEDULE,
+    },
+    # Hiring manager: conducts interviews, views candidates.
+    UserRole.HIRING_MANAGER: {
+        Permission.INTERVIEWS_VIEW,
+        Permission.INTERVIEWS_CONDUCT,
+        Permission.CANDIDATES_VIEW,
+    },
+    # Candidate: external (phase 2); no internal permissions.
+    UserRole.CANDIDATE: set(),
 }
 
 

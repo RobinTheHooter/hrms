@@ -4,6 +4,10 @@ from enum import StrEnum
 class UserRole(StrEnum):
     ADMIN = "admin"
     HR = "hr"
+    CONSULTANT = "consultant"
+    HIRING_MANAGER = "hiring_manager"
+    CANDIDATE = "candidate"
+    # Legacy roles (kept so existing enum values remain valid).
     MANAGER = "manager"
     EMPLOYEE = "employee"
 
