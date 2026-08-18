@@ -1,6 +1,7 @@
 import {
   Briefcase,
   CalendarClock,
+  Plug,
   ShieldCheck,
   Users,
 } from 'lucide-react'
@@ -23,6 +24,13 @@ export const NAV_SECTIONS = [
     label: 'Administration',
     items: [
       { to: '/users', label: 'User Management', icon: ShieldCheck, permission: PERMISSIONS.USERS_MANAGE },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      // No permission -> visible to every signed-in user (connect their own calendar).
+      { to: '/integrations', label: 'Integrations', icon: Plug },
     ],
   },
 ]

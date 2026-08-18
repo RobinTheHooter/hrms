@@ -7,6 +7,7 @@ import { useCurrentUser } from '@/features/auth/hooks'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { useAuthStore } from '@/features/auth/store'
 import { CandidatesPage } from '@/features/candidates/pages/CandidatesPage'
+import { IntegrationsPage } from '@/features/integrations/pages/IntegrationsPage'
 import { InterviewsPage } from '@/features/interviews/pages/InterviewsPage'
 import { JobsPage } from '@/features/jobs/pages/JobsPage'
 import { ComingSoonPage } from '@/features/misc/ComingSoonPage'
@@ -68,6 +69,7 @@ export const router = createBrowserRouter([
           { path: '/candidates', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidatesPage />) },
           { path: '/interviews', element: guarded(PERMISSIONS.INTERVIEWS_VIEW, <InterviewsPage />) },
           { path: '/users', element: guarded(PERMISSIONS.USERS_MANAGE, <UsersPage />) },
+          { path: '/integrations', element: <IntegrationsPage /> },
           { path: '/coming-soon', element: <ComingSoonPage /> },
         ],
       },
