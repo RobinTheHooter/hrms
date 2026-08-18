@@ -61,6 +61,7 @@ class InterviewRead(BaseModel):
     mode: InterviewMode
     scheduled_at: datetime
     location_or_link: str | None
+    meeting_link: str | None
     status: InterviewStatus
     outcome: InterviewOutcome
     notes: str | None

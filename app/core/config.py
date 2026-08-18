@@ -42,6 +42,20 @@ class Settings(BaseSettings):
     # CORS origins (frontend dev server)
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
+    # Frontend base URL (used for OAuth redirects back into the app)
+    FRONTEND_URL: str = "http://localhost:5173"
+
+    # Google Calendar integration (optional; features are gated on these)
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = (
+        "http://localhost:8000/api/v1/integrations/google/callback"
+    )
+
+    @property
+    def google_enabled(self) -> bool:
+        return bool(self.GOOGLE_CLIENT_ID and self.GOOGLE_CLIENT_SECRET)
+
 
 @lru_cache
 def get_settings() -> Settings:

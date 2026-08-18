@@ -14,6 +14,7 @@ from app.modules.employees import models as _employee_models  # noqa: F401
 from app.modules.jobs import models as _job_models  # noqa: F401
 from app.modules.candidates import models as _candidate_models  # noqa: F401
 from app.modules.interviews import models as _interview_models  # noqa: F401
+from app.modules.integrations import models as _integration_models  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().DATABASE_URL)

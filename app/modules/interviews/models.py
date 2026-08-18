@@ -26,6 +26,9 @@ class Interview(Base, TimestampMixin):
     )
     scheduled_at: Mapped[datetime] = mapped_column(DateTime)
     location_or_link: Mapped[str | None] = mapped_column(String(500))
+    # Populated when synced to Google Calendar.
+    google_event_id: Mapped[str | None] = mapped_column(String(255))
+    meeting_link: Mapped[str | None] = mapped_column(String(500))
     status: Mapped[InterviewStatus] = mapped_column(
         SAEnum(InterviewStatus, name="interview_status"),
         default=InterviewStatus.SCHEDULED,
