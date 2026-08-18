@@ -16,7 +16,7 @@ export const NAV_SECTIONS = [
     items: [
       { to: '/jobs', label: 'Jobs', icon: Briefcase, permission: PERMISSIONS.JOBS_VIEW },
       { to: '/candidates', label: 'Candidates', icon: Users, permission: PERMISSIONS.CANDIDATES_VIEW },
-      { to: '/interviews', label: 'Interviews', icon: CalendarClock, permission: PERMISSIONS.INTERVIEWS_VIEW, soon: true, badge: { text: 'Soon', variant: 'new' } },
+      { to: '/interviews', label: 'Interviews', icon: CalendarClock, permission: PERMISSIONS.INTERVIEWS_VIEW },
     ],
   },
   {

@@ -52,6 +52,7 @@ export function can(user, permission) {
  */
 export function landingPathFor(user) {
   if (can(user, PERMISSIONS.JOBS_VIEW)) return '/jobs'
+  if (can(user, PERMISSIONS.INTERVIEWS_VIEW)) return '/interviews'
   if (can(user, PERMISSIONS.USERS_MANAGE)) return '/users'
   return '/coming-soon'
 }
