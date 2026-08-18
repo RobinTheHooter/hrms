@@ -55,7 +55,11 @@ export function NotifyDialog({ open, onOpenChange, candidate }) {
     }
   }
 
+  // Always feed the Select a value that matches an existing item.
+  const selectedKey = key || templates[0]?.key || ''
+
   const send = () => {
+    if (!candidate) return
     notify.mutate(
       { id: candidate.id, payload: { subject, body } },
       {
@@ -68,6 +72,8 @@ export function NotifyDialog({ open, onOpenChange, candidate }) {
       },
     )
   }
+
+  if (!candidate) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,7 +96,7 @@ export function NotifyDialog({ open, onOpenChange, candidate }) {
           <div className="space-y-4">
             <div>
               <Label className="mb-1">Template</Label>
-              <Select value={key} onValueChange={pick}>
+              <Select value={selectedKey} onValueChange={pick}>
                 <SelectTrigger><SelectValue placeholder="Choose a template" /></SelectTrigger>
                 <SelectContent>
                   {templates.length === 0 ? (
