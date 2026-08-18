@@ -1,4 +1,6 @@
 """Best-effort automated candidate emails (never block the caller)."""
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
@@ -8,6 +10,7 @@ from app.modules.notifications.models import EmailLog
 from app.modules.notifications.templates import build_templates
 
 settings = get_settings()
+logger = logging.getLogger("hrms.notifications")
 
 
 async def send_candidate_template(
@@ -26,7 +29,8 @@ async def send_candidate_template(
 
     try:
         await send_email(candidate.email, template["subject"], template["body"])
-    except Exception:
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Auto-email to %s failed: %s", candidate.email, exc)
         return False
 
     db.add(
