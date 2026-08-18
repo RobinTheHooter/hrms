@@ -29,3 +29,19 @@ class EmployeeStatus(StrEnum):
 class JobStatus(StrEnum):
     OPEN = "open"
     CLOSED = "closed"
+
+
+class CandidateSource(StrEnum):
+    APPLIED = "applied"
+    REFERRAL = "referral"
+    SOURCED = "sourced"
+    AGENCY = "agency"
+
+
+class CandidateStage(StrEnum):
+    APPLIED = "applied"
+    SCREENING = "screening"
+    INTERVIEW = "interview"
+    OFFER = "offer"
+    HIRED = "hired"
+    REJECTED = "rejected"
