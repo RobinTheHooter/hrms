@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
+from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
@@ -15,8 +16,14 @@ from app.modules.candidates.schemas import (
     CandidateUpdate,
 )
 from app.modules.candidates.service import CandidateService
+from app.modules.notifications.service import NotificationService
 
 router = APIRouter(prefix="/candidates", tags=["candidates"])
+
+
+class NotifyIn(BaseModel):
+    subject: str = Field(min_length=1, max_length=300)
+    body: str = Field(min_length=1)
 
 ViewUser = Annotated[User, Depends(require_permission(Permission.CANDIDATES_VIEW))]
 ManageUser = Annotated[User, Depends(require_permission(Permission.CANDIDATES_MANAGE))]
@@ -74,3 +81,24 @@ async def delete_candidate(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
     await CandidateService(db).delete(candidate_id, current_user)
+
+
+@router.get("/{candidate_id}/email-templates")
+async def candidate_email_templates(
+    candidate_id: int,
+    current_user: ManageUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    return await NotificationService(db).templates(candidate_id, current_user)
+
+
+@router.post("/{candidate_id}/notify", status_code=status.HTTP_204_NO_CONTENT)
+async def notify_candidate(
+    candidate_id: int,
+    data: NotifyIn,
+    current_user: ManageUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    await NotificationService(db).notify(
+        candidate_id, data.subject, data.body, current_user
+    )

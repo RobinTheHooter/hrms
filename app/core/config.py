@@ -60,6 +60,19 @@ class Settings(BaseSettings):
     def google_enabled(self) -> bool:
         return bool(self.GOOGLE_CLIENT_ID and self.GOOGLE_CLIENT_SECRET)
 
+    # Email (SMTP) — works with Resend, Mailtrap, Gmail, SendGrid, etc.
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_STARTTLS: bool = True
+    EMAIL_FROM: str = ""
+    EMAIL_FROM_NAME: str = "Recruitment Team"
+
+    @property
+    def email_enabled(self) -> bool:
+        return bool(self.SMTP_HOST and self.EMAIL_FROM)
+
 
 @lru_cache
 def get_settings() -> Settings:

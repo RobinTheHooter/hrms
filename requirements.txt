@@ -8,4 +8,5 @@ pydantic-settings
 bcrypt
 pyjwt
 httpx
+aiosmtplib
 python-multipart
