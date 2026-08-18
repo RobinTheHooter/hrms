@@ -8,11 +8,27 @@ import {
 import {
   createCandidate,
   deleteCandidate,
+  getEmailTemplates,
   listCandidates,
+  notifyCandidate,
   updateCandidate,
 } from '@/features/candidates/api'
 
 const KEY = ['candidates']
+
+export function useEmailTemplates(candidateId, enabled) {
+  return useQuery({
+    queryKey: ['candidate-email-templates', candidateId],
+    queryFn: () => getEmailTemplates(candidateId),
+    enabled: Boolean(candidateId && enabled),
+  })
+}
+
+export function useNotifyCandidate() {
+  return useMutation({
+    mutationFn: ({ id, payload }) => notifyCandidate(id, payload),
+  })
+}
 
 export function useCandidates(params) {
   return useQuery({

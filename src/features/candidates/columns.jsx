@@ -1,4 +1,4 @@
-import { FileText, Pencil, Trash2 } from 'lucide-react'
+import { FileText, Mail, Pencil, Trash2 } from 'lucide-react'
 
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -18,6 +18,7 @@ export function getCandidateColumns({
   onEdit,
   onDelete,
   onStageChange,
+  onNotify,
   canManage,
   options,
 }) {
@@ -124,6 +125,14 @@ export function getCandidateColumns({
       header: '',
       cell: ({ row }) => (
         <div className="flex justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            title="Notify candidate"
+            onClick={() => onNotify(row.original)}
+          >
+            <Mail className="size-4" />
+          </Button>
           <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)}>
             <Pencil className="size-4" />
           </Button>

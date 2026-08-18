@@ -26,3 +26,12 @@ export async function updateCandidate(id, payload) {
 export async function deleteCandidate(id) {
   await apiClient.delete(`/candidates/${id}`)
 }
+
+export async function getEmailTemplates(id) {
+  const { data } = await apiClient.get(`/candidates/${id}/email-templates`)
+  return data // { enabled, candidate_email, templates: [{ key, label, subject, body }] }
+}
+
+export async function notifyCandidate(id, payload) {
+  await apiClient.post(`/candidates/${id}/notify`, payload)
+}

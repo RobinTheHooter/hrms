@@ -18,6 +18,7 @@ import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { getCandidateColumns } from '@/features/candidates/columns'
 import { CandidateFormDialog } from '@/features/candidates/components/CandidateFormDialog'
+import { NotifyDialog } from '@/features/candidates/components/NotifyDialog'
 import {
   useCandidates,
   useCreateCandidate,
@@ -61,6 +62,7 @@ export function CandidatesPage() {
   const [stage, setStage] = useState('all')
   const [jobId, setJobId] = useState('all')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', candidate: null })
+  const [notify, setNotify] = useState({ open: false, candidate: null })
 
   const { data: jobsPage } = useJobs({ page: 1, size: 100 })
   const jobs = jobsPage?.items ?? []
@@ -80,6 +82,7 @@ export function CandidatesPage() {
   const openCreate = () => setDialog({ open: true, mode: 'create', candidate: null })
   const openEdit = (candidate) => setDialog({ open: true, mode: 'edit', candidate })
   const closeDialog = () => setDialog((d) => ({ ...d, open: false }))
+  const openNotify = (candidate) => setNotify({ open: true, candidate })
 
   const resetPage = () => setPagination((p) => ({ ...p, pageIndex: 0 }))
 
@@ -130,6 +133,7 @@ export function CandidatesPage() {
         onEdit: openEdit,
         onDelete: handleDelete,
         onStageChange: handleStageChange,
+        onNotify: openNotify,
         canManage,
         options,
       }),
@@ -226,6 +230,14 @@ export function CandidatesPage() {
           }
           onSubmit={handleSubmit}
           isSubmitting={createMut.isPending || updateMut.isPending}
+        />
+      )}
+
+      {canManage && (
+        <NotifyDialog
+          open={notify.open}
+          onOpenChange={(open) => setNotify((n) => ({ ...n, open }))}
+          candidate={notify.candidate}
         />
       )}
     </div>
