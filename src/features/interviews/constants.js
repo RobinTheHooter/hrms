@@ -27,6 +27,21 @@ export const formatWhen = (iso) => {
 // datetime-local expects "YYYY-MM-DDTHH:MM" — which the stored value already is.
 export const toLocalInput = (iso) => (iso ? iso.slice(0, 16) : '')
 
+// Current moment as an IST "YYYY-MM-DDTHH:MM" string, for the picker's min.
+export function nowInputIST() {
+  const p = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(new Date())
+  const g = (t) => p.find((x) => x.type === t)?.value
+  return `${g('year')}-${g('month')}-${g('day')}T${g('hour')}:${g('minute')}`
+}
+
 const pad = (n) => String(n).padStart(2, '0')
 const gcalStamp = (d) =>
   `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`

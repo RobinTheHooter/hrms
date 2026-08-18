@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useCandidates } from '@/features/candidates/hooks'
+import { nowInputIST } from '@/features/interviews/constants'
 import { useAvailability, useHiringManagers } from '@/features/interviews/hooks'
 import { useOptions } from '@/features/meta/hooks'
 
@@ -196,7 +197,7 @@ export function InterviewScheduleDialog({
           </Field>
 
           <Field label="Date & time (IST)" error={errors.scheduled_at}>
-            <Input type="datetime-local" {...register('scheduled_at')} />
+            <Input type="datetime-local" min={nowInputIST()} {...register('scheduled_at')} />
           </Field>
           <Field label="Location / meeting link" error={errors.location_or_link}>
             <Input placeholder="https://… or office address" {...register('location_or_link')} />
