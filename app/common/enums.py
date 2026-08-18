@@ -24,3 +24,8 @@ class EmployeeStatus(StrEnum):
     PROBATION = "probation"
     ON_LEAVE = "on_leave"
     TERMINATED = "terminated"
+
+
+class JobStatus(StrEnum):
+    OPEN = "open"
+    CLOSED = "closed"
