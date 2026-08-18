@@ -33,3 +33,11 @@ export async function listHiringManagers() {
   })
   return data // [{ id, full_name }]
 }
+
+/** A manager's busy blocks for a given date (YYYY-MM-DD). */
+export async function getAvailability(managerId, date) {
+  const { data } = await apiClient.get('/interviews/availability', {
+    params: { manager_id: managerId, date },
+  })
+  return data // { connected, busy: [{ start, end }] }
+}

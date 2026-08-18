@@ -7,6 +7,7 @@ import {
 
 import {
   deleteInterview,
+  getAvailability,
   listHiringManagers,
   listInterviews,
   recordOutcome,
@@ -15,6 +16,14 @@ import {
 } from '@/features/interviews/api'
 
 const KEY = ['interviews']
+
+export function useAvailability(managerId, date) {
+  return useQuery({
+    queryKey: ['availability', managerId, date],
+    queryFn: () => getAvailability(managerId, date),
+    enabled: Boolean(managerId && date),
+  })
+}
 
 export function useInterviews(params) {
   return useQuery({
