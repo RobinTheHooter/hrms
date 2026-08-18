@@ -1,4 +1,6 @@
+from datetime import date as date_type, datetime, time
 from typing import Annotated
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,9 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.acl import Permission
 from app.common.enums import InterviewStatus
 from app.common.pagination import Page, PageParams
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.modules.auth.dependencies import require_permission
 from app.modules.auth.models import User
+from app.modules.integrations.calendar import GoogleCalendarService
 from app.modules.interviews.schemas import (
     InterviewCreate,
     InterviewOutcomeUpdate,
@@ -16,6 +20,8 @@ from app.modules.interviews.schemas import (
     InterviewUpdate,
 )
 from app.modules.interviews.service import InterviewService
+
+settings = get_settings()
 
 router = APIRouter(prefix="/interviews", tags=["interviews"])
 
@@ -48,6 +54,23 @@ async def schedule_interview(
 ) -> InterviewRead:
     interview = await InterviewService(db).create(data, current_user)
     return InterviewRead.model_validate(interview)
+
+
+@router.get("/availability")
+async def availability(
+    current_user: ScheduleUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    manager_id: int = Query(...),
+    day: date_type = Query(..., alias="date"),
+) -> dict:
+    """A hiring manager's busy blocks for a day (IST), from Google FreeBusy."""
+    tz = ZoneInfo(settings.APP_TIMEZONE)
+    start = datetime.combine(day, time(0, 0), tzinfo=tz)
+    end = datetime.combine(day, time(23, 59, 59), tzinfo=tz)
+    busy = await GoogleCalendarService(db).free_busy(
+        manager_id, start.isoformat(), end.isoformat(), settings.APP_TIMEZONE
+    )
+    return {"connected": busy is not None, "busy": busy or []}
 
 
 @router.get("/{interview_id}", response_model=InterviewRead)

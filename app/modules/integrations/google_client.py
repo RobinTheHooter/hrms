@@ -74,6 +74,16 @@ async def fetch_userinfo(access_token: str) -> dict:
 CALENDAR_EVENTS_URL = (
     "https://www.googleapis.com/calendar/v3/calendars/primary/events"
 )
+FREEBUSY_URL = "https://www.googleapis.com/calendar/v3/freeBusy"
+
+
+async def free_busy(access_token: str, body: dict) -> dict:
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.post(
+            FREEBUSY_URL, json=body, headers=_auth(access_token)
+        )
+        resp.raise_for_status()
+        return resp.json()
 
 
 def _auth(access_token: str) -> dict:

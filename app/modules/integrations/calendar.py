@@ -87,6 +87,24 @@ class GoogleCalendarService:
             return (event_id, None)
         return (event_id, ev.get("hangoutLink") or ev.get("htmlLink"))
 
+    async def free_busy(self, manager_id, time_min, time_max, tz) -> list | None:
+        """Return the manager's busy blocks, or None if not connected/error."""
+        token = await self._access_token(manager_id)
+        if not token:
+            return None
+        body = {
+            "timeMin": time_min,
+            "timeMax": time_max,
+            "timeZone": tz,
+            "items": [{"id": "primary"}],
+        }
+        try:
+            data = await google_client.free_busy(token, body)
+        except Exception:
+            return None
+        cal = (data.get("calendars") or {}).get("primary") or {}
+        return cal.get("busy", [])
+
     async def delete_event_for(self, manager_id, event_id) -> None:
         token = await self._access_token(manager_id)
         if not token:
