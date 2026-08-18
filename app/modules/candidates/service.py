@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.enums import CandidateStage, UserRole
 from app.common.exceptions import NotFoundError, PermissionError
 from app.common.pagination import Page, PageParams
+from app.core.config import get_settings
 from app.modules.auth.models import User
 from app.modules.candidates.models import Candidate
 from app.modules.candidates.repository import CandidateRepository
@@ -12,6 +13,9 @@ from app.modules.candidates.schemas import (
     CandidateUpdate,
 )
 from app.modules.jobs.models import Job
+from app.modules.notifications.auto import send_candidate_template
+
+settings = get_settings()
 
 
 class CandidateService:
@@ -73,7 +77,18 @@ class CandidateService:
         job = await self._job_or_404(data.job_id)
         self._assert_can_touch_job(job, user)
         candidate = Candidate(**data.model_dump(), created_by_id=user.id)
-        return await self.repo.create(candidate)
+        candidate = await self.repo.create(candidate)
+
+        # Auto-acknowledge new applicants (best-effort, config-gated).
+        if (
+            settings.email_enabled
+            and settings.AUTO_EMAIL_APPLICATION_RECEIVED
+            and candidate.stage == CandidateStage.APPLIED
+        ):
+            await send_candidate_template(
+                self.db, candidate, "application_received", user.id
+            )
+        return candidate
 
     async def update(
         self, candidate_id: int, data: CandidateUpdate, user: User

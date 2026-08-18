@@ -68,6 +68,8 @@ class Settings(BaseSettings):
     SMTP_STARTTLS: bool = True
     EMAIL_FROM: str = ""
     EMAIL_FROM_NAME: str = "Recruitment Team"
+    # Auto-send the "application received" acknowledgment on new candidates.
+    AUTO_EMAIL_APPLICATION_RECEIVED: bool = True
 
     @property
     def email_enabled(self) -> bool:
