@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     # Frontend base URL (used for OAuth redirects back into the app)
     FRONTEND_URL: str = "http://localhost:5173"
 
+    # Timezone used for calendar events (IANA name).
+    APP_TIMEZONE: str = "Asia/Kolkata"
+    INTERVIEW_DURATION_MINUTES: int = 60
+
     # Google Calendar integration (optional; features are gated on these)
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""

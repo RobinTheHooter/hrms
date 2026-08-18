@@ -8,8 +8,12 @@ from app.common.enums import (
 )
 from app.common.exceptions import NotFoundError, PermissionError
 from app.common.pagination import Page, PageParams
+from app.core.config import get_settings
 from app.modules.auth.models import User
 from app.modules.candidates.models import Candidate
+from app.modules.integrations.calendar import GoogleCalendarService
+
+settings = get_settings()
 from app.modules.interviews.models import Interview
 from app.modules.interviews.repository import InterviewRepository
 from app.modules.interviews.schemas import (
@@ -86,14 +90,76 @@ class InterviewService:
         # Move the candidate into the interview stage.
         if candidate.stage in (CandidateStage.APPLIED, CandidateStage.SCREENING):
             candidate.stage = CandidateStage.INTERVIEW
+
+        # Sync to the manager's Google Calendar (best-effort).
+        if settings.google_enabled and interview.hiring_manager_id:
+            eid, link = await GoogleCalendarService(self.db).create_event_for(
+                interview.hiring_manager_id, **self._event_data(interview, candidate)
+            )
+            if eid:
+                interview.google_event_id = eid
+                interview.meeting_link = link
         return interview
+
+    def _event_data(self, interview: Interview, candidate: Candidate) -> dict:
+        job_title = candidate.job.title if candidate.job else ""
+        summary = f"Interview: {candidate.full_name}"
+        if job_title:
+            summary += f" — {job_title}"
+        return {
+            "summary": summary,
+            "description": interview.notes or "",
+            "start_dt": interview.scheduled_at,
+            "mode": interview.mode,
+            "location": interview.location_or_link,
+            "attendee_emails": [candidate.email],
+        }
+
+    async def _sync_update(
+        self, interview: Interview, old_manager_id, old_event_id
+    ) -> None:
+        svc = GoogleCalendarService(self.db)
+        new_manager = interview.hiring_manager_id
+        data = self._event_data(interview, interview.candidate)
+
+        if interview.status == InterviewStatus.CANCELLED:
+            if old_event_id and old_manager_id:
+                await svc.delete_event_for(old_manager_id, old_event_id)
+            interview.google_event_id = None
+            interview.meeting_link = None
+            return
+
+        if old_event_id and old_manager_id == new_manager:
+            _, link = await svc.update_event_for(new_manager, old_event_id, **data)
+            if link:
+                interview.meeting_link = link
+        elif old_event_id and old_manager_id != new_manager:
+            if old_manager_id:
+                await svc.delete_event_for(old_manager_id, old_event_id)
+            if new_manager:
+                eid, link = await svc.create_event_for(new_manager, **data)
+                interview.google_event_id = eid
+                interview.meeting_link = link
+            else:
+                interview.google_event_id = None
+                interview.meeting_link = None
+        elif not old_event_id and new_manager:
+            eid, link = await svc.create_event_for(new_manager, **data)
+            interview.google_event_id = eid
+            interview.meeting_link = link
 
     async def update(
         self, interview_id: int, data: InterviewUpdate, user: User
     ) -> Interview:
         interview = await self.get(interview_id, user)
+        old_manager_id = interview.hiring_manager_id
+        old_event_id = interview.google_event_id
+
         for field, value in data.model_dump(exclude_unset=True).items():
             setattr(interview, field, value)
+
+        if settings.google_enabled:
+            await self._sync_update(interview, old_manager_id, old_event_id)
         return interview
 
     async def record_outcome(
@@ -115,4 +181,12 @@ class InterviewService:
 
     async def delete(self, interview_id: int, user: User) -> None:
         interview = await self.get(interview_id, user)
+        if (
+            settings.google_enabled
+            and interview.google_event_id
+            and interview.hiring_manager_id
+        ):
+            await GoogleCalendarService(self.db).delete_event_for(
+                interview.hiring_manager_id, interview.google_event_id
+            )
         await self.repo.delete(interview)

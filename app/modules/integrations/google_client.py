@@ -67,3 +67,50 @@ async def fetch_userinfo(access_token: str) -> dict:
         )
         resp.raise_for_status()
         return resp.json()
+
+
+# ------------------------------ Calendar events ------------------------------
+
+CALENDAR_EVENTS_URL = (
+    "https://www.googleapis.com/calendar/v3/calendars/primary/events"
+)
+
+
+def _auth(access_token: str) -> dict:
+    return {"Authorization": f"Bearer {access_token}"}
+
+
+async def create_event(access_token: str, body: dict, *, conference: bool = False) -> dict:
+    params = {"sendUpdates": "all"}
+    if conference:
+        params["conferenceDataVersion"] = 1
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.post(
+            CALENDAR_EVENTS_URL, params=params, json=body, headers=_auth(access_token)
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+
+async def patch_event(access_token: str, event_id: str, body: dict) -> dict:
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.patch(
+            f"{CALENDAR_EVENTS_URL}/{event_id}",
+            params={"sendUpdates": "all"},
+            json=body,
+            headers=_auth(access_token),
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+
+async def delete_event(access_token: str, event_id: str) -> None:
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.delete(
+            f"{CALENDAR_EVENTS_URL}/{event_id}",
+            params={"sendUpdates": "all"},
+            headers=_auth(access_token),
+        )
+        # 404/410 = already gone; treat as success.
+        if resp.status_code not in (200, 204, 404, 410):
+            resp.raise_for_status()

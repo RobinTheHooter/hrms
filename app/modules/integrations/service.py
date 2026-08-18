@@ -58,9 +58,11 @@ class GoogleIntegrationService:
 
         cred.google_email = info.get("email")
         cred.access_token = tokens.get("access_token")
-        cred.token_expiry = datetime.now(timezone.utc) + timedelta(
-            seconds=int(tokens.get("expires_in", 3600))
-        )
+        # Column is TIMESTAMP WITHOUT TIME ZONE, so store a naive UTC value.
+        cred.token_expiry = (
+            datetime.now(timezone.utc)
+            + timedelta(seconds=int(tokens.get("expires_in", 3600)))
+        ).replace(tzinfo=None)
         cred.scope = tokens.get("scope")
         # Google only returns refresh_token on first consent; keep existing otherwise.
         if tokens.get("refresh_token"):
