@@ -51,6 +51,7 @@ export function can(user, permission) {
  * on User Management and everyone else on a placeholder until we ship them.
  */
 export function landingPathFor(user) {
+  if (can(user, PERMISSIONS.JOBS_VIEW)) return '/jobs'
   if (can(user, PERMISSIONS.USERS_MANAGE)) return '/users'
   return '/coming-soon'
 }

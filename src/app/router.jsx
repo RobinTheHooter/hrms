@@ -6,6 +6,7 @@ import { PERMISSIONS, can, landingPathFor } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { useAuthStore } from '@/features/auth/store'
+import { JobsPage } from '@/features/jobs/pages/JobsPage'
 import { ComingSoonPage } from '@/features/misc/ComingSoonPage'
 import { ForbiddenPage } from '@/features/misc/ForbiddenPage'
 import { UsersPage } from '@/features/users/pages/UsersPage'
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           { path: '/', element: <RoleHome /> },
+          { path: '/jobs', element: guarded(PERMISSIONS.JOBS_VIEW, <JobsPage />) },
           { path: '/users', element: guarded(PERMISSIONS.USERS_MANAGE, <UsersPage />) },
           { path: '/coming-soon', element: <ComingSoonPage /> },
         ],
