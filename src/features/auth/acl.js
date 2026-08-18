@@ -51,8 +51,7 @@ export function can(user, permission) {
  * on User Management and everyone else on a placeholder until we ship them.
  */
 export function landingPathFor(user) {
-  if (can(user, PERMISSIONS.JOBS_VIEW)) return '/jobs'
-  if (can(user, PERMISSIONS.INTERVIEWS_VIEW)) return '/interviews'
-  if (can(user, PERMISSIONS.USERS_MANAGE)) return '/users'
+  // Everyone with any ATS access lands on the adaptive dashboard.
+  if (user?.role && user.role !== 'candidate') return '/dashboard'
   return '/coming-soon'
 }

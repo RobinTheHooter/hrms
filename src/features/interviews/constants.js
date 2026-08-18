@@ -26,3 +26,30 @@ export const formatWhen = (iso) => {
 
 // datetime-local expects "YYYY-MM-DDTHH:MM" — which the stored value already is.
 export const toLocalInput = (iso) => (iso ? iso.slice(0, 16) : '')
+
+const pad = (n) => String(n).padStart(2, '0')
+const gcalStamp = (d) =>
+  `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`
+
+/**
+ * Build a Google Calendar "add event" link. `scheduledAt` is a naive IST
+ * wall-clock string; we tag the link with ctz=Asia/Kolkata so Google reads
+ * the times as IST. Default duration 60 min.
+ */
+export function googleCalendarUrl({ title, scheduledAt, details, location }) {
+  const [datePart, timePart = ''] = (scheduledAt || '').split('T')
+  const [y, mo, da] = datePart.split('-').map(Number)
+  const [hh, mi] = timePart.split(':').map(Number)
+  const start = new Date(y, (mo || 1) - 1, da || 1, hh || 0, mi || 0, 0)
+  const end = new Date(start.getTime() + 60 * 60 * 1000)
+
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title || 'Interview',
+    dates: `${gcalStamp(start)}/${gcalStamp(end)}`,
+    ctz: 'Asia/Kolkata',
+  })
+  if (details) params.set('details', details)
+  if (location) params.set('location', location)
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
+}

@@ -7,6 +7,7 @@ import { useCurrentUser } from '@/features/auth/hooks'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { useAuthStore } from '@/features/auth/store'
 import { CandidatesPage } from '@/features/candidates/pages/CandidatesPage'
+import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { IntegrationsPage } from '@/features/integrations/pages/IntegrationsPage'
 import { InterviewsPage } from '@/features/interviews/pages/InterviewsPage'
 import { JobsPage } from '@/features/jobs/pages/JobsPage'
@@ -65,6 +66,7 @@ export const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           { path: '/', element: <RoleHome /> },
+          { path: '/dashboard', element: <DashboardPage /> },
           { path: '/jobs', element: guarded(PERMISSIONS.JOBS_VIEW, <JobsPage />) },
           { path: '/candidates', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidatesPage />) },
           { path: '/interviews', element: guarded(PERMISSIONS.INTERVIEWS_VIEW, <InterviewsPage />) },

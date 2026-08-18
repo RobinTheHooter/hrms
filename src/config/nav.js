@@ -1,6 +1,7 @@
 import {
   Briefcase,
   CalendarClock,
+  LayoutDashboard,
   Plug,
   ShieldCheck,
   Users,
@@ -12,6 +13,13 @@ import { PERMISSIONS } from '@/features/auth/acl'
 // `soon: true` items are placeholders that route to the "coming soon" page
 // until the ATS screens are built.
 export const NAV_SECTIONS = [
+  {
+    label: 'Overview',
+    items: [
+      // No permission -> visible to every signed-in user.
+      { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ],
+  },
   {
     label: 'Recruitment',
     items: [
