@@ -6,18 +6,23 @@ import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
+  SelectEmpty,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  CANDIDATE_SOURCES,
-  CANDIDATE_STAGES,
-  labelOf,
-  stageMeta,
-} from '@/features/candidates/constants'
+import { stageVariant } from '@/features/candidates/constants'
+import { optionLabel } from '@/features/meta/hooks'
 
-export function getCandidateColumns({ onEdit, onDelete, onStageChange, canManage }) {
+export function getCandidateColumns({
+  onEdit,
+  onDelete,
+  onStageChange,
+  canManage,
+  options,
+}) {
+  const stages = options?.candidate_stages ?? []
+
   const columns = [
     {
       accessorKey: 'full_name',
@@ -54,7 +59,9 @@ export function getCandidateColumns({ onEdit, onDelete, onStageChange, canManage
       accessorKey: 'source',
       header: 'Source',
       cell: ({ getValue }) => (
-        <Badge variant="secondary">{labelOf(CANDIDATE_SOURCES, getValue())}</Badge>
+        <Badge variant="secondary">
+          {optionLabel(options?.candidate_sources, getValue())}
+        </Badge>
       ),
     },
     {
@@ -63,8 +70,11 @@ export function getCandidateColumns({ onEdit, onDelete, onStageChange, canManage
       cell: ({ row }) => {
         const value = row.original.stage
         if (!canManage) {
-          const m = stageMeta(value)
-          return <Badge variant={m.variant}>{m.label}</Badge>
+          return (
+            <Badge variant={stageVariant(value)}>
+              {optionLabel(stages, value)}
+            </Badge>
+          )
         }
         return (
           <Select
@@ -75,11 +85,15 @@ export function getCandidateColumns({ onEdit, onDelete, onStageChange, canManage
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {CANDIDATE_STAGES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
+              {stages.length === 0 ? (
+                <SelectEmpty>No stages found</SelectEmpty>
+              ) : (
+                stages.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         )

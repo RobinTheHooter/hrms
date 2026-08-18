@@ -3,9 +3,10 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { roleBadgeVariant, roleLabel } from '@/features/users/constants'
+import { roleBadgeVariant } from '@/features/users/constants'
+import { optionLabel } from '@/features/meta/hooks'
 
-export function getUserColumns({ onEdit, onDelete, currentUserId }) {
+export function getUserColumns({ onEdit, onDelete, currentUserId, options }) {
   return [
     {
       accessorKey: 'full_name',
@@ -33,7 +34,7 @@ export function getUserColumns({ onEdit, onDelete, currentUserId }) {
       header: 'Role',
       cell: ({ getValue }) => (
         <Badge variant={roleBadgeVariant[getValue()] ?? 'secondary'}>
-          {roleLabel(getValue())}
+          {optionLabel(options?.user_roles, getValue())}
         </Badge>
       ),
     },

@@ -17,21 +17,22 @@ import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
+  SelectEmpty,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { EMPLOYMENT_TYPES, JOB_STATUSES } from '@/features/jobs/constants'
 import { useConsultants } from '@/features/jobs/hooks'
+import { useOptions } from '@/features/meta/hooks'
 
 const schema = z.object({
   title: z.string().min(1, 'Required'),
   department: z.string().optional().or(z.literal('')),
   location: z.string().optional().or(z.literal('')),
-  employment_type: z.enum(['full_time', 'part_time', 'contract', 'intern']),
+  employment_type: z.string().min(1, 'Required'),
   positions: z.coerce.number().int().min(1, 'Min 1').max(999),
-  status: z.enum(['open', 'closed']),
+  status: z.string().min(1, 'Required'),
   assigned_consultant_id: z.string(), // 'none' or numeric string
   description: z.string().optional().or(z.literal('')),
 })
@@ -66,6 +67,9 @@ export function JobFormDialog({
   mode = 'create',
 }) {
   const { data: consultants = [] } = useConsultants()
+  const { data: options } = useOptions()
+  const employmentTypes = options?.employment_types ?? []
+  const jobStatuses = options?.job_statuses ?? []
   const {
     register,
     handleSubmit,
@@ -122,9 +126,13 @@ export function JobFormDialog({
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {EMPLOYMENT_TYPES.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
+                    {employmentTypes.length === 0 ? (
+                      <SelectEmpty>No types found</SelectEmpty>
+                    ) : (
+                      employmentTypes.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               )}
@@ -139,9 +147,13 @@ export function JobFormDialog({
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {JOB_STATUSES.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
+                    {jobStatuses.length === 0 ? (
+                      <SelectEmpty>No statuses found</SelectEmpty>
+                    ) : (
+                      jobStatuses.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               )}
@@ -157,11 +169,15 @@ export function JobFormDialog({
                   <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Unassigned</SelectItem>
-                    {consultants.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>
-                        {c.full_name}
-                      </SelectItem>
-                    ))}
+                    {consultants.length === 0 ? (
+                      <SelectEmpty>No consultants found</SelectEmpty>
+                    ) : (
+                      consultants.map((c) => (
+                        <SelectItem key={c.id} value={String(c.id)}>
+                          {c.full_name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               )}

@@ -18,7 +18,6 @@ import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { getCandidateColumns } from '@/features/candidates/columns'
 import { CandidateFormDialog } from '@/features/candidates/components/CandidateFormDialog'
-import { CANDIDATE_STAGES } from '@/features/candidates/constants'
 import {
   useCandidates,
   useCreateCandidate,
@@ -26,6 +25,7 @@ import {
   useUpdateCandidate,
 } from '@/features/candidates/hooks'
 import { useJobs } from '@/features/jobs/hooks'
+import { useOptions } from '@/features/meta/hooks'
 
 const errorMessage = (e, fallback) =>
   e?.response?.data?.detail ??
@@ -53,6 +53,7 @@ function toFormValues(c) {
 
 export function CandidatesPage() {
   const { data: user } = useCurrentUser()
+  const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
 
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
@@ -130,9 +131,10 @@ export function CandidatesPage() {
         onDelete: handleDelete,
         onStageChange: handleStageChange,
         canManage,
+        options,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canManage],
+    [canManage, options],
   )
 
   return (
@@ -173,7 +175,7 @@ export function CandidatesPage() {
             <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All stages</SelectItem>
-              {CANDIDATE_STAGES.map((s) => (
+              {(options?.candidate_stages ?? []).map((s) => (
                 <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
               ))}
             </SelectContent>

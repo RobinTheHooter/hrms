@@ -17,16 +17,14 @@ import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
+  SelectEmpty,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  CANDIDATE_SOURCES,
-  CANDIDATE_STAGES,
-} from '@/features/candidates/constants'
 import { useJobs } from '@/features/jobs/hooks'
+import { useOptions } from '@/features/meta/hooks'
 
 const schema = z.object({
   job_id: z.string().min(1, 'Select a job'),
@@ -36,12 +34,12 @@ const schema = z.object({
   current_role: z.string().optional().or(z.literal('')),
   experience_years: z.string().optional().or(z.literal('')),
   skills: z.string().optional().or(z.literal('')),
-  source: z.enum(['applied', 'referral', 'sourced', 'agency']),
+  source: z.string().min(1, 'Required'),
   current_ctc: z.string().optional().or(z.literal('')),
   expected_ctc: z.string().optional().or(z.literal('')),
   notice_period_days: z.string().optional().or(z.literal('')),
   resume_url: z.string().optional().or(z.literal('')),
-  stage: z.enum(['applied', 'screening', 'interview', 'offer', 'hired', 'rejected']),
+  stage: z.string().min(1, 'Required'),
   notes: z.string().optional().or(z.literal('')),
 })
 
@@ -85,6 +83,9 @@ export function CandidateFormDialog({
   const isEdit = mode === 'edit'
   const { data: jobsPage } = useJobs({ page: 1, size: 100 })
   const jobs = jobsPage?.items ?? []
+  const { data: options } = useOptions()
+  const sources = options?.candidate_sources ?? []
+  const stages = options?.candidate_stages ?? []
 
   const {
     register,
@@ -143,12 +144,16 @@ export function CandidateFormDialog({
                     <SelectValue placeholder="Select a job" />
                   </SelectTrigger>
                   <SelectContent>
-                    {jobs.map((j) => (
-                      <SelectItem key={j.id} value={String(j.id)}>
-                        {j.title}
-                        {j.department ? ` · ${j.department}` : ''}
-                      </SelectItem>
-                    ))}
+                    {jobs.length === 0 ? (
+                      <SelectEmpty>No jobs found</SelectEmpty>
+                    ) : (
+                      jobs.map((j) => (
+                        <SelectItem key={j.id} value={String(j.id)}>
+                          {j.title}
+                          {j.department ? ` · ${j.department}` : ''}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               )}
@@ -188,9 +193,13 @@ export function CandidateFormDialog({
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {CANDIDATE_SOURCES.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
+                    {sources.length === 0 ? (
+                      <SelectEmpty>No sources found</SelectEmpty>
+                    ) : (
+                      sources.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               )}
@@ -204,9 +213,13 @@ export function CandidateFormDialog({
                 <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {CANDIDATE_STAGES.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
+                    {stages.length === 0 ? (
+                      <SelectEmpty>No stages found</SelectEmpty>
+                    ) : (
+                      stages.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               )}

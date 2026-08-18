@@ -65,6 +65,20 @@ function SelectItem({ className, children, ...props }) {
   )
 }
 
+/** Empty-state row for a dropdown with no options, e.g. <SelectEmpty>No jobs found</SelectEmpty>. */
+function SelectEmpty({ className, children }) {
+  return (
+    <div
+      className={cn(
+        'px-2 py-4 text-center text-sm text-muted-foreground',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
 export {
   Select,
   SelectGroup,
@@ -72,4 +86,5 @@ export {
   SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectEmpty,
 }

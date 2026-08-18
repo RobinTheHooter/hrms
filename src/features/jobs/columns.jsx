@@ -2,9 +2,10 @@ import { Pencil, Trash2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { EMPLOYMENT_TYPES, JOB_STATUSES, labelOf } from '@/features/jobs/constants'
+import { jobStatusVariant } from '@/features/jobs/constants'
+import { optionLabel } from '@/features/meta/hooks'
 
-export function getJobColumns({ onEdit, onDelete, canManage }) {
+export function getJobColumns({ onEdit, onDelete, canManage, options }) {
   const columns = [
     {
       accessorKey: 'title',
@@ -25,7 +26,9 @@ export function getJobColumns({ onEdit, onDelete, canManage }) {
       accessorKey: 'employment_type',
       header: 'Type',
       cell: ({ getValue }) => (
-        <Badge variant="secondary">{labelOf(EMPLOYMENT_TYPES, getValue())}</Badge>
+        <Badge variant="secondary">
+          {optionLabel(options?.employment_types, getValue())}
+        </Badge>
       ),
     },
     {
@@ -42,8 +45,8 @@ export function getJobColumns({ onEdit, onDelete, canManage }) {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ getValue }) => (
-        <Badge variant={getValue() === 'open' ? 'success' : 'secondary'}>
-          {labelOf(JOB_STATUSES, getValue())}
+        <Badge variant={jobStatusVariant(getValue())}>
+          {optionLabel(options?.job_statuses, getValue())}
         </Badge>
       ),
     },

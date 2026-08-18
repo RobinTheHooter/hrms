@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
+import { useOptions } from '@/features/meta/hooks'
 import { getJobColumns } from '@/features/jobs/columns'
 import { JobFormDialog } from '@/features/jobs/components/JobFormDialog'
 import {
@@ -45,6 +46,7 @@ function toFormValues(job) {
 
 export function JobsPage() {
   const { data: user } = useCurrentUser()
+  const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.JOBS_MANAGE)
 
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
@@ -99,9 +101,9 @@ export function JobsPage() {
   }
 
   const columns = useMemo(
-    () => getJobColumns({ onEdit: openEdit, onDelete: handleDelete, canManage }),
+    () => getJobColumns({ onEdit: openEdit, onDelete: handleDelete, canManage, options }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canManage],
+    [canManage, options],
   )
 
   return (
@@ -144,8 +146,9 @@ export function JobsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
+              {(options?.job_statuses ?? []).map((s) => (
+                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
