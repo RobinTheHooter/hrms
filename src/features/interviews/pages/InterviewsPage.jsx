@@ -16,6 +16,7 @@ import {
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { getInterviewColumns } from '@/features/interviews/columns'
+import { toLocalInput } from '@/features/interviews/constants'
 import { InterviewScheduleDialog } from '@/features/interviews/components/InterviewScheduleDialog'
 import { OutcomeDialog } from '@/features/interviews/components/OutcomeDialog'
 import {
@@ -30,15 +31,6 @@ import { useOptions } from '@/features/meta/hooks'
 const errorMessage = (e, fallback) =>
   e?.response?.data?.detail ??
   (e?.response?.status === 403 ? "You don't have permission." : fallback)
-
-const pad = (n) => String(n).padStart(2, '0')
-const toLocalInput = (iso) => {
-  if (!iso) return ''
-  const d = new Date(iso)
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours(),
-  )}:${pad(d.getMinutes())}`
-}
 
 export function InterviewsPage() {
   const { data: user } = useCurrentUser()

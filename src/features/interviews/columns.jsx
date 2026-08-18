@@ -1,4 +1,4 @@
-import { CalendarClock, CheckCircle2, Pencil, Trash2 } from 'lucide-react'
+import { CalendarClock, CheckCircle2, Pencil, Trash2, Video } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -74,6 +74,23 @@ export function getInterviewColumns({
           {optionLabel(options?.interview_outcomes, getValue())}
         </Badge>
       ),
+    },
+    {
+      id: 'meeting',
+      header: 'Meeting',
+      cell: ({ row }) =>
+        row.original.meeting_link ? (
+          <a
+            href={row.original.meeting_link}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+          >
+            <Video className="size-3.5" /> Join
+          </a>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        ),
     },
   ]
 

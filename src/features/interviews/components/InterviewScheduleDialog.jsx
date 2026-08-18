@@ -177,7 +177,7 @@ export function InterviewScheduleDialog({
             />
           </Field>
 
-          <Field label="Date & time" error={errors.scheduled_at}>
+          <Field label="Date & time (IST)" error={errors.scheduled_at}>
             <Input type="datetime-local" {...register('scheduled_at')} />
           </Field>
           <Field label="Location / meeting link" error={errors.location_or_link}>
