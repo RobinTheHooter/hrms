@@ -9,4 +9,5 @@ bcrypt
 pyjwt
 httpx
 aiosmtplib
+tzdata
 python-multipart
