@@ -1,9 +1,10 @@
 // Mirror backend UserRole (app/common/enums.py).
 export const ROLE_OPTIONS = [
   { value: 'admin', label: 'Admin' },
-  { value: 'hr', label: 'HR' },
-  { value: 'manager', label: 'Manager' },
-  { value: 'employee', label: 'Employee' },
+  { value: 'hr', label: 'HR Admin' },
+  { value: 'consultant', label: 'Consultant' },
+  { value: 'hiring_manager', label: 'Hiring Manager' },
+  { value: 'candidate', label: 'Candidate' },
 ]
 
 export const roleLabel = (value) =>
@@ -12,6 +13,7 @@ export const roleLabel = (value) =>
 export const roleBadgeVariant = {
   admin: 'destructive',
   hr: 'default',
-  manager: 'warning',
-  employee: 'secondary',
+  consultant: 'info',
+  hiring_manager: 'warning',
+  candidate: 'secondary',
 }

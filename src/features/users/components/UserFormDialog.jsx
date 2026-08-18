@@ -33,7 +33,7 @@ const makeSchema = (isEdit) =>
     full_name: z.string().min(1, 'Required'),
     email: z.string().email('Enter a valid email'),
     password: passwordField(!isEdit),
-    role: z.enum(['admin', 'hr', 'manager', 'employee']),
+    role: z.enum(['admin', 'hr', 'consultant', 'hiring_manager', 'candidate']),
     is_active: z.enum(['true', 'false']),
   })
 
