@@ -16,7 +16,7 @@ export function ConsultantBreakdown() {
   return (
     <Panel title="Consultant breakdown" className="lg:col-span-2">
       {isLoading ? (
-        <LoadingBlock className="min-h-[220px] py-0" />
+        <LoadingBlock className="min-h-55 py-0" />
       ) : data.length === 0 ? (
         <p className="py-6 text-sm text-muted-foreground">No consultants yet.</p>
       ) : (
