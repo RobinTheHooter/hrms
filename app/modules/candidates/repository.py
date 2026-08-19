@@ -22,6 +22,8 @@ class CandidateRepository:
         stage: CandidateStage | None = None,
         job_id: int | None = None,
         consultant_id: int | None = None,
+        min_score: int | None = None,
+        sort: str | None = None,
     ) -> tuple[list[Candidate], int]:
         stmt = select(Candidate)
         count_stmt = select(func.count()).select_from(Candidate)
@@ -44,12 +46,16 @@ class CandidateRepository:
         if job_id is not None:
             stmt = stmt.where(Candidate.job_id == job_id)
             count_stmt = count_stmt.where(Candidate.job_id == job_id)
+        if min_score is not None:
+            stmt = stmt.where(Candidate.ai_score >= min_score)
+            count_stmt = count_stmt.where(Candidate.ai_score >= min_score)
 
-        stmt = (
-            stmt.order_by(Candidate.id.desc())
-            .offset(params.offset)
-            .limit(params.size)
+        order = (
+            Candidate.ai_score.desc().nullslast()
+            if sort == "score"
+            else Candidate.id.desc()
         )
+        stmt = stmt.order_by(order).offset(params.offset).limit(params.size)
         items = (await self.db.execute(stmt)).scalars().all()
         total = (await self.db.execute(count_stmt)).scalar_one()
         return list(items), total

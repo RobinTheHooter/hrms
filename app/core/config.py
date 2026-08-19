@@ -77,6 +77,16 @@ class Settings(BaseSettings):
     def email_enabled(self) -> bool:
         return bool(self.EMAIL_FROM and (self.RESEND_API_KEY or self.SMTP_HOST))
 
+    # AI resume screening (OpenAI-compatible).
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    # Auto-run screening as soon as a resume is uploaded/received.
+    AUTO_AI_SCREENING: bool = True
+
+    @property
+    def ai_enabled(self) -> bool:
+        return bool(self.OPENAI_API_KEY)
+
 
 @lru_cache
 def get_settings() -> Settings:

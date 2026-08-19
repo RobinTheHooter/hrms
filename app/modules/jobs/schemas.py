@@ -19,6 +19,7 @@ class JobBase(BaseModel):
     employment_type: EmploymentType = EmploymentType.FULL_TIME
     positions: int = Field(default=1, ge=1, le=999)
     description: str | None = None
+    required_skills: str | None = None
     status: JobStatus = JobStatus.OPEN
     assigned_consultant_id: int | None = None
 
@@ -34,6 +35,7 @@ class JobUpdate(BaseModel):
     employment_type: EmploymentType | None = None
     positions: int | None = Field(default=None, ge=1, le=999)
     description: str | None = None
+    required_skills: str | None = None
     status: JobStatus | None = None
     assigned_consultant_id: int | None = None
 
@@ -48,6 +50,7 @@ class JobRead(BaseModel):
     employment_type: EmploymentType
     positions: int
     description: str | None
+    required_skills: str | None
     status: JobStatus
     assigned_consultant_id: int | None
     assigned_consultant: ConsultantBrief | None

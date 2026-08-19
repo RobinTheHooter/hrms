@@ -48,6 +48,8 @@ class CandidateService:
         search: str | None = None,
         stage: CandidateStage | None = None,
         job_id: int | None = None,
+        min_score: int | None = None,
+        sort: str | None = None,
     ) -> Page[CandidateRead]:
         items, total = await self.repo.list(
             params,
@@ -55,6 +57,8 @@ class CandidateService:
             stage=stage,
             job_id=job_id,
             consultant_id=self._consultant_scope(user),
+            min_score=min_score,
+            sort=sort,
         )
         return Page.create(
             items=[CandidateRead.model_validate(c) for c in items],

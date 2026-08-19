@@ -21,6 +21,8 @@ class Job(Base, TimestampMixin):
     )
     positions: Mapped[int] = mapped_column(Integer, default=1)
     description: Mapped[str | None] = mapped_column(Text)
+    # Comma/line separated skills the AI screening scores candidates against.
+    required_skills: Mapped[str | None] = mapped_column(Text)
     status: Mapped[JobStatus] = mapped_column(
         SAEnum(JobStatus, name="job_status"), default=JobStatus.OPEN
     )

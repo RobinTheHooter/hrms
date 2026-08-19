@@ -10,4 +10,6 @@ pyjwt
 httpx
 aiosmtplib
 tzdata
+pypdf
+python-docx
 python-multipart

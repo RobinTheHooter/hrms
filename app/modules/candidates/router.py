@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,6 +17,7 @@ from app.modules.candidates.schemas import (
 )
 from app.modules.candidates.service import CandidateService
 from app.modules.notifications.service import NotificationService
+from app.modules.screening.service import ScreeningService
 
 router = APIRouter(prefix="/candidates", tags=["candidates"])
 
@@ -38,9 +39,13 @@ async def list_candidates(
     search: str | None = Query(None),
     stage: CandidateStage | None = Query(None),
     job_id: int | None = Query(None),
+    min_score: int | None = Query(None, ge=0, le=100),
+    sort: str | None = Query(None),
 ) -> Page[CandidateRead]:
     params = PageParams(page=page, size=size)
-    return await CandidateService(db).list(current_user, params, search, stage, job_id)
+    return await CandidateService(db).list(
+        current_user, params, search, stage, job_id, min_score, sort
+    )
 
 
 @router.post("", response_model=CandidateRead, status_code=status.HTTP_201_CREATED)
@@ -102,3 +107,24 @@ async def notify_candidate(
     await NotificationService(db).notify(
         candidate_id, data.subject, data.body, current_user
     )
+
+
+@router.post("/{candidate_id}/resume", response_model=CandidateRead)
+async def upload_resume(
+    candidate_id: int,
+    current_user: ManageUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    file: UploadFile = File(...),
+) -> CandidateRead:
+    candidate = await ScreeningService(db).upload_resume(candidate_id, file, current_user)
+    return CandidateRead.model_validate(candidate)
+
+
+@router.post("/{candidate_id}/score", response_model=CandidateRead)
+async def score_candidate(
+    candidate_id: int,
+    current_user: ManageUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> CandidateRead:
+    candidate = await ScreeningService(db).score(candidate_id, current_user)
+    return CandidateRead.model_validate(candidate)

@@ -56,5 +56,11 @@ class CandidateRead(CandidateBase):
     job_id: int
     job: JobBrief | None
     email: str  # relax for read
+    has_resume: bool = False
+    ai_score: int | None = None
+    ai_summary: str | None = None
+    ai_matched: list[str] | None = None
+    ai_missing: list[str] | None = None
+    ai_scored_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
