@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -53,16 +53,6 @@ const EMPTY = {
   location_or_link: '',
   priority: 'medium',
   notes: '',
-}
-
-function Field({ label, error, children, className }) {
-  return (
-    <div className={className}>
-      <Label className="mb-1">{label}</Label>
-      {children}
-      {error && <p className="mt-1 text-xs text-destructive">{error.message}</p>}
-    </div>
-  )
 }
 
 export function InterviewScheduleDialog({

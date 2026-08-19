@@ -18,9 +18,7 @@ import {
   useUsers,
 } from '@/features/users/hooks'
 
-const errorMessage = (error, fallback) =>
-  error?.response?.data?.detail ??
-  (error?.response?.status === 403 ? "You don't have permission." : fallback)
+import { errorMessage } from '@/lib/api-error'
 
 export function UsersPage() {
   const { data: currentUser } = useCurrentUser()

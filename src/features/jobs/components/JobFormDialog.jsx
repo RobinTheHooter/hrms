@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Field } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -50,16 +50,6 @@ const EMPTY = {
   assigned_consultant_id: '',
   description: '',
   required_skills: '',
-}
-
-function Field({ label, error, children }) {
-  return (
-    <div className="space-y-1">
-      <Label>{label}</Label>
-      {children}
-      {error && <p className="text-xs text-destructive">{error.message}</p>}
-    </div>
-  )
 }
 
 export function JobFormDialog({

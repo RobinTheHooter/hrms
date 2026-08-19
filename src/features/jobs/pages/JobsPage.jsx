@@ -27,9 +27,7 @@ import {
   useUpdateJob,
 } from '@/features/jobs/hooks'
 
-const errorMessage = (e, fallback) =>
-  e?.response?.data?.detail ??
-  (e?.response?.status === 403 ? "You don't have permission." : fallback)
+import { errorMessage } from '@/lib/api-error'
 
 function toFormValues(job) {
   return {
