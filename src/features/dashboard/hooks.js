@@ -1,12 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { apiClient } from '@/lib/apiClient'
 
-async function getSummary() {
-  const { data } = await apiClient.get('/dashboard/summary')
+async function getSummary(days) {
+  const { data } = await apiClient.get('/dashboard/summary', { params: { days } })
   return data
 }
 
-export function useDashboardSummary() {
-  return useQuery({ queryKey: ['dashboard', 'summary'], queryFn: getSummary })
+export function useDashboardSummary(days = 7) {
+  return useQuery({
+    queryKey: ['dashboard', 'summary', days],
+    queryFn: () => getSummary(days),
+    placeholderData: keepPreviousData,
+  })
 }

@@ -1,5 +1,6 @@
 import { Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -59,12 +60,14 @@ export function CandidatesPage() {
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
 
+  const [params] = useSearchParams()
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
-  const [search, setSearch] = useState('')
-  const [stage, setStage] = useState('all')
-  const [jobId, setJobId] = useState('all')
-  const [minScore, setMinScore] = useState('all')
-  const [sort, setSort] = useState('recent')
+  const [search, setSearch] = useState(() => params.get('search') ?? '')
+  const [stage, setStage] = useState(() => params.get('stage') ?? 'all')
+  const [source, setSource] = useState(() => params.get('source') ?? 'all')
+  const [jobId, setJobId] = useState(() => params.get('job') ?? 'all')
+  const [minScore, setMinScore] = useState(() => params.get('min_score') ?? 'all')
+  const [sort, setSort] = useState(() => params.get('sort') ?? 'recent')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', candidate: null })
   const [notify, setNotify] = useState({ open: false, candidate: null })
   const [screen, setScreen] = useState({ open: false, candidate: null })
@@ -77,6 +80,7 @@ export function CandidatesPage() {
     size: pagination.pageSize,
     search,
     stage: stage === 'all' ? undefined : stage,
+    source: source === 'all' ? undefined : source,
     jobId: jobId === 'all' ? undefined : Number(jobId),
     min_score: minScore === 'all' ? undefined : Number(minScore),
     sort: sort === 'score' ? 'score' : undefined,
@@ -185,6 +189,21 @@ export function CandidatesPage() {
             <SelectContent>
               <SelectItem value="all">All stages</SelectItem>
               {(options?.candidate_stages ?? []).map((s) => (
+                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={source}
+            onValueChange={(v) => {
+              setSource(v)
+              resetPage()
+            }}
+          >
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sources</SelectItem>
+              {(options?.candidate_sources ?? []).map((s) => (
                 <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
               ))}
             </SelectContent>

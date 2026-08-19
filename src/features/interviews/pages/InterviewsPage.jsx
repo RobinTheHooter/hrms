@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -38,8 +39,9 @@ export function InterviewsPage() {
   const canSchedule = can(user, PERMISSIONS.INTERVIEWS_SCHEDULE)
   const canConduct = can(user, PERMISSIONS.INTERVIEWS_CONDUCT)
 
+  const [params] = useSearchParams()
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
-  const [status, setStatus] = useState('all')
+  const [status, setStatus] = useState(() => params.get('status') ?? 'all')
   const [schedule, setSchedule] = useState({ open: false, mode: 'create', interview: null })
   const [outcome, setOutcome] = useState({ open: false, interview: null })
 
