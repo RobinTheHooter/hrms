@@ -14,3 +14,16 @@ export function useDashboardSummary(days = 7) {
     placeholderData: keepPreviousData,
   })
 }
+
+async function getConsultantBreakdown() {
+  const { data } = await apiClient.get('/dashboard/consultants')
+  return data
+}
+
+export function useConsultantBreakdown(enabled) {
+  return useQuery({
+    queryKey: ['dashboard', 'consultants'],
+    queryFn: getConsultantBreakdown,
+    enabled: Boolean(enabled),
+  })
+}
