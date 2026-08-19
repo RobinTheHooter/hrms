@@ -21,6 +21,7 @@ import { getCandidateColumns } from '@/features/candidates/columns'
 import { AiScreeningDialog } from '@/features/candidates/components/AiScreeningDialog'
 import { CandidateFormDialog } from '@/features/candidates/components/CandidateFormDialog'
 import { NotifyDialog } from '@/features/candidates/components/NotifyDialog'
+import { downloadResume } from '@/features/candidates/api'
 import {
   useCandidates,
   useCreateCandidate,
@@ -97,6 +98,17 @@ export function CandidatesPage() {
   const openNotify = (candidate) => setNotify({ open: true, candidate })
   const openScreen = (candidate) => setScreen({ open: true, candidate })
 
+  const handleViewResume = async (candidate) => {
+    try {
+      const blob = await downloadResume(candidate.id)
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank')
+      setTimeout(() => URL.revokeObjectURL(url), 60000)
+    } catch {
+      toast.error('Could not open the resume')
+    }
+  }
+
   const resetPage = () => setPagination((p) => ({ ...p, pageIndex: 0 }))
 
   const handleStageChange = (candidate, next) => {
@@ -143,6 +155,7 @@ export function CandidatesPage() {
         onStageChange: handleStageChange,
         onNotify: openNotify,
         onScreen: openScreen,
+        onViewResume: handleViewResume,
         canManage,
         options,
       }),

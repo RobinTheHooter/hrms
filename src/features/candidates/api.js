@@ -61,3 +61,10 @@ export async function scoreCandidate(id) {
   const { data } = await apiClient.post(`/candidates/${id}/score`)
   return data
 }
+
+export async function downloadResume(id) {
+  const res = await apiClient.get(`/candidates/${id}/resume/file`, {
+    responseType: 'blob',
+  })
+  return res.data
+}

@@ -22,6 +22,7 @@ export function getCandidateColumns({
   onStageChange,
   onNotify,
   onScreen,
+  onViewResume,
   canManage,
   options,
 }) {
@@ -118,19 +119,32 @@ export function getCandidateColumns({
     {
       id: 'resume',
       header: 'CV',
-      cell: ({ row }) =>
-        row.original.resume_url ? (
-          <a
-            href={row.original.resume_url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-          >
-            <FileText className="size-3.5" /> View
-          </a>
-        ) : (
-          '—'
-        ),
+      cell: ({ row }) => {
+        const c = row.original
+        if (c.resume_url) {
+          return (
+            <a
+              href={c.resume_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+            >
+              <FileText className="size-3.5" /> View
+            </a>
+          )
+        }
+        if (c.has_resume_file) {
+          return (
+            <button
+              onClick={() => onViewResume(c)}
+              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+            >
+              <FileText className="size-3.5" /> View
+            </button>
+          )
+        }
+        return <span className="text-xs text-muted-foreground">—</span>
+      },
     },
   ]
 
