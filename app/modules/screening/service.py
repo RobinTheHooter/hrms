@@ -49,6 +49,10 @@ class ScreeningService:
             raise AppError("Couldn't read any text from that file")
 
         candidate.resume_text = text[:_MAX_TEXT]
+        # Keep the original file so it can be viewed/downloaded later.
+        candidate.resume_data = data
+        candidate.resume_filename = file.filename or "resume"
+        candidate.resume_mime = file.content_type or "application/octet-stream"
 
         # Auto-screen as soon as we have the resume (best-effort).
         if settings.AUTO_AI_SCREENING and settings.ai_enabled:

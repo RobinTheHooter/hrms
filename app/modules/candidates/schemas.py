@@ -57,6 +57,7 @@ class CandidateRead(CandidateBase):
     job: JobBrief | None
     email: str  # relax for read
     has_resume: bool = False
+    has_resume_file: bool = False
     ai_score: int | None = None
     ai_summary: str | None = None
     ai_matched: list[str] | None = None
