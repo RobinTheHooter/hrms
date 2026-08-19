@@ -35,6 +35,7 @@ const schema = z.object({
   status: z.string().min(1, 'Required'),
   assigned_consultant_id: z.string(), // 'none' or numeric string
   description: z.string().optional().or(z.literal('')),
+  required_skills: z.string().optional().or(z.literal('')),
 })
 
 const EMPTY = {
@@ -44,8 +45,9 @@ const EMPTY = {
   employment_type: 'full_time',
   positions: 1,
   status: 'open',
-  assigned_consultant_id: 'none',
+  assigned_consultant_id: '',
   description: '',
+  required_skills: '',
 }
 
 function Field({ label, error, children }) {
@@ -90,9 +92,11 @@ export function JobFormDialog({
       employment_type: v.employment_type,
       positions: Number(v.positions),
       status: v.status,
-      assigned_consultant_id:
-        v.assigned_consultant_id === 'none' ? null : Number(v.assigned_consultant_id),
+      assigned_consultant_id: v.assigned_consultant_id
+        ? Number(v.assigned_consultant_id)
+        : null,
       description: v.description || null,
+      required_skills: v.required_skills || null,
     })
   })
 
@@ -166,9 +170,8 @@ export function JobFormDialog({
               name="assigned_consultant_id"
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select consultant" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Unassigned</SelectItem>
                     {consultants.length === 0 ? (
                       <SelectEmpty>No consultants found</SelectEmpty>
                     ) : (
@@ -186,7 +189,17 @@ export function JobFormDialog({
 
           <div className="sm:col-span-2">
             <Field label="Description" error={errors.description}>
-              <Textarea rows={4} {...register('description')} />
+              <Textarea rows={3} {...register('description')} />
+            </Field>
+          </div>
+
+          <div className="sm:col-span-2">
+            <Field label="Required skills / keywords (for AI screening)" error={errors.required_skills}>
+              <Textarea
+                rows={2}
+                placeholder="e.g. React, TypeScript, REST APIs, 3+ years"
+                {...register('required_skills')}
+              />
             </Field>
           </div>
 

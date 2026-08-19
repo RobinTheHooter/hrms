@@ -1,13 +1,25 @@
 import { apiClient } from '@/lib/apiClient'
 
-export async function listCandidates({ page = 1, size = 20, search, stage, jobId } = {}) {
+export async function listCandidates({
+  page = 1,
+  size = 20,
+  search,
+  stage,
+  source,
+  jobId,
+  min_score,
+  sort,
+} = {}) {
   const { data } = await apiClient.get('/candidates', {
     params: {
       page,
       size,
       search: search || undefined,
       stage: stage || undefined,
+      source: source || undefined,
       job_id: jobId || undefined,
+      min_score: min_score ?? undefined,
+      sort: sort || undefined,
     },
   })
   return data
@@ -34,4 +46,18 @@ export async function getEmailTemplates(id) {
 
 export async function notifyCandidate(id, payload) {
   await apiClient.post(`/candidates/${id}/notify`, payload)
+}
+
+export async function uploadResume(id, file) {
+  const form = new FormData()
+  form.append('file', file)
+  const { data } = await apiClient.post(`/candidates/${id}/resume`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return data
+}
+
+export async function scoreCandidate(id) {
+  const { data } = await apiClient.post(`/candidates/${id}/score`)
+  return data
 }

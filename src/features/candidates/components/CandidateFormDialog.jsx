@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -87,6 +87,7 @@ export function CandidateFormDialog({
   const sources = options?.candidate_sources ?? []
   const stages = options?.candidate_stages ?? []
 
+  const [file, setFile] = useState(null)
   const {
     register,
     handleSubmit,
@@ -96,7 +97,10 @@ export function CandidateFormDialog({
   } = useForm({ resolver: zodResolver(schema), defaultValues: EMPTY })
 
   useEffect(() => {
-    if (open) reset(initialValues ?? EMPTY)
+    if (open) {
+      reset(initialValues ?? EMPTY)
+      setFile(null)
+    }
   }, [open, initialValues, reset])
 
   const submit = handleSubmit((v) => {
@@ -116,7 +120,7 @@ export function CandidateFormDialog({
       notes: v.notes || null,
     }
     if (!isEdit) payload.job_id = Number(v.job_id)
-    onSubmit(payload)
+    onSubmit(payload, file)
   })
 
   return (
@@ -226,7 +230,20 @@ export function CandidateFormDialog({
             />
           </Field>
 
-          <Field label="Resume URL" error={errors.resume_url} className="sm:col-span-2">
+          <Field label="Resume file (PDF, DOCX, TXT)" className="sm:col-span-2">
+            <input
+              type="file"
+              accept=".pdf,.docx,.txt"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Uploading a resume runs AI screening automatically.
+              {isEdit ? ' Replaces any existing resume.' : ''}
+            </p>
+          </Field>
+
+          <Field label="Resume URL (optional)" error={errors.resume_url} className="sm:col-span-2">
             <Input placeholder="https://…" {...register('resume_url')} />
           </Field>
           <Field label="Skills" error={errors.skills} className="sm:col-span-2">

@@ -46,7 +46,7 @@ const schema = z.object({
 
 const EMPTY = {
   candidate_id: '',
-  hiring_manager_id: 'none',
+  hiring_manager_id: '',
   mode: 'virtual',
   scheduled_at: '',
   location_or_link: '',
@@ -94,8 +94,7 @@ export function InterviewScheduleDialog({
   const managerVal = useWatch({ control, name: 'hiring_manager_id' })
   const scheduledVal = useWatch({ control, name: 'scheduled_at' })
   const day = scheduledVal ? scheduledVal.slice(0, 10) : ''
-  const managerNum =
-    managerVal && managerVal !== 'none' ? Number(managerVal) : null
+  const managerNum = managerVal ? Number(managerVal) : null
   const { data: avail, isFetching: availLoading } = useAvailability(
     managerNum,
     day,
@@ -103,8 +102,9 @@ export function InterviewScheduleDialog({
 
   const submit = handleSubmit((v) => {
     const payload = {
-      hiring_manager_id:
-        v.hiring_manager_id === 'none' ? null : Number(v.hiring_manager_id),
+      hiring_manager_id: v.hiring_manager_id
+        ? Number(v.hiring_manager_id)
+        : null,
       mode: v.mode,
       scheduled_at: v.scheduled_at,
       location_or_link: v.location_or_link || null,
@@ -157,9 +157,8 @@ export function InterviewScheduleDialog({
               name="hiring_manager_id"
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select hiring manager" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Unassigned</SelectItem>
                     {managers.length === 0 ? (
                       <SelectEmpty>No hiring managers found</SelectEmpty>
                     ) : (

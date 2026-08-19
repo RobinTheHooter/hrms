@@ -11,10 +11,28 @@ import {
   getEmailTemplates,
   listCandidates,
   notifyCandidate,
+  scoreCandidate,
   updateCandidate,
+  uploadResume,
 } from '@/features/candidates/api'
 
 const KEY = ['candidates']
+
+export function useUploadResume() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, file }) => uploadResume(id, file),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  })
+}
+
+export function useScoreCandidate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id) => scoreCandidate(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  })
+}
 
 export function useEmailTemplates(candidateId, enabled) {
   return useQuery({

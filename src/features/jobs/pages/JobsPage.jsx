@@ -1,5 +1,6 @@
 import { Plus, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -39,8 +40,9 @@ function toFormValues(job) {
     positions: job.positions ?? 1,
     status: job.status ?? 'open',
     assigned_consultant_id:
-      job.assigned_consultant_id != null ? String(job.assigned_consultant_id) : 'none',
+      job.assigned_consultant_id != null ? String(job.assigned_consultant_id) : '',
     description: job.description ?? '',
+    required_skills: job.required_skills ?? '',
   }
 }
 
@@ -49,9 +51,10 @@ export function JobsPage() {
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.JOBS_MANAGE)
 
+  const [params] = useSearchParams()
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('all')
+  const [search, setSearch] = useState(() => params.get('search') ?? '')
+  const [status, setStatus] = useState(() => params.get('status') ?? 'all')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', job: null })
 
   const { data, isLoading, isError } = useJobs({
