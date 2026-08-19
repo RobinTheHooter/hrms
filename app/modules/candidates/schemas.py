@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.common.enums import CandidateSource, CandidateStage
+from app.common.enums import CandidateSource, CandidateStage, Priority
 
 
 class JobBrief(BaseModel):
@@ -26,6 +26,7 @@ class CandidateBase(BaseModel):
     notice_period_days: int | None = Field(default=None, ge=0, le=365)
     resume_url: str | None = Field(default=None, max_length=500)
     stage: CandidateStage = CandidateStage.APPLIED
+    priority: Priority = Priority.MEDIUM
     notes: str | None = None
 
 
@@ -46,6 +47,7 @@ class CandidateUpdate(BaseModel):
     notice_period_days: int | None = Field(default=None, ge=0, le=365)
     resume_url: str | None = Field(default=None, max_length=500)
     stage: CandidateStage | None = None
+    priority: Priority | None = None
     notes: str | None = None
 
 

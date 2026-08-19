@@ -14,7 +14,7 @@ from sqlalchemy import (
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.common.enums import CandidateSource, CandidateStage
+from app.common.enums import CandidateSource, CandidateStage, Priority
 from app.models.base import Base, TimestampMixin
 from app.modules.jobs.models import Job
 
@@ -47,6 +47,10 @@ class Candidate(Base, TimestampMixin):
         index=True,
     )
     notes: Mapped[str | None] = mapped_column(Text)
+    priority: Mapped[Priority] = mapped_column(
+        SAEnum(Priority, name="priority", create_type=False),
+        default=Priority.MEDIUM,
+    )
 
     created_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")

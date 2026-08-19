@@ -2,7 +2,7 @@ from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.common.enums import EmploymentType, JobStatus
+from app.common.enums import EmploymentType, JobStatus, Priority
 from app.models.base import Base, TimestampMixin
 from app.modules.auth.models import User
 
@@ -25,6 +25,10 @@ class Job(Base, TimestampMixin):
     required_skills: Mapped[str | None] = mapped_column(Text)
     status: Mapped[JobStatus] = mapped_column(
         SAEnum(JobStatus, name="job_status"), default=JobStatus.OPEN
+    )
+    priority: Mapped[Priority] = mapped_column(
+        SAEnum(Priority, name="priority", create_type=False),
+        default=Priority.MEDIUM,
     )
 
     assigned_consultant_id: Mapped[int | None] = mapped_column(
