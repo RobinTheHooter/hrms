@@ -71,6 +71,63 @@ class DashboardService:
     async def _scalar(self, stmt) -> int:
         return (await self.db.execute(stmt)).scalar_one()
 
+    async def consultant_breakdown(self) -> list[dict]:
+        """Per consultant: assigned jobs (with candidate counts) + profiles submitted."""
+        consultants = (
+            await self.db.execute(
+                select(User.id, User.full_name)
+                .where(User.role == UserRole.CONSULTANT)
+                .order_by(User.full_name)
+            )
+        ).all()
+
+        # Jobs per consultant, each with its candidate count.
+        job_rows = (
+            await self.db.execute(
+                select(
+                    Job.assigned_consultant_id,
+                    Job.id,
+                    Job.title,
+                    func.count(Candidate.id),
+                )
+                .outerjoin(Candidate, Candidate.job_id == Job.id)
+                .where(Job.assigned_consultant_id.is_not(None))
+                .group_by(Job.assigned_consultant_id, Job.id, Job.title)
+                .order_by(Job.title)
+            )
+        ).all()
+
+        jobs_by_consultant: dict[int, list[dict]] = {}
+        for consultant_id, job_id, title, count in job_rows:
+            jobs_by_consultant.setdefault(consultant_id, []).append(
+                {"job_id": job_id, "title": title, "candidate_count": int(count)}
+            )
+
+        # Profiles each consultant personally submitted (created).
+        submitted_rows = (
+            await self.db.execute(
+                select(Candidate.created_by_id, func.count())
+                .where(Candidate.created_by_id.is_not(None))
+                .group_by(Candidate.created_by_id)
+            )
+        ).all()
+        submitted = {cid: int(n) for cid, n in submitted_rows}
+
+        result = []
+        for cid, name in consultants:
+            jobs = jobs_by_consultant.get(cid, [])
+            result.append(
+                {
+                    "consultant_id": cid,
+                    "name": name,
+                    "jobs": jobs,
+                    "total_jobs": len(jobs),
+                    "total_candidates": sum(j["candidate_count"] for j in jobs),
+                    "submitted": submitted.get(cid, 0),
+                }
+            )
+        return result
+
     # --- summary -----------------------------------------------------------
     async def summary(self, user: User, days: int = 7) -> dict:
         cand_cond = self._candidate_cond(user)
