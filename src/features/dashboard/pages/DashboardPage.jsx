@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/select'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { stageVariant } from '@/features/candidates/constants'
+import { ConsultantBreakdown } from '@/features/dashboard/components/ConsultantBreakdown'
 import { useDashboardSummary } from '@/features/dashboard/hooks'
 import { formatWhen, googleCalendarUrl } from '@/features/interviews/constants'
 import { optionLabel, useOptions } from '@/features/meta/hooks'
@@ -371,7 +372,7 @@ export function DashboardPage() {
 
       {/* Admin/HR extras */}
       {manageAll && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Panel title="Jobs by department">
             {departments.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">No departments yet.</p>
@@ -396,23 +397,7 @@ export function DashboardPage() {
             )}
           </Panel>
 
-          <Panel title="Consultant workload">
-            {(data.consultant_workload ?? []).length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">No consultants with candidates yet.</p>
-            ) : (
-              <ul className="divide-y">
-                {data.consultant_workload.map((c) => (
-                  <li key={c.name} className="flex items-center justify-between py-2.5 text-sm">
-                    <span className="flex items-center gap-2">
-                      <Avatar name={c.name} size="sm" />
-                      {c.name}
-                    </span>
-                    <Badge variant="secondary">{c.count} candidates</Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
+          <ConsultantBreakdown />
         </div>
       )}
     </div>
