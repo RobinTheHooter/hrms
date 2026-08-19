@@ -1,10 +1,11 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
+from app.common.exceptions import NotFoundError
 from app.common.enums import CandidateSource, CandidateStage
 from app.common.pagination import Page, PageParams
 from app.core.database import get_db
@@ -119,6 +120,23 @@ async def upload_resume(
 ) -> CandidateRead:
     candidate = await ScreeningService(db).upload_resume(candidate_id, file, current_user)
     return CandidateRead.model_validate(candidate)
+
+
+@router.get("/{candidate_id}/resume/file")
+async def download_resume(
+    candidate_id: int,
+    current_user: ViewUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Response:
+    candidate = await CandidateService(db).get(candidate_id, current_user)
+    if not candidate.resume_data:
+        raise NotFoundError("No resume file for this candidate")
+    filename = candidate.resume_filename or f"resume-{candidate.id}"
+    return Response(
+        content=candidate.resume_data,
+        media_type=candidate.resume_mime or "application/octet-stream",
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+    )
 
 
 @router.post("/{candidate_id}/score", response_model=CandidateRead)
