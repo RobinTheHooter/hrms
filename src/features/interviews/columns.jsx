@@ -8,6 +8,7 @@ import {
   statusVariant,
 } from '@/features/interviews/constants'
 import { optionLabel } from '@/features/meta/hooks'
+import { priorityVariant } from '@/lib/priority'
 
 export function getInterviewColumns({
   onEdit,
@@ -72,6 +73,15 @@ export function getInterviewColumns({
       cell: ({ getValue }) => (
         <Badge variant={outcomeVariant(getValue())}>
           {optionLabel(options?.interview_outcomes, getValue())}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: 'priority',
+      header: 'Priority',
+      cell: ({ getValue }) => (
+        <Badge variant={priorityVariant(getValue())}>
+          {optionLabel(options?.priorities, getValue())}
         </Badge>
       ),
     },

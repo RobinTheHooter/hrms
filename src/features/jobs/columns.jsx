@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { jobStatusVariant } from '@/features/jobs/constants'
 import { optionLabel } from '@/features/meta/hooks'
+import { priorityVariant } from '@/lib/priority'
 
 export function getJobColumns({ onEdit, onDelete, canManage, options }) {
   const columns = [
@@ -47,6 +48,15 @@ export function getJobColumns({ onEdit, onDelete, canManage, options }) {
       cell: ({ getValue }) => (
         <Badge variant={jobStatusVariant(getValue())}>
           {optionLabel(options?.job_statuses, getValue())}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: 'priority',
+      header: 'Priority',
+      cell: ({ getValue }) => (
+        <Badge variant={priorityVariant(getValue())}>
+          {optionLabel(options?.priorities, getValue())}
         </Badge>
       ),
     },

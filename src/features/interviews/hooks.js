@@ -30,6 +30,7 @@ export function useInterviews(params) {
     queryKey: [...KEY, params],
     queryFn: () => listInterviews(params),
     placeholderData: keepPreviousData,
+    refetchInterval: 15_000,
   })
 }
 

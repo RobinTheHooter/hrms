@@ -40,6 +40,7 @@ const schema = z.object({
   notice_period_days: z.string().optional().or(z.literal('')),
   resume_url: z.string().optional().or(z.literal('')),
   stage: z.string().min(1, 'Required'),
+  priority: z.string().min(1, 'Required'),
   notes: z.string().optional().or(z.literal('')),
 })
 
@@ -57,6 +58,7 @@ const EMPTY = {
   notice_period_days: '',
   resume_url: '',
   stage: 'applied',
+  priority: 'medium',
   notes: '',
 }
 
@@ -86,6 +88,7 @@ export function CandidateFormDialog({
   const { data: options } = useOptions()
   const sources = options?.candidate_sources ?? []
   const stages = options?.candidate_stages ?? []
+  const priorities = options?.priorities ?? []
 
   const [file, setFile] = useState(null)
   const {
@@ -117,6 +120,7 @@ export function CandidateFormDialog({
       notice_period_days: num(v.notice_period_days),
       resume_url: v.resume_url || null,
       stage: v.stage,
+      priority: v.priority,
       notes: v.notes || null,
     }
     if (!isEdit) payload.job_id = Number(v.job_id)
@@ -221,6 +225,26 @@ export function CandidateFormDialog({
                       <SelectEmpty>No stages found</SelectEmpty>
                     ) : (
                       stages.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </Field>
+          <Field label="Priority" error={errors.priority}>
+            <Controller
+              control={control}
+              name="priority"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {priorities.length === 0 ? (
+                      <SelectEmpty>No priorities found</SelectEmpty>
+                    ) : (
+                      priorities.map((o) => (
                         <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                       ))
                     )}

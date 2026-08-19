@@ -120,6 +120,7 @@ export function InterviewsPage() {
           mode: schedule.interview.mode,
           scheduled_at: toLocalInput(schedule.interview.scheduled_at),
           location_or_link: schedule.interview.location_or_link ?? '',
+          priority: schedule.interview.priority ?? 'medium',
           notes: schedule.interview.notes ?? '',
         }
       : undefined

@@ -9,6 +9,7 @@ import {
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -75,14 +76,15 @@ export function DataTable({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  Loading…
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 6 }).map((_, r) => (
+                <TableRow key={`skeleton-${r}`}>
+                  {columns.map((_, c) => (
+                    <TableCell key={c}>
+                      <Skeleton className="h-4 w-full max-w-[160px]" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { stageVariant } from '@/features/candidates/constants'
 import { optionLabel } from '@/features/meta/hooks'
+import { priorityVariant } from '@/lib/priority'
 
 const scoreVariant = (s) => (s >= 80 ? 'success' : s >= 60 ? 'warning' : 'destructive')
 
@@ -103,6 +104,15 @@ export function getCandidateColumns({
           </Select>
         )
       },
+    },
+    {
+      accessorKey: 'priority',
+      header: 'Priority',
+      cell: ({ getValue }) => (
+        <Badge variant={priorityVariant(getValue())}>
+          {optionLabel(options?.priorities, getValue())}
+        </Badge>
+      ),
     },
     {
       accessorKey: 'ai_score',
