@@ -1,6 +1,7 @@
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, JSON, Numeric, String, Text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -42,4 +43,16 @@ class Candidate(Base, TimestampMixin):
         ForeignKey("users.id", ondelete="SET NULL")
     )
 
+    # Resume text (extracted on upload) + AI screening results.
+    resume_text: Mapped[str | None] = mapped_column(Text)
+    ai_score: Mapped[int | None] = mapped_column(Integer)
+    ai_summary: Mapped[str | None] = mapped_column(Text)
+    ai_matched: Mapped[list | None] = mapped_column(JSON)
+    ai_missing: Mapped[list | None] = mapped_column(JSON)
+    ai_scored_at: Mapped[datetime | None] = mapped_column(DateTime)
+
     job: Mapped[Job] = relationship("Job", lazy="selectin")
+
+    @property
+    def has_resume(self) -> bool:
+        return bool(self.resume_text)

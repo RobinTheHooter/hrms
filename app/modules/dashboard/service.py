@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
@@ -16,6 +16,7 @@ from app.modules.auth.models import User
 from app.modules.candidates.models import Candidate
 from app.modules.interviews.models import Interview
 from app.modules.jobs.models import Job
+from app.modules.notifications.models import EmailLog
 
 settings = get_settings()
 
@@ -71,7 +72,7 @@ class DashboardService:
         return (await self.db.execute(stmt)).scalar_one()
 
     # --- summary -----------------------------------------------------------
-    async def summary(self, user: User) -> dict:
+    async def summary(self, user: User, days: int = 7) -> dict:
         cand_cond = self._candidate_cond(user)
         job_cond = self._job_cond(user)
         intv_cond = self._interview_cond(user)
@@ -202,8 +203,117 @@ class DashboardService:
             for c in (await self.db.execute(recent_stmt)).scalars().all()
         ]
 
+        # ---- Activity window (scoped) ----
+        week_ago = datetime.utcnow() - timedelta(days=days)
+
+        candidates_added_7d = await self._scalar(
+            _apply(
+                select(func.count())
+                .select_from(Candidate)
+                .where(Candidate.created_at >= week_ago),
+                cand_cond,
+            )
+        )
+        interviews_scheduled_7d = await self._scalar(
+            _apply(
+                select(func.count())
+                .select_from(Interview)
+                .where(Interview.created_at >= week_ago),
+                intv_cond,
+            )
+        )
+        interviews_completed_7d = await self._scalar(
+            _apply(
+                select(func.count())
+                .select_from(Interview)
+                .where(
+                    Interview.status == InterviewStatus.COMPLETED,
+                    Interview.updated_at >= week_ago,
+                ),
+                intv_cond,
+            )
+        )
+        hires_7d = await self._scalar(
+            _apply(
+                select(func.count())
+                .select_from(Candidate)
+                .where(
+                    Candidate.stage == CandidateStage.HIRED,
+                    Candidate.updated_at >= week_ago,
+                ),
+                cand_cond,
+            )
+        )
+        emails_stmt = (
+            select(func.count())
+            .select_from(EmailLog)
+            .where(EmailLog.created_at >= week_ago)
+        )
+        if cand_cond is not None:
+            emails_stmt = emails_stmt.where(
+                EmailLog.candidate_id.in_(select(Candidate.id).where(cand_cond))
+            )
+        emails_sent_7d = await self._scalar(emails_stmt)
+
+        # ---- Pending / needs attention (scoped) ----
+        to_review = await self._scalar(
+            _apply(
+                select(func.count())
+                .select_from(Candidate)
+                .where(
+                    Candidate.stage.in_(
+                        [CandidateStage.APPLIED, CandidateStage.SCREENING]
+                    )
+                ),
+                cand_cond,
+            )
+        )
+        offers_out = await self._scalar(
+            _apply(
+                select(func.count())
+                .select_from(Candidate)
+                .where(Candidate.stage == CandidateStage.OFFER),
+                cand_cond,
+            )
+        )
+
+        # ---- New-candidates trend (scoped, gap-filled) ----
+        trend_rows = await self.db.execute(
+            _apply(
+                select(func.date(Candidate.created_at), func.count())
+                .where(Candidate.created_at >= week_ago)
+                .group_by(func.date(Candidate.created_at)),
+                cand_cond,
+            )
+        )
+        trend_counts = {row[0]: int(row[1]) for row in trend_rows.all()}
+        today_d = datetime.utcnow().date()
+        start_d = today_d - timedelta(days=days - 1)
+        candidates_trend = [
+            {
+                "date": (start_d + timedelta(days=n)).isoformat(),
+                "count": trend_counts.get(start_d + timedelta(days=n), 0),
+            }
+            for n in range(days)
+        ]
+
         result = {
             "role": user.role.value,
+            "activity": {
+                "days": days,
+                "candidates_added": int(candidates_added_7d),
+                "interviews_scheduled": int(interviews_scheduled_7d),
+                "interviews_completed": int(interviews_completed_7d),
+                "hires": int(hires_7d),
+                "emails_sent": int(emails_sent_7d),
+            },
+            "candidates_trend": candidates_trend,
+            "pending": {
+                "to_review": int(to_review),
+                "offers_out": int(offers_out),
+                "interviews_upcoming": int(upcoming),
+                "awaiting_outcome": int(awaiting_outcome),
+            },
             "jobs": {
                 "total": int(total_jobs),
                 "open": int(open_jobs),
