@@ -32,9 +32,7 @@ import {
 import { useJobs } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
 
-const errorMessage = (e, fallback) =>
-  e?.response?.data?.detail ??
-  (e?.response?.status === 403 ? "You don't have permission." : fallback)
+import { errorMessage } from '@/lib/api-error'
 
 function toFormValues(c) {
   const str = (v) => (v != null ? String(v) : '')

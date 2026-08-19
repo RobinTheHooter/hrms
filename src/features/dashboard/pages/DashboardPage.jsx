@@ -26,10 +26,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Panel } from '@/components/ui/panel'
-import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -40,6 +37,8 @@ import {
 import { useCurrentUser } from '@/features/auth/hooks'
 import { stageVariant } from '@/features/candidates/constants'
 import { ConsultantBreakdown } from '@/features/dashboard/components/ConsultantBreakdown'
+import { DashboardSkeleton } from '@/features/dashboard/components/DashboardSkeleton'
+import { StatCard } from '@/features/dashboard/components/StatCard'
 import { useDashboardSummary } from '@/features/dashboard/hooks'
 import { formatWhen, googleCalendarUrl } from '@/features/interviews/constants'
 import { optionLabel, useOptions } from '@/features/meta/hooks'
@@ -53,79 +52,6 @@ const STAGE_COLORS = {
   rejected: '#ef4444',
 }
 const SOURCE_COLORS = ['#f97316', '#0d9488', '#3b82f6', '#a855f7']
-const TONES = {
-  orange: 'bg-primary/10 text-primary',
-  blue: 'bg-blue-100 text-blue-700',
-  emerald: 'bg-emerald-100 text-emerald-700',
-  amber: 'bg-amber-100 text-amber-700',
-}
-
-function CardSkeleton() {
-  return (
-    <Card>
-      <CardContent className="space-y-3 p-5">
-        <Skeleton className="size-11 rounded-xl" />
-        <Skeleton className="h-6 w-16" />
-        <Skeleton className="h-4 w-24" />
-      </CardContent>
-    </Card>
-  )
-}
-
-function PanelSkeleton({ className, lines = 4 }) {
-  return (
-    <Card className={cn('flex flex-col', className)}>
-      <div className="border-b px-5 py-3.5">
-        <Skeleton className="h-4 w-32" />
-      </div>
-      <div className="space-y-3 p-5">
-        {Array.from({ length: lines }).map((_, i) => (
-          <Skeleton key={i} className="h-4 w-full" />
-        ))}
-      </div>
-    </Card>
-  )
-}
-
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-4">
-      <Skeleton className="h-6 w-56" />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <CardSkeleton key={i} />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <PanelSkeleton />
-        <PanelSkeleton />
-      </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <PanelSkeleton className="lg:col-span-2" lines={6} />
-        <PanelSkeleton lines={6} />
-      </div>
-    </div>
-  )
-}
-
-function StatCard({ icon: Icon, tone, label, value, onClick }) {
-  return (
-    <Card
-      onClick={onClick}
-      className={onClick ? 'cursor-pointer transition-colors hover:bg-muted/40' : undefined}
-    >
-      <CardContent className="flex items-center gap-4 p-5">
-        <div className={`flex size-11 items-center justify-center rounded-xl ${TONES[tone]}`}>
-          <Icon className="size-5" />
-        </div>
-        <div>
-          <div className="text-2xl font-semibold tracking-tight">{value}</div>
-          <div className="text-sm text-muted-foreground">{label}</div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 export function DashboardPage() {
   const navigate = useNavigate()
