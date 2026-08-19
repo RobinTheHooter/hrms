@@ -2,7 +2,12 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.common.enums import InterviewMode, InterviewOutcome, InterviewStatus
+from app.common.enums import (
+    InterviewMode,
+    InterviewOutcome,
+    InterviewStatus,
+    Priority,
+)
 
 
 class _JobBrief(BaseModel):
@@ -33,6 +38,7 @@ class InterviewCreate(BaseModel):
     mode: InterviewMode = InterviewMode.VIRTUAL
     scheduled_at: datetime
     location_or_link: str | None = Field(default=None, max_length=500)
+    priority: Priority = Priority.MEDIUM
     notes: str | None = None
 
 
@@ -42,6 +48,7 @@ class InterviewUpdate(BaseModel):
     scheduled_at: datetime | None = None
     location_or_link: str | None = Field(default=None, max_length=500)
     status: InterviewStatus | None = None
+    priority: Priority | None = None
     notes: str | None = None
 
 
@@ -64,6 +71,7 @@ class InterviewRead(BaseModel):
     meeting_link: str | None
     status: InterviewStatus
     outcome: InterviewOutcome
+    priority: Priority
     notes: str | None
     created_at: datetime
     updated_at: datetime

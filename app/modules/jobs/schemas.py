@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.common.enums import EmploymentType, JobStatus
+from app.common.enums import EmploymentType, JobStatus, Priority
 
 
 class ConsultantBrief(BaseModel):
@@ -21,6 +21,7 @@ class JobBase(BaseModel):
     description: str | None = None
     required_skills: str | None = None
     status: JobStatus = JobStatus.OPEN
+    priority: Priority = Priority.MEDIUM
     assigned_consultant_id: int | None = None
 
 
@@ -37,6 +38,7 @@ class JobUpdate(BaseModel):
     description: str | None = None
     required_skills: str | None = None
     status: JobStatus | None = None
+    priority: Priority | None = None
     assigned_consultant_id: int | None = None
 
 
@@ -52,6 +54,7 @@ class JobRead(BaseModel):
     description: str | None
     required_skills: str | None
     status: JobStatus
+    priority: Priority
     assigned_consultant_id: int | None
     assigned_consultant: ConsultantBrief | None
     created_at: datetime

@@ -62,3 +62,10 @@ class InterviewOutcome(StrEnum):
     PENDING = "pending"
     SELECTED = "selected"
     REJECTED = "rejected"
+
+
+class Priority(StrEnum):
+    URGENT = "urgent"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"

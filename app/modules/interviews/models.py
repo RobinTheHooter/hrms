@@ -4,7 +4,12 @@ from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.common.enums import InterviewMode, InterviewOutcome, InterviewStatus
+from app.common.enums import (
+    InterviewMode,
+    InterviewOutcome,
+    InterviewStatus,
+    Priority,
+)
 from app.models.base import Base, TimestampMixin
 from app.modules.auth.models import User
 from app.modules.candidates.models import Candidate
@@ -39,6 +44,10 @@ class Interview(Base, TimestampMixin):
         default=InterviewOutcome.PENDING,
     )
     notes: Mapped[str | None] = mapped_column(Text)
+    priority: Mapped[Priority] = mapped_column(
+        SAEnum(Priority, name="priority", create_type=False),
+        default=Priority.MEDIUM,
+    )
 
     created_by_id: Mapped[int | None] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL")
