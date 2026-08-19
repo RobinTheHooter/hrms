@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { LoadingBlock } from '@/components/ui/spinner'
 import {
   Select,
   SelectContent,
@@ -87,7 +88,7 @@ export function NotifyDialog({ open, onOpenChange, candidate }) {
         </DialogHeader>
 
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <LoadingBlock className="min-h-[240px] py-0" />
         ) : !enabled ? (
           <p className="text-sm text-muted-foreground">
             Email isn't configured on the server yet, so messages can't be sent.

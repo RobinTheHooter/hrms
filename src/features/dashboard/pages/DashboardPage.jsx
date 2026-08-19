@@ -28,6 +28,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Panel } from '@/components/ui/panel'
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -56,6 +58,54 @@ const TONES = {
   blue: 'bg-blue-100 text-blue-700',
   emerald: 'bg-emerald-100 text-emerald-700',
   amber: 'bg-amber-100 text-amber-700',
+}
+
+function CardSkeleton() {
+  return (
+    <Card>
+      <CardContent className="space-y-3 p-5">
+        <Skeleton className="size-11 rounded-xl" />
+        <Skeleton className="h-6 w-16" />
+        <Skeleton className="h-4 w-24" />
+      </CardContent>
+    </Card>
+  )
+}
+
+function PanelSkeleton({ className, lines = 4 }) {
+  return (
+    <Card className={cn('flex flex-col', className)}>
+      <div className="border-b px-5 py-3.5">
+        <Skeleton className="h-4 w-32" />
+      </div>
+      <div className="space-y-3 p-5">
+        {Array.from({ length: lines }).map((_, i) => (
+          <Skeleton key={i} className="h-4 w-full" />
+        ))}
+      </div>
+    </Card>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Skeleton className="h-6 w-56" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <CardSkeleton key={i} />
+        ))}
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <PanelSkeleton />
+        <PanelSkeleton />
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <PanelSkeleton className="lg:col-span-2" lines={6} />
+        <PanelSkeleton lines={6} />
+      </div>
+    </div>
+  )
 }
 
 function StatCard({ icon: Icon, tone, label, value, onClick }) {
@@ -94,7 +144,7 @@ export function DashboardPage() {
     return (
       <div>
         <PageHeader title="Dashboard" breadcrumb={['Dashboard']} />
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <DashboardSkeleton />
       </div>
     )
   }
@@ -117,40 +167,40 @@ export function DashboardPage() {
 
   const activityItems = hiringManager
     ? [
-        { label: 'Interviews completed', value: activity.interviews_completed },
-        { label: 'Emails sent', value: activity.emails_sent },
-      ]
+      { label: 'Interviews completed', value: activity.interviews_completed },
+      { label: 'Emails sent', value: activity.emails_sent },
+    ]
     : [
-        { label: 'Candidates added', value: activity.candidates_added },
-        { label: 'Interviews scheduled', value: activity.interviews_scheduled },
-        { label: 'Hires', value: activity.hires },
-        { label: 'Emails sent', value: activity.emails_sent },
-      ]
+      { label: 'Candidates added', value: activity.candidates_added },
+      { label: 'Interviews scheduled', value: activity.interviews_scheduled },
+      { label: 'Hires', value: activity.hires },
+      { label: 'Emails sent', value: activity.emails_sent },
+    ]
 
   const pendingItems = hiringManager
     ? [
-        { label: 'Awaiting my decision', value: pending.awaiting_outcome, to: '/interviews?status=scheduled' },
-        { label: 'Upcoming interviews', value: pending.interviews_upcoming, to: '/interviews?status=scheduled' },
-      ]
+      { label: 'Awaiting my decision', value: pending.awaiting_outcome, to: '/interviews?status=scheduled' },
+      { label: 'Upcoming interviews', value: pending.interviews_upcoming, to: '/interviews?status=scheduled' },
+    ]
     : [
-        { label: 'To review (Applied/Screening)', value: pending.to_review, to: '/candidates?stage=screening' },
-        { label: 'Offers out', value: pending.offers_out, to: '/candidates?stage=offer' },
-        { label: 'Upcoming interviews', value: pending.interviews_upcoming, to: '/interviews?status=scheduled' },
-      ]
+      { label: 'To review (Applied/Screening)', value: pending.to_review, to: '/candidates?stage=screening' },
+      { label: 'Offers out', value: pending.offers_out, to: '/candidates?stage=offer' },
+      { label: 'Upcoming interviews', value: pending.interviews_upcoming, to: '/interviews?status=scheduled' },
+    ]
 
   const statCards = hiringManager
     ? [
-        { icon: CalendarClock, tone: 'orange', label: 'Interviews today', value: interviews.today, to: '/interviews' },
-        { icon: CalendarClock, tone: 'blue', label: 'Upcoming interviews', value: interviews.upcoming, to: '/interviews?status=scheduled' },
-        { icon: CheckCircle2, tone: 'amber', label: 'Awaiting my decision', value: interviews.awaiting_outcome, to: '/interviews?status=scheduled' },
-        { icon: UserCheck, tone: 'emerald', label: 'Completed', value: interviews.completed, to: '/interviews?status=completed' },
-      ]
+      { icon: CalendarClock, tone: 'orange', label: 'Interviews today', value: interviews.today, to: '/interviews' },
+      { icon: CalendarClock, tone: 'blue', label: 'Upcoming interviews', value: interviews.upcoming, to: '/interviews?status=scheduled' },
+      { icon: CheckCircle2, tone: 'amber', label: 'Awaiting my decision', value: interviews.awaiting_outcome, to: '/interviews?status=scheduled' },
+      { icon: UserCheck, tone: 'emerald', label: 'Completed', value: interviews.completed, to: '/interviews?status=completed' },
+    ]
     : [
-        { icon: Briefcase, tone: 'orange', label: consultant ? 'My open jobs' : 'Open jobs', value: jobs.open, to: '/jobs?status=open' },
-        { icon: Users, tone: 'blue', label: consultant ? 'My candidates' : 'Active candidates', value: candidates.active, to: '/candidates' },
-        { icon: CalendarClock, tone: 'amber', label: 'Upcoming interviews', value: interviews.upcoming, to: '/interviews?status=scheduled' },
-        { icon: UserCheck, tone: 'emerald', label: 'Hires', value: candidates.hired, to: '/candidates?stage=hired' },
-      ]
+      { icon: Briefcase, tone: 'orange', label: consultant ? 'My open jobs' : 'Open jobs', value: jobs.open, to: '/jobs?status=open' },
+      { icon: Users, tone: 'blue', label: consultant ? 'My candidates' : 'Active candidates', value: candidates.active, to: '/candidates' },
+      { icon: CalendarClock, tone: 'amber', label: 'Upcoming interviews', value: interviews.upcoming, to: '/interviews?status=scheduled' },
+      { icon: UserCheck, tone: 'emerald', label: 'Hires', value: candidates.hired, to: '/candidates?stage=hired' },
+    ]
 
   return (
     <div className="space-y-4">

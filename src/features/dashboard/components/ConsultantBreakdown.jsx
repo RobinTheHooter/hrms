@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
 import { Panel } from '@/components/ui/panel'
+import { LoadingBlock } from '@/components/ui/spinner'
 import { useConsultantBreakdown } from '@/features/dashboard/hooks'
 
 export function ConsultantBreakdown() {
@@ -15,7 +16,7 @@ export function ConsultantBreakdown() {
   return (
     <Panel title="Consultant breakdown" className="lg:col-span-2">
       {isLoading ? (
-        <p className="py-6 text-sm text-muted-foreground">Loading…</p>
+        <LoadingBlock className="min-h-[220px] py-0" />
       ) : data.length === 0 ? (
         <p className="py-6 text-sm text-muted-foreground">No consultants yet.</p>
       ) : (

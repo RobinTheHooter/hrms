@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Spinner } from '@/components/ui/spinner'
 import { getGoogleConnectUrl } from '@/features/integrations/api'
 import {
   useDisconnectGoogle,
@@ -75,7 +76,7 @@ export function IntegrationsPage() {
               </p>
 
               {isLoading ? (
-                <p className="mt-4 text-sm text-muted-foreground">Loading…</p>
+                <div className="mt-4"><Spinner /></div>
               ) : !enabled ? (
                 <p className="mt-4 text-sm text-muted-foreground">
                   Google Calendar isn't configured on the server yet.
