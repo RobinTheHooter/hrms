@@ -33,6 +33,7 @@ const schema = z.object({
   employment_type: z.string().min(1, 'Required'),
   positions: z.coerce.number().int().min(1, 'Min 1').max(999),
   status: z.string().min(1, 'Required'),
+  priority: z.string().min(1, 'Required'),
   assigned_consultant_id: z.string(), // 'none' or numeric string
   description: z.string().optional().or(z.literal('')),
   required_skills: z.string().optional().or(z.literal('')),
@@ -45,6 +46,7 @@ const EMPTY = {
   employment_type: 'full_time',
   positions: 1,
   status: 'open',
+  priority: 'medium',
   assigned_consultant_id: '',
   description: '',
   required_skills: '',
@@ -72,6 +74,7 @@ export function JobFormDialog({
   const { data: options } = useOptions()
   const employmentTypes = options?.employment_types ?? []
   const jobStatuses = options?.job_statuses ?? []
+  const priorities = options?.priorities ?? []
   const {
     register,
     handleSubmit,
@@ -92,6 +95,7 @@ export function JobFormDialog({
       employment_type: v.employment_type,
       positions: Number(v.positions),
       status: v.status,
+      priority: v.priority,
       assigned_consultant_id: v.assigned_consultant_id
         ? Number(v.assigned_consultant_id)
         : null,
@@ -155,6 +159,27 @@ export function JobFormDialog({
                       <SelectEmpty>No statuses found</SelectEmpty>
                     ) : (
                       jobStatuses.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </Field>
+
+          <Field label="Priority" error={errors.priority}>
+            <Controller
+              control={control}
+              name="priority"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {priorities.length === 0 ? (
+                      <SelectEmpty>No priorities found</SelectEmpty>
+                    ) : (
+                      priorities.map((o) => (
                         <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                       ))
                     )}

@@ -41,6 +41,7 @@ const schema = z.object({
   mode: z.string().min(1, 'Required'),
   scheduled_at: z.string().min(1, 'Pick a date & time'),
   location_or_link: z.string().optional().or(z.literal('')),
+  priority: z.string().min(1, 'Required'),
   notes: z.string().optional().or(z.literal('')),
 })
 
@@ -50,6 +51,7 @@ const EMPTY = {
   mode: 'virtual',
   scheduled_at: '',
   location_or_link: '',
+  priority: 'medium',
   notes: '',
 }
 
@@ -77,6 +79,7 @@ export function InterviewScheduleDialog({
   const { data: managers = [] } = useHiringManagers()
   const { data: options } = useOptions()
   const modes = options?.interview_modes ?? []
+  const priorities = options?.priorities ?? []
 
   const {
     register,
@@ -108,6 +111,7 @@ export function InterviewScheduleDialog({
       mode: v.mode,
       scheduled_at: v.scheduled_at,
       location_or_link: v.location_or_link || null,
+      priority: v.priority,
       notes: v.notes || null,
     }
     if (!isEdit) payload.candidate_id = Number(v.candidate_id)
@@ -200,6 +204,27 @@ export function InterviewScheduleDialog({
           </Field>
           <Field label="Location / meeting link" error={errors.location_or_link}>
             <Input placeholder="https://… or office address" {...register('location_or_link')} />
+          </Field>
+
+          <Field label="Priority" error={errors.priority}>
+            <Controller
+              control={control}
+              name="priority"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {priorities.length === 0 ? (
+                      <SelectEmpty>No priorities found</SelectEmpty>
+                    ) : (
+                      priorities.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </Field>
 
           <div className="sm:col-span-2">

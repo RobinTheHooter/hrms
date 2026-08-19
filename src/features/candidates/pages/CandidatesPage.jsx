@@ -52,6 +52,7 @@ function toFormValues(c) {
     notice_period_days: str(c.notice_period_days),
     resume_url: c.resume_url ?? '',
     stage: c.stage ?? 'applied',
+    priority: c.priority ?? 'medium',
     notes: c.notes ?? '',
   }
 }
