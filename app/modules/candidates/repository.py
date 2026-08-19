@@ -1,7 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.enums import CandidateStage
+from app.common.enums import CandidateSource, CandidateStage
 from app.common.pagination import PageParams
 from app.modules.candidates.models import Candidate
 from app.modules.jobs.models import Job
@@ -20,6 +20,7 @@ class CandidateRepository:
         *,
         search: str | None = None,
         stage: CandidateStage | None = None,
+        source: CandidateSource | None = None,
         job_id: int | None = None,
         consultant_id: int | None = None,
         min_score: int | None = None,
@@ -43,6 +44,9 @@ class CandidateRepository:
         if stage is not None:
             stmt = stmt.where(Candidate.stage == stage)
             count_stmt = count_stmt.where(Candidate.stage == stage)
+        if source is not None:
+            stmt = stmt.where(Candidate.source == source)
+            count_stmt = count_stmt.where(Candidate.source == source)
         if job_id is not None:
             stmt = stmt.where(Candidate.job_id == job_id)
             count_stmt = count_stmt.where(Candidate.job_id == job_id)

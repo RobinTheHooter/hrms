@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
-from app.common.enums import CandidateStage
+from app.common.enums import CandidateSource, CandidateStage
 from app.common.pagination import Page, PageParams
 from app.core.database import get_db
 from app.modules.auth.dependencies import require_permission
@@ -38,13 +38,14 @@ async def list_candidates(
     size: int = Query(20, ge=1, le=100),
     search: str | None = Query(None),
     stage: CandidateStage | None = Query(None),
+    source: CandidateSource | None = Query(None),
     job_id: int | None = Query(None),
     min_score: int | None = Query(None, ge=0, le=100),
     sort: str | None = Query(None),
 ) -> Page[CandidateRead]:
     params = PageParams(page=page, size=size)
     return await CandidateService(db).list(
-        current_user, params, search, stage, job_id, min_score, sort
+        current_user, params, search, stage, source, job_id, min_score, sort
     )
 
 
