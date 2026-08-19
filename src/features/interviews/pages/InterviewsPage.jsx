@@ -114,7 +114,7 @@ export function InterviewsPage() {
           candidate_id: String(schedule.interview.candidate_id),
           hiring_manager_id: schedule.interview.hiring_manager_id
             ? String(schedule.interview.hiring_manager_id)
-            : 'none',
+            : '',
           mode: schedule.interview.mode,
           scheduled_at: toLocalInput(schedule.interview.scheduled_at),
           location_or_link: schedule.interview.location_or_link ?? '',

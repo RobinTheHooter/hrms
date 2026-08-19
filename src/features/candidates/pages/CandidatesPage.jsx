@@ -17,6 +17,7 @@ import {
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { getCandidateColumns } from '@/features/candidates/columns'
+import { AiScreeningDialog } from '@/features/candidates/components/AiScreeningDialog'
 import { CandidateFormDialog } from '@/features/candidates/components/CandidateFormDialog'
 import { NotifyDialog } from '@/features/candidates/components/NotifyDialog'
 import {
@@ -24,6 +25,7 @@ import {
   useCreateCandidate,
   useDeleteCandidate,
   useUpdateCandidate,
+  useUploadResume,
 } from '@/features/candidates/hooks'
 import { useJobs } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
@@ -61,8 +63,11 @@ export function CandidatesPage() {
   const [search, setSearch] = useState('')
   const [stage, setStage] = useState('all')
   const [jobId, setJobId] = useState('all')
+  const [minScore, setMinScore] = useState('all')
+  const [sort, setSort] = useState('recent')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', candidate: null })
   const [notify, setNotify] = useState({ open: false, candidate: null })
+  const [screen, setScreen] = useState({ open: false, candidate: null })
 
   const { data: jobsPage } = useJobs({ page: 1, size: 100 })
   const jobs = jobsPage?.items ?? []
@@ -73,16 +78,20 @@ export function CandidatesPage() {
     search,
     stage: stage === 'all' ? undefined : stage,
     jobId: jobId === 'all' ? undefined : Number(jobId),
+    min_score: minScore === 'all' ? undefined : Number(minScore),
+    sort: sort === 'score' ? 'score' : undefined,
   })
 
   const createMut = useCreateCandidate()
   const updateMut = useUpdateCandidate()
   const deleteMut = useDeleteCandidate()
+  const uploadMut = useUploadResume()
 
   const openCreate = () => setDialog({ open: true, mode: 'create', candidate: null })
   const openEdit = (candidate) => setDialog({ open: true, mode: 'edit', candidate })
   const closeDialog = () => setDialog((d) => ({ ...d, open: false }))
   const openNotify = (candidate) => setNotify({ open: true, candidate })
+  const openScreen = (candidate) => setScreen({ open: true, candidate })
 
   const resetPage = () => setPagination((p) => ({ ...p, pageIndex: 0 }))
 
@@ -104,26 +113,21 @@ export function CandidatesPage() {
     })
   }
 
-  const handleSubmit = (payload) => {
-    if (dialog.mode === 'edit') {
-      updateMut.mutate(
-        { id: dialog.candidate.id, payload },
-        {
-          onSuccess: () => {
-            toast.success('Candidate updated')
-            closeDialog()
-          },
-          onError: (e) => toast.error(errorMessage(e, 'Failed to update candidate')),
-        },
-      )
-    } else {
-      createMut.mutate(payload, {
-        onSuccess: () => {
-          toast.success('Candidate added')
-          closeDialog()
-        },
-        onError: (e) => toast.error(errorMessage(e, 'Failed to add candidate')),
-      })
+  const handleSubmit = async (payload, file) => {
+    try {
+      const isEdit = dialog.mode === 'edit'
+      const saved = isEdit
+        ? await updateMut.mutateAsync({ id: dialog.candidate.id, payload })
+        : await createMut.mutateAsync(payload)
+
+      if (file) {
+        // Uploading triggers automatic AI screening on the backend.
+        await uploadMut.mutateAsync({ id: saved.id, file })
+      }
+      toast.success(isEdit ? 'Candidate updated' : 'Candidate added')
+      closeDialog()
+    } catch (e) {
+      toast.error(errorMessage(e, 'Failed to save candidate'))
     }
   }
 
@@ -134,6 +138,7 @@ export function CandidatesPage() {
         onDelete: handleDelete,
         onStageChange: handleStageChange,
         onNotify: openNotify,
+        onScreen: openScreen,
         canManage,
         options,
       }),
@@ -199,6 +204,24 @@ export function CandidatesPage() {
               ))}
             </SelectContent>
           </Select>
+
+          <Select value={minScore} onValueChange={(v) => { setMinScore(v); resetPage() }}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any AI score</SelectItem>
+              <SelectItem value="60">60+</SelectItem>
+              <SelectItem value="75">75+</SelectItem>
+              <SelectItem value="85">85+</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={sort} onValueChange={(v) => { setSort(v); resetPage() }}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Most recent</SelectItem>
+              <SelectItem value="score">Top AI score</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {isError ? (
@@ -229,7 +252,9 @@ export function CandidatesPage() {
               : undefined
           }
           onSubmit={handleSubmit}
-          isSubmitting={createMut.isPending || updateMut.isPending}
+          isSubmitting={
+            createMut.isPending || updateMut.isPending || uploadMut.isPending
+          }
         />
       )}
 
@@ -238,6 +263,14 @@ export function CandidatesPage() {
           open={notify.open}
           onOpenChange={(open) => setNotify((n) => ({ ...n, open }))}
           candidate={notify.candidate}
+        />
+      )}
+
+      {canManage && (
+        <AiScreeningDialog
+          open={screen.open}
+          onOpenChange={(open) => setScreen((s) => ({ ...s, open }))}
+          candidate={screen.candidate}
         />
       )}
     </div>

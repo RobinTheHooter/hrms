@@ -1,4 +1,4 @@
-import { FileText, Mail, Pencil, Trash2 } from 'lucide-react'
+import { FileText, Mail, Pencil, Sparkles, Trash2 } from 'lucide-react'
 
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -14,11 +14,14 @@ import {
 import { stageVariant } from '@/features/candidates/constants'
 import { optionLabel } from '@/features/meta/hooks'
 
+const scoreVariant = (s) => (s >= 80 ? 'success' : s >= 60 ? 'warning' : 'destructive')
+
 export function getCandidateColumns({
   onEdit,
   onDelete,
   onStageChange,
   onNotify,
+  onScreen,
   canManage,
   options,
 }) {
@@ -101,6 +104,18 @@ export function getCandidateColumns({
       },
     },
     {
+      accessorKey: 'ai_score',
+      header: 'AI score',
+      cell: ({ getValue }) => {
+        const s = getValue()
+        return s == null ? (
+          <span className="text-xs text-muted-foreground">—</span>
+        ) : (
+          <Badge variant={scoreVariant(s)}>{s}</Badge>
+        )
+      },
+    },
+    {
       id: 'resume',
       header: 'CV',
       cell: ({ row }) =>
@@ -125,6 +140,14 @@ export function getCandidateColumns({
       header: '',
       cell: ({ row }) => (
         <div className="flex justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            title="AI screening"
+            onClick={() => onScreen(row.original)}
+          >
+            <Sparkles className="size-4 text-primary" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"

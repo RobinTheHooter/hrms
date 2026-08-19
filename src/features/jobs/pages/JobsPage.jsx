@@ -39,8 +39,9 @@ function toFormValues(job) {
     positions: job.positions ?? 1,
     status: job.status ?? 'open',
     assigned_consultant_id:
-      job.assigned_consultant_id != null ? String(job.assigned_consultant_id) : 'none',
+      job.assigned_consultant_id != null ? String(job.assigned_consultant_id) : '',
     description: job.description ?? '',
+    required_skills: job.required_skills ?? '',
   }
 }
 
