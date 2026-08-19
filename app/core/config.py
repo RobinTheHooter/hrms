@@ -68,12 +68,14 @@ class Settings(BaseSettings):
     SMTP_STARTTLS: bool = True
     EMAIL_FROM: str = ""
     EMAIL_FROM_NAME: str = "Recruitment Team"
+    # HTTP email API (works on hosts that block SMTP ports, e.g. Render free).
+    RESEND_API_KEY: str = ""
     # Auto-send the "application received" acknowledgment on new candidates.
     AUTO_EMAIL_APPLICATION_RECEIVED: bool = True
 
     @property
     def email_enabled(self) -> bool:
-        return bool(self.SMTP_HOST and self.EMAIL_FROM)
+        return bool(self.EMAIL_FROM and (self.RESEND_API_KEY or self.SMTP_HOST))
 
 
 @lru_cache
