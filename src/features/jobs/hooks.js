@@ -20,6 +20,7 @@ export function useJobs(params) {
     queryKey: [...JOBS_KEY, params],
     queryFn: () => listJobs(params),
     placeholderData: keepPreviousData,
+    refetchInterval: 15_000,
   })
 }
 
