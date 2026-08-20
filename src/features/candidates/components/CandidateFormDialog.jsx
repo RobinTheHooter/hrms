@@ -3,15 +3,7 @@ import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { FormDialog } from '@/components/ui/form-dialog'
 import { Input } from '@/components/ui/input'
 import { Field } from '@/components/ui/field'
 import {
@@ -118,16 +110,17 @@ export function CandidateFormDialog({
   })
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit candidate' : 'Add candidate'}</DialogTitle>
-          <DialogDescription>
-            Attach the candidate to a job and capture their details.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? 'Edit candidate' : 'Add candidate'}
+      description="Attach the candidate to a job and capture their details."
+      onSubmit={submit}
+      isSubmitting={isSubmitting}
+      contentClassName="max-h-[90vh] max-w-2xl overflow-y-auto"
+      formClassName="grid grid-cols-1 gap-4 sm:grid-cols-2"
+      footerClassName="sm:col-span-2"
+    >
           <Field label="Job" error={errors.job_id} className="sm:col-span-2">
             <Controller
               control={control}
@@ -266,17 +259,6 @@ export function CandidateFormDialog({
           <Field label="Notes" error={errors.notes} className="sm:col-span-2">
             <Textarea rows={3} {...register('notes')} />
           </Field>
-
-          <DialogFooter className="sm:col-span-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving…' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   )
 }
