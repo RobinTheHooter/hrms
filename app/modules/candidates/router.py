@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.acl import Permission
 from app.common.exceptions import NotFoundError
 from app.common.enums import CandidateSource, CandidateStage
-from app.common.pagination import Page, PageParams
+from app.common.pagination import Page
+from app.common.query import ListParamsDep
 from app.core.database import get_db
 from app.modules.auth.dependencies import require_permission
 from app.modules.auth.models import User
@@ -35,18 +36,21 @@ ManageUser = Annotated[User, Depends(require_permission(Permission.CANDIDATES_MA
 async def list_candidates(
     current_user: ViewUser,
     db: Annotated[AsyncSession, Depends(get_db)],
-    page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=1000),
-    search: str | None = Query(None),
+    params: ListParamsDep,
     stage: CandidateStage | None = Query(None),
     source: CandidateSource | None = Query(None),
     job_id: int | None = Query(None),
     min_score: int | None = Query(None, ge=0, le=100),
-    sort: str | None = Query(None),
 ) -> Page[CandidateRead]:
-    params = PageParams(page=page, size=size)
     return await CandidateService(db).list(
-        current_user, params, search, stage, source, job_id, min_score, sort
+        current_user,
+        params.page_params,
+        params.search,
+        stage,
+        source,
+        job_id,
+        min_score,
+        params.sort,
     )
 
 

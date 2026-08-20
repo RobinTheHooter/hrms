@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
 from app.common.enums import InterviewStatus
-from app.common.pagination import Page, PageParams
+from app.common.pagination import Page
+from app.common.query import ListParamsDep
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.modules.auth.dependencies import require_permission
@@ -38,12 +39,12 @@ ConductUser = Annotated[
 async def list_interviews(
     current_user: ViewUser,
     db: Annotated[AsyncSession, Depends(get_db)],
-    page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=1000),
+    params: ListParamsDep,
     status: InterviewStatus | None = Query(None),
 ) -> Page[InterviewRead]:
-    params = PageParams(page=page, size=size)
-    return await InterviewService(db).list(current_user, params, status)
+    return await InterviewService(db).list(
+        current_user, params.page_params, status
+    )
 
 
 @router.post("", response_model=InterviewRead, status_code=status.HTTP_201_CREATED)

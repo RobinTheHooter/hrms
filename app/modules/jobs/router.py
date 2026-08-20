@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
 from app.common.enums import JobStatus
-from app.common.pagination import Page, PageParams
+from app.common.pagination import Page
+from app.common.query import ListParamsDep
 from app.core.database import get_db
 from app.modules.auth.dependencies import require_permission
 from app.modules.auth.models import User
@@ -23,13 +24,12 @@ ManageUser = Annotated[User, Depends(require_permission(Permission.JOBS_MANAGE))
 async def list_jobs(
     current_user: ViewUser,
     db: Annotated[AsyncSession, Depends(get_db)],
-    page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=1000),
-    search: str | None = Query(None),
+    params: ListParamsDep,
     status: JobStatus | None = Query(None),
 ) -> Page[JobRead]:
-    params = PageParams(page=page, size=size)
-    return await JobService(db).list(current_user, params, search, status)
+    return await JobService(db).list(
+        current_user, params.page_params, params.search, status
+    )
 
 
 @router.post("", response_model=JobRead, status_code=status.HTTP_201_CREATED)
