@@ -1,22 +1,31 @@
+import { lazy } from 'react'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 
 import { BlankLayout } from '@/layouts/BlankLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { PERMISSIONS, can, landingPathFor } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
-import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { useAuthStore } from '@/features/auth/store'
-import { CandidatesPage } from '@/features/candidates/pages/CandidatesPage'
-import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
-import { IntegrationsPage } from '@/features/integrations/pages/IntegrationsPage'
-import { InterviewsPage } from '@/features/interviews/pages/InterviewsPage'
-import { JobsPage } from '@/features/jobs/pages/JobsPage'
-import { ComingSoonPage } from '@/features/misc/ComingSoonPage'
-import { ForbiddenPage } from '@/features/misc/ForbiddenPage'
-import { UsersPage } from '@/features/users/pages/UsersPage'
+// Eager: the error boundary and 404 sit outside the Suspense-wrapped layouts.
+import { NotFoundPage } from '@/features/misc/NotFoundPage'
+import { RouteError } from '@/features/misc/RouteError'
 
 // NOTE: the dashboards and Employees module are hidden during the ATS pivot.
 // Their page components still exist under features/ but aren't routed here.
+
+// Code-split each page into its own chunk (named exports → default for lazy).
+const lazyPage = (factory, name) =>
+  lazy(() => factory().then((m) => ({ default: m[name] })))
+
+const LoginPage = lazyPage(() => import('@/features/auth/pages/LoginPage'), 'LoginPage')
+const DashboardPage = lazyPage(() => import('@/features/dashboard/pages/DashboardPage'), 'DashboardPage')
+const JobsPage = lazyPage(() => import('@/features/jobs/pages/JobsPage'), 'JobsPage')
+const CandidatesPage = lazyPage(() => import('@/features/candidates/pages/CandidatesPage'), 'CandidatesPage')
+const InterviewsPage = lazyPage(() => import('@/features/interviews/pages/InterviewsPage'), 'InterviewsPage')
+const UsersPage = lazyPage(() => import('@/features/users/pages/UsersPage'), 'UsersPage')
+const IntegrationsPage = lazyPage(() => import('@/features/integrations/pages/IntegrationsPage'), 'IntegrationsPage')
+const ComingSoonPage = lazyPage(() => import('@/features/misc/ComingSoonPage'), 'ComingSoonPage')
+const ForbiddenPage = lazyPage(() => import('@/features/misc/ForbiddenPage'), 'ForbiddenPage')
 
 /** Not logged in -> bounce to login. */
 function RequireAuth() {
@@ -45,39 +54,46 @@ const guarded = (permission, element) => (
 )
 
 export const router = createBrowserRouter([
-  // Public, full-screen
   {
-    element: <BlankLayout />,
-    children: [{ path: '/login', element: <LoginPage /> }],
-  },
-
-  // Authenticated
-  {
-    element: <RequireAuth />,
+    // Root error boundary: catches render errors and failed chunk loads
+    // anywhere below and shows a recovery screen instead of a blank page.
+    errorElement: <RouteError />,
     children: [
-      // Full-screen authenticated pages (no chrome)
+      // Public, full-screen
       {
         element: <BlankLayout />,
-        children: [{ path: '/403', element: <ForbiddenPage /> }],
+        children: [{ path: '/login', element: <LoginPage /> }],
       },
 
-      // App shell
+      // Authenticated
       {
-        element: <DashboardLayout />,
+        element: <RequireAuth />,
         children: [
-          { path: '/', element: <RoleHome /> },
-          { path: '/dashboard', element: <DashboardPage /> },
-          { path: '/jobs', element: guarded(PERMISSIONS.JOBS_VIEW, <JobsPage />) },
-          { path: '/candidates', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidatesPage />) },
-          { path: '/interviews', element: guarded(PERMISSIONS.INTERVIEWS_VIEW, <InterviewsPage />) },
-          { path: '/users', element: guarded(PERMISSIONS.USERS_MANAGE, <UsersPage />) },
-          { path: '/integrations', element: <IntegrationsPage /> },
-          { path: '/coming-soon', element: <ComingSoonPage /> },
+          // Full-screen authenticated pages (no chrome)
+          {
+            element: <BlankLayout />,
+            children: [{ path: '/403', element: <ForbiddenPage /> }],
+          },
+
+          // App shell
+          {
+            element: <DashboardLayout />,
+            children: [
+              { path: '/', element: <RoleHome /> },
+              { path: '/dashboard', element: <DashboardPage /> },
+              { path: '/jobs', element: guarded(PERMISSIONS.JOBS_VIEW, <JobsPage />) },
+              { path: '/candidates', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidatesPage />) },
+              { path: '/interviews', element: guarded(PERMISSIONS.INTERVIEWS_VIEW, <InterviewsPage />) },
+              { path: '/users', element: guarded(PERMISSIONS.USERS_MANAGE, <UsersPage />) },
+              { path: '/integrations', element: <IntegrationsPage /> },
+              { path: '/coming-soon', element: <ComingSoonPage /> },
+            ],
+          },
         ],
       },
+
+      // Unknown path -> full-screen 404
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
-
-  // Unknown path -> home (re-routes by auth/role)
-  { path: '*', element: <Navigate to="/" replace /> },
 ])
