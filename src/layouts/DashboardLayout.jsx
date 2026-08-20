@@ -10,8 +10,10 @@ import {
   Settings,
   Sparkles,
 } from 'lucide-react'
+import { Suspense } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
+import { ChunkLoader } from '@/components/ChunkLoader'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -145,7 +147,9 @@ export function DashboardLayout() {
         </header>
 
         <main className="flex-1 px-6 py-6">
-          <Outlet />
+          <Suspense fallback={<ChunkLoader />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

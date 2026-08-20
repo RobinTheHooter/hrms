@@ -3,15 +3,7 @@ import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { FormDialog } from '@/components/ui/form-dialog'
 import { Input } from '@/components/ui/input'
 import { Field } from '@/components/ui/field'
 import {
@@ -83,18 +75,18 @@ export function UserFormDialog({
   })
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit user' : 'Add user'}</DialogTitle>
-          <DialogDescription>
-            {isEdit
-              ? 'Update details, role, or reset the password.'
-              : 'Create a new account and assign a role.'}
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={submit} className="space-y-4">
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? 'Edit user' : 'Add user'}
+      description={
+        isEdit
+          ? 'Update details, role, or reset the password.'
+          : 'Create a new account and assign a role.'
+      }
+      onSubmit={submit}
+      isSubmitting={isSubmitting}
+    >
           <Field label="Full name" error={errors.full_name}>
             <Input {...register('full_name')} />
           </Field>
@@ -158,17 +150,6 @@ export function UserFormDialog({
               />
             </Field>
           </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving…' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   )
 }

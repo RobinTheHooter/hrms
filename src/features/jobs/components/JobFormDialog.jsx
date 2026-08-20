@@ -3,15 +3,7 @@ import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { FormDialog } from '@/components/ui/form-dialog'
 import { Input } from '@/components/ui/input'
 import { Field } from '@/components/ui/field'
 import {
@@ -95,14 +87,17 @@ export function JobFormDialog({
   })
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{mode === 'edit' ? 'Edit job' : 'Create job'}</DialogTitle>
-          <DialogDescription>Define the role and assign a consultant.</DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={mode === 'edit' ? 'Edit job' : 'Create job'}
+      description="Define the role and assign a consultant."
+      onSubmit={submit}
+      isSubmitting={isSubmitting}
+      contentClassName="max-w-2xl"
+      formClassName="grid grid-cols-1 gap-4 sm:grid-cols-2"
+      footerClassName="sm:col-span-2"
+    >
           <Field label="Job title" error={errors.title}>
             <Input {...register('title')} />
           </Field>
@@ -217,17 +212,6 @@ export function JobFormDialog({
               />
             </Field>
           </div>
-
-          <DialogFooter className="sm:col-span-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving…' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   )
 }

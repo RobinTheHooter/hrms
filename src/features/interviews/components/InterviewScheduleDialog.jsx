@@ -3,15 +3,7 @@ import { useEffect } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { FormDialog } from '@/components/ui/form-dialog'
 import { Input } from '@/components/ui/input'
 import { Field } from '@/components/ui/field'
 import {
@@ -109,18 +101,17 @@ export function InterviewScheduleDialog({
   })
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle>
-            {isEdit ? 'Reschedule interview' : 'Schedule interview'}
-          </DialogTitle>
-          <DialogDescription>
-            Assign a hiring manager and set the date & time.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <FormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEdit ? 'Reschedule interview' : 'Schedule interview'}
+      description="Assign a hiring manager and set the date & time."
+      onSubmit={submit}
+      isSubmitting={isSubmitting}
+      contentClassName="max-w-xl"
+      formClassName="grid grid-cols-1 gap-4 sm:grid-cols-2"
+      footerClassName="sm:col-span-2"
+    >
           <Field label="Candidate" error={errors.candidate_id} className="sm:col-span-2">
             <Controller
               control={control}
@@ -253,17 +244,6 @@ export function InterviewScheduleDialog({
           <Field label="Notes" error={errors.notes} className="sm:col-span-2">
             <Textarea rows={3} {...register('notes')} />
           </Field>
-
-          <DialogFooter className="sm:col-span-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving…' : 'Save'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   )
 }
