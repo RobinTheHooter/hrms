@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { toast } from 'sonner'
 import { DEV_AUTH_ENABLED } from '@/features/auth/devUser'
 import { useAuthStore } from '@/features/auth/store'
 
@@ -18,17 +19,34 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-// On 401, clear auth and bounce to login.
+// Guards against a burst of failed requests stacking toasts / redirects.
+let isLoggingOut = false
+
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // In dev-auth mode, don't bounce to login on 401 (backend may be absent).
-    if (error.response?.status === 401 && !DEV_AUTH_ENABLED) {
+    const status = error.response?.status
+
+    // 401: session expired — warn
+    if (status === 401 && !DEV_AUTH_ENABLED && !isLoggingOut) {
+      isLoggingOut = true
       useAuthStore.getState().logout()
-      if (window.location.pathname !== '/login') {
-        window.location.assign('/login')
-      }
+      toast.error('Your session has expired. Please sign in again.')
+      setTimeout(() => {
+        if (window.location.pathname !== '/login') {
+          window.location.assign('/login')
+        }
+      }, 1500)
     }
+
+    // 429: rate limited — surface the server's message (or a default).
+    if (status === 429) {
+      toast.error(
+        error.response?.data?.detail ??
+          'Too many requests — please slow down and try again shortly.',
+      )
+    }
+
     return Promise.reject(error)
   },
 )
