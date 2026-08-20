@@ -36,7 +36,7 @@ async def list_candidates(
     current_user: ViewUser,
     db: Annotated[AsyncSession, Depends(get_db)],
     page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=100),
+    size: int = Query(20, ge=1, le=1000),
     search: str | None = Query(None),
     stage: CandidateStage | None = Query(None),
     source: CandidateSource | None = Query(None),
