@@ -3,13 +3,14 @@ import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-quartz.css'
 import { AgGridReact } from 'ag-grid-react'
 import { Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import './Table.css'
 
-// Ag-Grid v33 is modular; register the community bundle once.
+// Ag-Grid v33 is modular; register the community bundle once (includes the
+// client-side AND infinite row models).
 ModuleRegistry.registerModules([AllCommunityModule])
 
 const DEFAULT_COL_DEF = {
@@ -40,34 +41,46 @@ function GridSkeleton({ columns = 5, rows = 6 }) {
 }
 
 /**
- * Global data table (Ag-Grid) themed to the app. Client-side model:
- * pass all rows via `rowData` and the grid handles sorting, quick-filter
- * search and pagination. Custom cells come from the shared renderer
- * components in ../TableComponents.
+ * Global data table (Ag-Grid) themed to the app.
  *
- * Props:
- * - rowData, columnData        — data + Ag-Grid column defs
- * - isLoading                  — show a skeleton instead of the grid
- * - getRowId                   — stable row id (defaults to row.id)
- * - pageSize                   — rows per page (default 10)
- * - quickFilter                — show the built-in search box (default true)
- * - searchPlaceholder          — search box placeholder
- * - toolbar                    — extra controls rendered beside the search box
- * - rowClassRules              — Ag-Grid per-row class rules
- * - onRowClicked               — row click handler
+ * Two modes:
+ * - Client-side (default): pass all rows via `rowData`; the grid handles
+ *   sorting, quick-filter search and pagination in the browser.
+ * - Server-side (`serverSide`): the Infinite Row Model fetches one page-block
+ *   at a time via `fetchRows({ startRow, endRow, sortModel }) → { rows, rowCount }`.
+ *   Search + toolbar filters are owned by the page; pass them through
+ *   `searchValue`/`onSearchChange` and bump `refreshKey` to reload the grid.
+ *
+ * Common props: columnData, getRowId, pageSize, searchPlaceholder, toolbar,
+ * rowClassRules, onRowClicked.
  */
 export function Table({
+  // client mode
   rowData = [],
-  columnData = [],
   isLoading = false,
+  // server mode
+  serverSide = false,
+  fetchRows,
+  refreshKey,
+  searchValue,
+  onSearchChange,
+  height = 560,
+  // shared
+  columnData = [],
   getRowId,
-  pageSize = 10,
+  pageSize = 20,
   quickFilter = true,
   searchPlaceholder = 'Search…',
   initialSearch = '',
   toolbar = null,
   rowClassRules,
   onRowClicked,
+  // Toggle Ag-Grid's built-in pagination. Set false when the page drives
+  // pagination itself (server-side, numbered pages via <Pagination />).
+  useAgGridPagination = true,
+  // Column header sorting. Disable when only the current page is loaded
+  // (server-side), since client sort would reorder just that page.
+  sortable = true,
 }) {
   const [quick, setQuick] = useState(initialSearch)
 
@@ -76,7 +89,45 @@ export function Table({
     [getRowId],
   )
 
-  if (isLoading) {
+  const defaultColDef = useMemo(
+    () => ({ ...DEFAULT_COL_DEF, sortable }),
+    [sortable],
+  )
+
+  // Keep the latest fetchRows without forcing the datasource to be rebuilt on
+  // every render — the datasource is only recreated when `refreshKey` changes,
+  // which reloads the grid from the first block.
+  const fetchRef = useRef(fetchRows)
+  useEffect(() => {
+    fetchRef.current = fetchRows
+  }, [fetchRows])
+
+  const datasource = useMemo(() => {
+    if (!serverSide) return undefined
+    return {
+      getRows: async (params) => {
+        try {
+          const { rows, rowCount } = await fetchRef.current({
+            startRow: params.startRow,
+            endRow: params.endRow,
+            sortModel: params.sortModel,
+          })
+          params.success({ rowData: rows, rowCount })
+        } catch {
+          params.fail()
+        }
+      },
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverSide, refreshKey])
+
+  // Search box: controlled by the page in server mode, internal quick-filter
+  // (client-side) otherwise.
+  const searchControlled = typeof onSearchChange === 'function'
+  const searchBoxValue = searchControlled ? (searchValue ?? '') : quick
+  const handleSearch = searchControlled ? onSearchChange : setQuick
+
+  if (!serverSide && isLoading) {
     return <GridSkeleton columns={Math.max(columnData.length, 3)} />
   }
 
@@ -89,8 +140,8 @@ export function Table({
               <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder={searchPlaceholder}
-                value={quick}
-                onChange={(e) => setQuick(e.target.value)}
+                value={searchBoxValue}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="pl-9"
               />
             </div>
@@ -99,25 +150,45 @@ export function Table({
         </div>
       )}
 
-      <div className="ag-theme-quartz ag-app overflow-hidden rounded-xl border">
+      <div
+        className="ag-theme-quartz ag-app overflow-hidden rounded-xl border"
+        style={serverSide ? { height } : undefined}
+      >
         <AgGridReact
           theme="legacy"
-          rowData={rowData}
           columnDefs={columnData}
-          defaultColDef={DEFAULT_COL_DEF}
+          defaultColDef={defaultColDef}
           getRowId={resolveRowId}
-          quickFilterText={quick}
           rowClassRules={rowClassRules}
           onRowClicked={onRowClicked}
-          pagination
-          paginationPageSize={pageSize}
-          paginationPageSizeSelector={[10, 25, 50, 100]}
-          domLayout="autoHeight"
-          enableCellTextSelection
           tooltipShowDelay={0}
           tooltipHideDelay={2000}
           animateRows
           overlayNoRowsTemplate="No results."
+          {...(serverSide
+            ? {
+                rowModelType: 'infinite',
+                datasource,
+                cacheBlockSize: pageSize,
+                maxBlocksInCache: 10,
+                infiniteInitialRowCount: 1,
+                pagination: true,
+                paginationPageSize: pageSize,
+                paginationPageSizeSelector: false,
+              }
+            : {
+                rowData,
+                quickFilterText: searchControlled ? undefined : quick,
+                domLayout: 'autoHeight',
+                enableCellTextSelection: true,
+                pagination: useAgGridPagination,
+                ...(useAgGridPagination
+                  ? {
+                      paginationPageSize: pageSize,
+                      paginationPageSizeSelector: [10, 25, 50, 100],
+                    }
+                  : {}),
+              })}
         />
       </div>
     </div>
