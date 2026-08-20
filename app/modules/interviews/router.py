@@ -39,7 +39,7 @@ async def list_interviews(
     current_user: ViewUser,
     db: Annotated[AsyncSession, Depends(get_db)],
     page: int = Query(1, ge=1),
-    size: int = Query(20, ge=1, le=100),
+    size: int = Query(20, ge=1, le=1000),
     status: InterviewStatus | None = Query(None),
 ) -> Page[InterviewRead]:
     params = PageParams(page=page, size=size)
