@@ -6,11 +6,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import AppError
 from app.core.config import get_settings
+from app.core.tasks import enqueue
 from app.modules.auth.models import User
 from app.modules.candidates.models import Candidate
 from app.modules.candidates.service import CandidateService
 from app.modules.screening.extract import extract_text
 from app.modules.screening.openai_client import score_resume
+from app.modules.screening.tasks import screen_candidate
 
 settings = get_settings()
 logger = logging.getLogger("hrms.screening")
@@ -54,12 +56,12 @@ class ScreeningService:
         candidate.resume_filename = file.filename or "resume"
         candidate.resume_mime = file.content_type or "application/octet-stream"
 
-        # Auto-screen as soon as we have the resume (best-effort).
+        # Auto-screen in the background so the upload response returns
+        # immediately. Commit the resume first so the job can read it, then
+        # enqueue; the frontend polls and shows the score once it lands.
         if settings.AUTO_AI_SCREENING and settings.ai_enabled:
-            try:
-                await self._run_score(candidate)
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("Auto AI screening failed for %s: %s", candidate.id, exc)
+            await self.db.commit()
+            enqueue(screen_candidate, candidate.id)
 
         return candidate
 
