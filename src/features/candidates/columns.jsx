@@ -95,11 +95,12 @@ export function getCandidateColumns({
 
   if (canManage) {
     columns.push({
-      headerName: '',
+      headerName: 'Actions',
       colId: 'actions',
+      headerClass: 'header-center',
       flex: 0,
-      width: 180,
-      minWidth: 180,
+      width: 200,
+      minWidth: 200,
       sortable: false,
       filter: false,
       resizable: false,

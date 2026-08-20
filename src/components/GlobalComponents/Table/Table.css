@@ -54,6 +54,11 @@
   align-items: center;
 }
 
+/* Center a column's header label over its content (e.g. the Actions column). */
+.ag-theme-quartz.ag-app .header-center .ag-header-cell-label {
+  justify-content: center;
+}
+
 .ag-theme-quartz.ag-app .ag-paging-panel {
   border-top: 1px solid var(--border);
   color: var(--muted-foreground);

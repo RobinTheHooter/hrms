@@ -86,11 +86,12 @@ export function getInterviewColumns({
 
   if (canSchedule || canConduct) {
     columns.push({
-      headerName: '',
+      headerName: 'Actions',
       colId: 'actions',
+      headerClass: 'header-center',
       flex: 0,
-      width: 140,
-      minWidth: 140,
+      width: 156,
+      minWidth: 156,
       sortable: false,
       filter: false,
       resizable: false,

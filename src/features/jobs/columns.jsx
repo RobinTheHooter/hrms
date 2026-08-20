@@ -62,8 +62,9 @@ export function getJobColumns({ onEdit, onDelete, canManage, options }) {
 
   if (canManage) {
     columns.push({
-      headerName: '',
+      headerName: 'Actions',
       colId: 'actions',
+      headerClass: 'header-center',
       flex: 0,
       width: 110,
       minWidth: 110,

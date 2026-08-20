@@ -41,8 +41,9 @@ export function getUserColumns({ onEdit, onDelete, currentUserId, options }) {
       },
     },
     {
-      headerName: '',
+      headerName: 'Actions',
       colId: 'actions',
+      headerClass: 'header-center',
       flex: 0,
       width: 110,
       minWidth: 110,
