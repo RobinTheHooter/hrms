@@ -1,21 +1,14 @@
-import { FileText, Mail, Pencil, Sparkles, Trash2 } from 'lucide-react'
+import { Mail, Pencil, Sparkles, Trash2 } from 'lucide-react'
 
-import { Avatar } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectEmpty,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { ActionsRenderer } from '@/components/GlobalComponents/TableComponents/ActionsRenderer'
+import { AiScoreRenderer } from '@/components/GlobalComponents/TableComponents/AiScoreRenderer'
+import { BadgeRenderer } from '@/components/GlobalComponents/TableComponents/BadgeRenderer'
+import { PersonRenderer } from '@/components/GlobalComponents/TableComponents/PersonRenderer'
+import { ResumeRenderer } from '@/components/GlobalComponents/TableComponents/ResumeRenderer'
+import { StageRenderer } from '@/components/GlobalComponents/TableComponents/StageRenderer'
 import { stageVariant } from '@/features/candidates/constants'
 import { optionLabel } from '@/features/meta/hooks'
 import { priorityVariant } from '@/lib/priority'
-
-const scoreVariant = (s) => (s >= 80 ? 'success' : s >= 60 ? 'warning' : 'destructive')
 
 export function getCandidateColumns({
   onEdit,
@@ -31,163 +24,95 @@ export function getCandidateColumns({
 
   const columns = [
     {
-      accessorKey: 'full_name',
-      header: 'Candidate',
-      cell: ({ row }) => {
-        const c = row.original
-        return (
-          <div className="flex items-center gap-3">
-            <Avatar name={c.full_name} />
-            <div className="leading-tight">
-              <div className="font-medium">{c.full_name}</div>
-              <div className="text-xs text-muted-foreground">{c.email}</div>
-            </div>
-          </div>
-        )
+      headerName: 'Candidate',
+      field: 'full_name',
+      flex: 2,
+      minWidth: 220,
+      cellRenderer: PersonRenderer,
+      cellRendererParams: {
+        getName: (d) => d.full_name,
+        getSubtitle: (d) => d.email,
+      },
+      valueGetter: (p) => `${p.data.full_name ?? ''} ${p.data.email ?? ''}`,
+    },
+    {
+      headerName: 'Role',
+      colId: 'job',
+      valueGetter: (p) => p.data.job?.title ?? '—',
+    },
+    {
+      headerName: 'Current role',
+      field: 'current_role',
+      valueFormatter: (p) => p.value || '—',
+    },
+    {
+      headerName: 'Exp',
+      field: 'experience_years',
+      maxWidth: 110,
+      valueFormatter: (p) => (p.value != null ? `${p.value} yrs` : '—'),
+    },
+    {
+      headerName: 'Source',
+      colId: 'source',
+      valueGetter: (p) => optionLabel(options?.candidate_sources, p.data.source),
+      cellRenderer: BadgeRenderer,
+    },
+    {
+      headerName: 'Stage',
+      field: 'stage',
+      minWidth: 150,
+      cellRenderer: StageRenderer,
+      cellRendererParams: {
+        canManage,
+        stages,
+        onStageChange,
+        getVariant: stageVariant,
       },
     },
     {
-      id: 'job',
-      header: 'Role',
-      cell: ({ row }) => row.original.job?.title ?? '—',
+      headerName: 'Priority',
+      colId: 'priority',
+      valueGetter: (p) => optionLabel(options?.priorities, p.data.priority),
+      cellRenderer: BadgeRenderer,
+      cellRendererParams: { getVariant: (_v, d) => priorityVariant(d.priority) },
     },
     {
-      accessorKey: 'current_role',
-      header: 'Current role',
-      cell: ({ getValue }) => getValue() || '—',
+      headerName: 'AI score',
+      field: 'ai_score',
+      maxWidth: 120,
+      cellRenderer: AiScoreRenderer,
     },
     {
-      accessorKey: 'experience_years',
-      header: 'Exp',
-      cell: ({ getValue }) => (getValue() != null ? `${getValue()} yrs` : '—'),
-    },
-    {
-      accessorKey: 'source',
-      header: 'Source',
-      cell: ({ getValue }) => (
-        <Badge variant="secondary">
-          {optionLabel(options?.candidate_sources, getValue())}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: 'stage',
-      header: 'Stage',
-      cell: ({ row }) => {
-        const value = row.original.stage
-        if (!canManage) {
-          return (
-            <Badge variant={stageVariant(value)}>
-              {optionLabel(stages, value)}
-            </Badge>
-          )
-        }
-        return (
-          <Select
-            value={value}
-            onValueChange={(next) => onStageChange(row.original, next)}
-          >
-            <SelectTrigger className="h-8 w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {stages.length === 0 ? (
-                <SelectEmpty>No stages found</SelectEmpty>
-              ) : (
-                stages.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
-                    {s.label}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        )
-      },
-    },
-    {
-      accessorKey: 'priority',
-      header: 'Priority',
-      cell: ({ getValue }) => (
-        <Badge variant={priorityVariant(getValue())}>
-          {optionLabel(options?.priorities, getValue())}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: 'ai_score',
-      header: 'AI score',
-      cell: ({ getValue }) => {
-        const s = getValue()
-        return s == null ? (
-          <span className="text-xs text-muted-foreground">—</span>
-        ) : (
-          <Badge variant={scoreVariant(s)}>{s}</Badge>
-        )
-      },
-    },
-    {
-      id: 'resume',
-      header: 'CV',
-      cell: ({ row }) => {
-        const c = row.original
-        if (c.resume_url) {
-          return (
-            <a
-              href={c.resume_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-            >
-              <FileText className="size-3.5" /> View
-            </a>
-          )
-        }
-        if (c.has_resume_file) {
-          return (
-            <button
-              onClick={() => onViewResume(c)}
-              className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-            >
-              <FileText className="size-3.5" /> View
-            </button>
-          )
-        }
-        return <span className="text-xs text-muted-foreground">—</span>
-      },
+      headerName: 'CV',
+      colId: 'resume',
+      maxWidth: 110,
+      sortable: false,
+      filter: false,
+      cellRenderer: ResumeRenderer,
+      cellRendererParams: { onView: onViewResume },
     },
   ]
 
   if (canManage) {
     columns.push({
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            title="AI screening"
-            onClick={() => onScreen(row.original)}
-          >
-            <Sparkles className="size-4 text-primary" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            title="Notify candidate"
-            onClick={() => onNotify(row.original)}
-          >
-            <Mail className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)}>
-            <Pencil className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => onDelete(row.original)}>
-            <Trash2 className="size-4 text-destructive" />
-          </Button>
-        </div>
-      ),
+      headerName: 'Actions',
+      colId: 'actions',
+      headerClass: 'header-center',
+      flex: 0,
+      width: 200,
+      minWidth: 200,
+      sortable: false,
+      filter: false,
+      resizable: false,
+      cellRenderer: ActionsRenderer,
+      cellRendererParams: {
+        getActions: () => [
+          { icon: Sparkles, title: 'AI screening', onClick: onScreen, className: 'text-primary' },
+          { icon: Mail, title: 'Notify candidate', onClick: onNotify },
+          { icon: Pencil, title: 'Edit', onClick: onEdit },
+          { icon: Trash2, title: 'Delete', danger: true, onClick: onDelete },
+        ],
+      },
     })
   }
 

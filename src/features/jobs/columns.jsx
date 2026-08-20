@@ -1,81 +1,83 @@
 import { Pencil, Trash2 } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { ActionsRenderer } from '@/components/GlobalComponents/TableComponents/ActionsRenderer'
+import { BadgeRenderer } from '@/components/GlobalComponents/TableComponents/BadgeRenderer'
+import { PersonRenderer } from '@/components/GlobalComponents/TableComponents/PersonRenderer'
 import { jobStatusVariant } from '@/features/jobs/constants'
 import { optionLabel } from '@/features/meta/hooks'
 import { priorityVariant } from '@/lib/priority'
 
+// Ag-Grid column defs for the Jobs table. Headers live here in the frontend;
+// custom cells are composed from the shared TableComponents renderers.
 export function getJobColumns({ onEdit, onDelete, canManage, options }) {
   const columns = [
     {
-      accessorKey: 'title',
-      header: 'Role',
-      cell: ({ row }) => {
-        const j = row.original
-        return (
-          <div className="leading-tight">
-            <div className="font-medium">{j.title}</div>
-            <div className="text-xs text-muted-foreground">
-              {[j.department, j.location].filter(Boolean).join(' · ') || '—'}
-            </div>
-          </div>
-        )
+      headerName: 'Role',
+      field: 'title',
+      flex: 2,
+      minWidth: 200,
+      cellRenderer: PersonRenderer,
+      cellRendererParams: {
+        avatar: false,
+        getName: (d) => d.title,
+        getSubtitle: (d) =>
+          [d.department, d.location].filter(Boolean).join(' · ') || '—',
       },
+      valueGetter: (p) =>
+        [p.data.title, p.data.department, p.data.location]
+          .filter(Boolean)
+          .join(' '),
     },
     {
-      accessorKey: 'employment_type',
-      header: 'Type',
-      cell: ({ getValue }) => (
-        <Badge variant="secondary">
-          {optionLabel(options?.employment_types, getValue())}
-        </Badge>
-      ),
+      headerName: 'Type',
+      colId: 'employment_type',
+      valueGetter: (p) => optionLabel(options?.employment_types, p.data.employment_type),
+      cellRenderer: BadgeRenderer,
     },
     {
-      accessorKey: 'positions',
-      header: 'Openings',
-      cell: ({ getValue }) => getValue(),
+      headerName: 'Openings',
+      field: 'positions',
+      maxWidth: 130,
     },
     {
-      id: 'consultant',
-      header: 'Consultant',
-      cell: ({ row }) => row.original.assigned_consultant?.full_name ?? '—',
+      headerName: 'Consultant',
+      colId: 'consultant',
+      valueGetter: (p) => p.data.assigned_consultant?.full_name ?? '—',
     },
     {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ getValue }) => (
-        <Badge variant={jobStatusVariant(getValue())}>
-          {optionLabel(options?.job_statuses, getValue())}
-        </Badge>
-      ),
+      headerName: 'Status',
+      colId: 'status',
+      valueGetter: (p) => optionLabel(options?.job_statuses, p.data.status),
+      cellRenderer: BadgeRenderer,
+      cellRendererParams: { getVariant: (_v, d) => jobStatusVariant(d.status) },
     },
     {
-      accessorKey: 'priority',
-      header: 'Priority',
-      cell: ({ getValue }) => (
-        <Badge variant={priorityVariant(getValue())}>
-          {optionLabel(options?.priorities, getValue())}
-        </Badge>
-      ),
+      headerName: 'Priority',
+      colId: 'priority',
+      valueGetter: (p) => optionLabel(options?.priorities, p.data.priority),
+      cellRenderer: BadgeRenderer,
+      cellRendererParams: { getVariant: (_v, d) => priorityVariant(d.priority) },
     },
   ]
 
   if (canManage) {
     columns.push({
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-1">
-          <Button variant="ghost" size="icon" onClick={() => onEdit(row.original)}>
-            <Pencil className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => onDelete(row.original)}>
-            <Trash2 className="size-4 text-destructive" />
-          </Button>
-        </div>
-      ),
+      headerName: 'Actions',
+      colId: 'actions',
+      headerClass: 'header-center',
+      flex: 0,
+      width: 110,
+      minWidth: 110,
+      sortable: false,
+      filter: false,
+      resizable: false,
+      cellRenderer: ActionsRenderer,
+      cellRendererParams: {
+        getActions: () => [
+          { icon: Pencil, title: 'Edit', onClick: onEdit },
+          { icon: Trash2, title: 'Delete', danger: true, onClick: onDelete },
+        ],
+      },
     })
   }
 
