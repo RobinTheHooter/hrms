@@ -13,6 +13,10 @@ import './Table.css'
 // client-side AND infinite row models).
 ModuleRegistry.registerModules([AllCommunityModule])
 
+// App-wide table page-size standard. Change here to change every table.
+export const PAGE_SIZE_OPTIONS = [20, 50, 100]
+export const DEFAULT_PAGE_SIZE = 20
+
 const DEFAULT_COL_DEF = {
   sortable: true,
   resizable: true,
@@ -68,7 +72,7 @@ export function Table({
   // shared
   columnData = [],
   getRowId,
-  pageSize = 20,
+  pageSize = DEFAULT_PAGE_SIZE,
   quickFilter = true,
   searchPlaceholder = 'Search…',
   initialSearch = '',
@@ -185,7 +189,7 @@ export function Table({
                 ...(useAgGridPagination
                   ? {
                       paginationPageSize: pageSize,
-                      paginationPageSizeSelector: [10, 25, 50, 100],
+                      paginationPageSizeSelector: PAGE_SIZE_OPTIONS,
                     }
                   : {}),
               })}

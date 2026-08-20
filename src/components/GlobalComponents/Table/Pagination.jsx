@@ -5,6 +5,7 @@ import {
   ChevronsRight,
 } from 'lucide-react'
 
+import { PAGE_SIZE_OPTIONS } from '@/components/GlobalComponents/Table/Table'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -29,7 +30,7 @@ export function Pagination({
   onPageChange,
   onPageSizeChange,
   isFetching = false,
-  pageSizeOptions = [20, 50, 100],
+  pageSizeOptions = PAGE_SIZE_OPTIONS,
 }) {
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1
   const to = Math.min(page * pageSize, total)
