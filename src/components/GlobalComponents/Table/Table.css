@@ -1,0 +1,65 @@
+/* Ag-Grid Quartz theme, re-skinned to the app's design tokens.
+ * Everything references the app CSS variables (defined in index.css), so the
+ * grid follows the orange theme and flips automatically in dark mode. */
+.ag-theme-quartz.ag-app {
+  --ag-font-family: inherit;
+  --ag-font-size: 14px;
+
+  --ag-background-color: var(--card);
+  --ag-foreground-color: var(--foreground);
+  --ag-data-color: var(--foreground);
+  --ag-secondary-foreground-color: var(--muted-foreground);
+  --ag-disabled-foreground-color: var(--muted-foreground);
+
+  --ag-border-color: var(--border);
+  --ag-row-border-color: var(--border);
+  --ag-border-radius: var(--radius);
+  --ag-wrapper-border-radius: var(--radius);
+
+  --ag-header-background-color: var(--muted);
+  --ag-header-foreground-color: var(--muted-foreground);
+  --ag-header-column-resize-handle-color: var(--border);
+  --ag-header-height: 46px;
+
+  --ag-row-height: 54px;
+  --ag-cell-horizontal-padding: 16px;
+  --ag-odd-row-background-color: transparent;
+  --ag-row-hover-color: color-mix(in oklab, var(--primary) 7%, transparent);
+  --ag-selected-row-background-color: color-mix(in oklab, var(--primary) 12%, transparent);
+
+  --ag-accent-color: var(--primary);
+  --ag-active-color: var(--primary);
+  --ag-range-selection-border-color: var(--primary);
+  --ag-input-focus-border-color: var(--primary);
+  --ag-checkbox-checked-color: var(--primary);
+  --ag-control-panel-background-color: var(--card);
+  --ag-menu-background-color: var(--popover);
+  --ag-tooltip-background-color: var(--popover);
+
+  border: none;
+}
+
+/* Header labels a touch bolder / smaller-caps for a cleaner look. */
+.ag-theme-quartz.ag-app .ag-header-cell-text {
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Let custom cell renderers vertically center regardless of row height. */
+.ag-theme-quartz.ag-app .ag-cell {
+  display: flex;
+  align-items: center;
+}
+
+.ag-theme-quartz.ag-app .ag-paging-panel {
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+/* Auto-renewal-failed row highlight (parity with reference row rules). */
+.ag-theme-quartz.ag-app .row-attention {
+  background: color-mix(in oklab, var(--destructive) 8%, transparent);
+}

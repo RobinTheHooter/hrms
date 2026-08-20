@@ -1,13 +1,11 @@
-import { Plus, Search } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { DataTable } from '@/components/ui/data-table'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -51,15 +49,12 @@ export function JobsPage() {
   const canManage = can(user, PERMISSIONS.JOBS_MANAGE)
 
   const [params] = useSearchParams()
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
-  const [search, setSearch] = useState(() => params.get('search') ?? '')
   const [status, setStatus] = useState(() => params.get('status') ?? 'all')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', job: null })
 
   const { data, isLoading, isError } = useJobs({
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
-    search,
+    page: 1,
+    size: 1000,
     status: status === 'all' ? undefined : status,
   })
 
@@ -122,55 +117,32 @@ export function JobsPage() {
         }
       />
 
-      <Card>
-        <div className="flex flex-wrap items-center gap-3 border-b p-4">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by title, department, location…"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                setPagination((p) => ({ ...p, pageIndex: 0 }))
-              }}
-              className="pl-9"
-            />
-          </div>
-          <Select
-            value={status}
-            onValueChange={(v) => {
-              setStatus(v)
-              setPagination((p) => ({ ...p, pageIndex: 0 }))
-            }}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {(options?.job_statuses ?? []).map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {isError ? (
-          <p className="p-6 text-sm text-destructive">
-            Couldn't load jobs. Is the backend running?
-          </p>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={data?.items ?? []}
-            isLoading={isLoading}
-            manualPagination
-            pageCount={data?.pages ?? 0}
-            pagination={pagination}
-            onPaginationChange={setPagination}
-          />
-        )}
-      </Card>
+      {isError ? (
+        <p className="p-6 text-sm text-destructive">
+          Couldn't load jobs. Is the backend running?
+        </p>
+      ) : (
+        <Table
+          rowData={data?.items ?? []}
+          columnData={columns}
+          isLoading={isLoading}
+          initialSearch={params.get('search') ?? ''}
+          searchPlaceholder="Search by title, department, location…"
+          toolbar={
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {(options?.job_statuses ?? []).map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      )}
 
       {canManage && (
         <JobFormDialog

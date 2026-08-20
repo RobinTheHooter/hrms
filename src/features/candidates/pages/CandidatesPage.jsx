@@ -1,13 +1,11 @@
-import { Plus, Search } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { DataTable } from '@/components/ui/data-table'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -61,29 +59,24 @@ export function CandidatesPage() {
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
 
   const [params] = useSearchParams()
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
-  const [search, setSearch] = useState(() => params.get('search') ?? '')
   const [stage, setStage] = useState(() => params.get('stage') ?? 'all')
   const [source, setSource] = useState(() => params.get('source') ?? 'all')
   const [jobId, setJobId] = useState(() => params.get('job') ?? 'all')
   const [minScore, setMinScore] = useState(() => params.get('min_score') ?? 'all')
-  const [sort, setSort] = useState(() => params.get('sort') ?? 'recent')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', candidate: null })
   const [notify, setNotify] = useState({ open: false, candidate: null })
   const [screen, setScreen] = useState({ open: false, candidate: null })
 
-  const { data: jobsPage } = useJobs({ page: 1, size: 100 })
+  const { data: jobsPage } = useJobs({ page: 1, size: 1000 })
   const jobs = jobsPage?.items ?? []
 
   const { data, isLoading, isError } = useCandidates({
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
-    search,
+    page: 1,
+    size: 1000,
     stage: stage === 'all' ? undefined : stage,
     source: source === 'all' ? undefined : source,
     jobId: jobId === 'all' ? undefined : Number(jobId),
     min_score: minScore === 'all' ? undefined : Number(minScore),
-    sort: sort === 'score' ? 'score' : undefined,
   })
 
   const createMut = useCreateCandidate()
@@ -107,8 +100,6 @@ export function CandidatesPage() {
       toast.error('Could not open the resume')
     }
   }
-
-  const resetPage = () => setPagination((p) => ({ ...p, pageIndex: 0 }))
 
   const handleStageChange = (candidate, next) => {
     updateMut.mutate(
@@ -176,101 +167,59 @@ export function CandidatesPage() {
         }
       />
 
-      <Card>
-        <div className="flex flex-wrap items-center gap-3 border-b p-4">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by name or email…"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                resetPage()
-              }}
-              className="pl-9"
-            />
-          </div>
-          <Select
-            value={stage}
-            onValueChange={(v) => {
-              setStage(v)
-              resetPage()
-            }}
-          >
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All stages</SelectItem>
-              {(options?.candidate_stages ?? []).map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={source}
-            onValueChange={(v) => {
-              setSource(v)
-              resetPage()
-            }}
-          >
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All sources</SelectItem>
-              {(options?.candidate_sources ?? []).map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={jobId}
-            onValueChange={(v) => {
-              setJobId(v)
-              resetPage()
-            }}
-          >
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All jobs</SelectItem>
-              {jobs.map((j) => (
-                <SelectItem key={j.id} value={String(j.id)}>{j.title}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={minScore} onValueChange={(v) => { setMinScore(v); resetPage() }}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Any AI score</SelectItem>
-              <SelectItem value="60">60+</SelectItem>
-              <SelectItem value="75">75+</SelectItem>
-              <SelectItem value="85">85+</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={sort} onValueChange={(v) => { setSort(v); resetPage() }}>
-            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Most recent</SelectItem>
-              <SelectItem value="score">Top AI score</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {isError ? (
-          <p className="p-6 text-sm text-destructive">
-            Couldn't load candidates. Is the backend running?
-          </p>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={data?.items ?? []}
-            isLoading={isLoading}
-            manualPagination
-            pageCount={data?.pages ?? 0}
-            pagination={pagination}
-            onPaginationChange={setPagination}
-          />
-        )}
-      </Card>
+      {isError ? (
+        <p className="p-6 text-sm text-destructive">
+          Couldn't load candidates. Is the backend running?
+        </p>
+      ) : (
+        <Table
+          rowData={data?.items ?? []}
+          columnData={columns}
+          isLoading={isLoading}
+          initialSearch={params.get('search') ?? ''}
+          searchPlaceholder="Search by name or email…"
+          toolbar={
+            <>
+              <Select value={stage} onValueChange={setStage}>
+                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All stages</SelectItem>
+                  {(options?.candidate_stages ?? []).map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={source} onValueChange={setSource}>
+                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All sources</SelectItem>
+                  {(options?.candidate_sources ?? []).map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={jobId} onValueChange={setJobId}>
+                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All jobs</SelectItem>
+                  {jobs.map((j) => (
+                    <SelectItem key={j.id} value={String(j.id)}>{j.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={minScore} onValueChange={setMinScore}>
+                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any AI score</SelectItem>
+                  <SelectItem value="60">60+</SelectItem>
+                  <SelectItem value="75">75+</SelectItem>
+                  <SelectItem value="85">85+</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          }
+        />
+      )}
 
       {canManage && (
         <CandidateFormDialog

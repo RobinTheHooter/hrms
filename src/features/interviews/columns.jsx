@@ -1,7 +1,9 @@
-import { CalendarClock, CheckCircle2, Pencil, Trash2, Video } from 'lucide-react'
+import { CheckCircle2, Pencil, Trash2 } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { ActionsRenderer } from '@/components/GlobalComponents/TableComponents/ActionsRenderer'
+import { BadgeRenderer } from '@/components/GlobalComponents/TableComponents/BadgeRenderer'
+import { MeetingRenderer } from '@/components/GlobalComponents/TableComponents/MeetingRenderer'
+import { PersonRenderer } from '@/components/GlobalComponents/TableComponents/PersonRenderer'
 import {
   formatWhen,
   outcomeVariant,
@@ -20,128 +22,98 @@ export function getInterviewColumns({
 }) {
   const columns = [
     {
-      id: 'candidate',
-      header: 'Candidate',
-      cell: ({ row }) => {
-        const c = row.original.candidate
-        return (
-          <div className="leading-tight">
-            <div className="font-medium">{c?.full_name ?? '—'}</div>
-            <div className="text-xs text-muted-foreground">
-              {c?.job?.title ?? '—'}
-            </div>
-          </div>
-        )
+      headerName: 'Candidate',
+      colId: 'candidate',
+      flex: 2,
+      minWidth: 200,
+      cellRenderer: PersonRenderer,
+      cellRendererParams: {
+        avatar: false,
+        getName: (d) => d.candidate?.full_name ?? '—',
+        getSubtitle: (d) => d.candidate?.job?.title ?? '—',
       },
+      valueGetter: (p) =>
+        `${p.data.candidate?.full_name ?? ''} ${p.data.candidate?.job?.title ?? ''}`,
     },
     {
-      id: 'manager',
-      header: 'Hiring manager',
-      cell: ({ row }) => row.original.hiring_manager?.full_name ?? 'Unassigned',
+      headerName: 'Hiring manager',
+      colId: 'manager',
+      valueGetter: (p) => p.data.hiring_manager?.full_name ?? 'Unassigned',
     },
     {
-      accessorKey: 'mode',
-      header: 'Mode',
-      cell: ({ getValue }) => (
-        <Badge variant="secondary">
-          {optionLabel(options?.interview_modes, getValue())}
-        </Badge>
-      ),
+      headerName: 'Mode',
+      colId: 'mode',
+      maxWidth: 130,
+      valueGetter: (p) => optionLabel(options?.interview_modes, p.data.mode),
+      cellRenderer: BadgeRenderer,
     },
     {
-      accessorKey: 'scheduled_at',
-      header: 'When',
-      cell: ({ getValue }) => (
-        <span className="inline-flex items-center gap-1.5 text-sm">
-          <CalendarClock className="size-3.5 text-muted-foreground" />
-          {formatWhen(getValue())}
-        </span>
-      ),
+      headerName: 'When',
+      field: 'scheduled_at',
+      minWidth: 180,
+      valueFormatter: (p) => formatWhen(p.value),
     },
     {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ getValue }) => (
-        <Badge variant={statusVariant(getValue())}>
-          {optionLabel(options?.interview_statuses, getValue())}
-        </Badge>
-      ),
+      headerName: 'Status',
+      colId: 'status',
+      valueGetter: (p) => optionLabel(options?.interview_statuses, p.data.status),
+      cellRenderer: BadgeRenderer,
+      cellRendererParams: { getVariant: (_v, d) => statusVariant(d.status) },
     },
     {
-      accessorKey: 'outcome',
-      header: 'Outcome',
-      cell: ({ getValue }) => (
-        <Badge variant={outcomeVariant(getValue())}>
-          {optionLabel(options?.interview_outcomes, getValue())}
-        </Badge>
-      ),
+      headerName: 'Outcome',
+      colId: 'outcome',
+      valueGetter: (p) => optionLabel(options?.interview_outcomes, p.data.outcome),
+      cellRenderer: BadgeRenderer,
+      cellRendererParams: { getVariant: (_v, d) => outcomeVariant(d.outcome) },
     },
     {
-      accessorKey: 'priority',
-      header: 'Priority',
-      cell: ({ getValue }) => (
-        <Badge variant={priorityVariant(getValue())}>
-          {optionLabel(options?.priorities, getValue())}
-        </Badge>
-      ),
+      headerName: 'Priority',
+      colId: 'priority',
+      valueGetter: (p) => optionLabel(options?.priorities, p.data.priority),
+      cellRenderer: BadgeRenderer,
+      cellRendererParams: { getVariant: (_v, d) => priorityVariant(d.priority) },
     },
     {
-      id: 'meeting',
-      header: 'Meeting',
-      cell: ({ row }) =>
-        row.original.meeting_link ? (
-          <a
-            href={row.original.meeting_link}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-          >
-            <Video className="size-3.5" /> Join
-          </a>
-        ) : (
-          <span className="text-xs text-muted-foreground">—</span>
-        ),
+      headerName: 'Meeting',
+      colId: 'meeting',
+      maxWidth: 120,
+      sortable: false,
+      filter: false,
+      cellRenderer: MeetingRenderer,
     },
   ]
 
   if (canSchedule || canConduct) {
     columns.push({
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-1">
-          {canConduct && row.original.status !== 'completed' && (
-            <Button
-              variant="ghost"
-              size="icon"
-              title="Record outcome"
-              onClick={() => onOutcome(row.original)}
-            >
-              <CheckCircle2 className="size-4 text-emerald-600" />
-            </Button>
-          )}
-          {canSchedule && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                title="Reschedule"
-                onClick={() => onEdit(row.original)}
-              >
-                <Pencil className="size-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                title="Delete"
-                onClick={() => onDelete(row.original)}
-              >
-                <Trash2 className="size-4 text-destructive" />
-              </Button>
-            </>
-          )}
-        </div>
-      ),
+      headerName: '',
+      colId: 'actions',
+      flex: 0,
+      width: 140,
+      minWidth: 140,
+      sortable: false,
+      filter: false,
+      resizable: false,
+      cellRenderer: ActionsRenderer,
+      cellRendererParams: {
+        getActions: (d) => [
+          {
+            icon: CheckCircle2,
+            title: 'Record outcome',
+            onClick: onOutcome,
+            className: 'text-emerald-600',
+            hidden: !(canConduct && d.status !== 'completed'),
+          },
+          { icon: Pencil, title: 'Reschedule', onClick: onEdit, hidden: !canSchedule },
+          {
+            icon: Trash2,
+            title: 'Delete',
+            danger: true,
+            onClick: onDelete,
+            hidden: !canSchedule,
+          },
+        ],
+      },
     })
   }
 

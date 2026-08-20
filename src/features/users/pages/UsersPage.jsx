@@ -1,12 +1,10 @@
-import { Plus, Search } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { DataTable } from '@/components/ui/data-table'
-import { Input } from '@/components/ui/input'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useOptions } from '@/features/meta/hooks'
 import { getUserColumns } from '@/features/users/columns'
@@ -23,15 +21,9 @@ import { errorMessage } from '@/lib/api-error'
 export function UsersPage() {
   const { data: currentUser } = useCurrentUser()
   const { data: options } = useOptions()
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
-  const [search, setSearch] = useState('')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', user: null })
 
-  const { data, isLoading, isError } = useUsers({
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
-    search,
-  })
+  const { data, isLoading, isError } = useUsers({ page: 1, size: 1000 })
 
   const createMut = useCreateUser()
   const updateMut = useUpdateUser()
@@ -107,38 +99,18 @@ export function UsersPage() {
         }
       />
 
-      <Card>
-        <div className="flex items-center gap-3 border-b p-4">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by name or email…"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
-                setPagination((p) => ({ ...p, pageIndex: 0 }))
-              }}
-              className="pl-9"
-            />
-          </div>
-        </div>
-
-        {isError ? (
-          <p className="p-6 text-sm text-destructive">
-            Couldn't load users. Is the backend running?
-          </p>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={data?.items ?? []}
-            isLoading={isLoading}
-            manualPagination
-            pageCount={data?.pages ?? 0}
-            pagination={pagination}
-            onPaginationChange={setPagination}
-          />
-        )}
-      </Card>
+      {isError ? (
+        <p className="p-6 text-sm text-destructive">
+          Couldn't load users. Is the backend running?
+        </p>
+      ) : (
+        <Table
+          rowData={data?.items ?? []}
+          columnData={columns}
+          isLoading={isLoading}
+          searchPlaceholder="Search by name or email…"
+        />
+      )}
 
       <UserFormDialog
         open={dialog.open}

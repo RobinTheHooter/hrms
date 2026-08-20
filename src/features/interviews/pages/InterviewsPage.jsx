@@ -3,10 +3,9 @@ import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { DataTable } from '@/components/ui/data-table'
 import {
   Select,
   SelectContent,
@@ -38,14 +37,13 @@ export function InterviewsPage() {
   const canConduct = can(user, PERMISSIONS.INTERVIEWS_CONDUCT)
 
   const [params] = useSearchParams()
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 20 })
   const [status, setStatus] = useState(() => params.get('status') ?? 'all')
   const [schedule, setSchedule] = useState({ open: false, mode: 'create', interview: null })
   const [outcome, setOutcome] = useState({ open: false, interview: null })
 
   const { data, isLoading, isError } = useInterviews({
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
+    page: 1,
+    size: 1000,
     status: status === 'all' ? undefined : status,
   })
 
@@ -137,41 +135,29 @@ export function InterviewsPage() {
         }
       />
 
-      <Card>
-        <div className="flex flex-wrap items-center gap-3 border-b p-4">
-          <Select
-            value={status}
-            onValueChange={(v) => {
-              setStatus(v)
-              setPagination((p) => ({ ...p, pageIndex: 0 }))
-            }}
-          >
-            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {(options?.interview_statuses ?? []).map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {isError ? (
-          <p className="p-6 text-sm text-destructive">
-            Couldn't load interviews. Is the backend running?
-          </p>
-        ) : (
-          <DataTable
-            columns={columns}
-            data={data?.items ?? []}
-            isLoading={isLoading}
-            manualPagination
-            pageCount={data?.pages ?? 0}
-            pagination={pagination}
-            onPaginationChange={setPagination}
-          />
-        )}
-      </Card>
+      {isError ? (
+        <p className="p-6 text-sm text-destructive">
+          Couldn't load interviews. Is the backend running?
+        </p>
+      ) : (
+        <Table
+          rowData={data?.items ?? []}
+          columnData={columns}
+          isLoading={isLoading}
+          searchPlaceholder="Search candidate, manager…"
+          toolbar={
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {(options?.interview_statuses ?? []).map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+      )}
 
       {canSchedule && (
         <InterviewScheduleDialog
