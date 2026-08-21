@@ -6,14 +6,18 @@ import {
   Mail,
   Maximize2,
   MessageSquare,
+  Plug,
   Search,
   Settings,
+  SlidersHorizontal,
   Sparkles,
 } from 'lucide-react'
 import { Suspense } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { ChunkLoader } from '@/components/ChunkLoader'
+import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -36,9 +40,13 @@ function BrandMark() {
   )
 }
 
-function HeaderIcon({ icon: Icon, badge }) {
+function HeaderIcon({ icon: Icon, badge, onClick, title }) {
   return (
-    <button className="relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+    <button
+      onClick={onClick}
+      title={title}
+      className="relative flex size-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+    >
       <Icon className="size-[18px]" />
       {badge && (
         <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary ring-2 ring-card" />
@@ -128,11 +136,58 @@ export function DashboardLayout() {
             </Button>
             <HeaderIcon icon={LayoutGrid} />
             <HeaderIcon icon={Grid3x3} />
-            <HeaderIcon icon={Settings} />
+
+            <HeaderMenu icon={Settings} title="Settings">
+              {({ close }) => (
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      navigate('/integrations')
+                      close()
+                    }}
+                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm hover:bg-muted"
+                  >
+                    <Plug className="size-4 text-muted-foreground" /> Integrations
+                  </button>
+                  <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
+                    <SlidersHorizontal className="size-4" /> Preferences
+                    <span className="ml-auto text-[10px] tracking-wide uppercase">Soon</span>
+                  </div>
+                  <div className="my-1 border-t" />
+                  <button
+                    onClick={() => {
+                      close()
+                      handleLogout()
+                    }}
+                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-destructive hover:bg-muted"
+                  >
+                    <LogOut className="size-4" /> Log out
+                  </button>
+                </div>
+              )}
+            </HeaderMenu>
+
             <HeaderIcon icon={Maximize2} />
-            <HeaderIcon icon={MessageSquare} badge />
-            <HeaderIcon icon={Mail} />
-            <HeaderIcon icon={Bell} badge />
+
+            <HeaderIcon
+              icon={MessageSquare}
+              title="Messages"
+              onClick={() => toast('Messages are coming soon.')}
+            />
+            <HeaderIcon
+              icon={Mail}
+              title="Mail"
+              onClick={() => toast('Mail is coming soon.')}
+            />
+
+            <HeaderMenu icon={Bell} title="Notifications">
+              <div className="px-4 py-8 text-center">
+                <p className="text-sm font-medium">You're all caught up</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Activity notifications are coming soon.
+                </p>
+              </div>
+            </HeaderMenu>
             <div className="ml-2 flex items-center gap-2">
               <Avatar name={fullName} size="sm" />
               <button
