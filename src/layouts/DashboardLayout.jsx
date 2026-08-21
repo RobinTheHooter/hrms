@@ -1,5 +1,4 @@
 import {
-  Bell,
   Grid3x3,
   LayoutGrid,
   LogOut,
@@ -18,6 +17,7 @@ import { toast } from 'sonner'
 import { ChunkLoader } from '@/components/ChunkLoader'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { GlobalSearch } from '@/features/search/components/GlobalSearch'
+import { NotificationsMenu } from '@/features/notifications/components/NotificationsMenu'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -171,14 +171,7 @@ export function DashboardLayout() {
               onClick={() => toast('Mail is coming soon.')}
             />
 
-            <HeaderMenu icon={Bell} title="Notifications">
-              <div className="px-4 py-8 text-center">
-                <p className="text-sm font-medium">You're all caught up</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Activity notifications are coming soon.
-                </p>
-              </div>
-            </HeaderMenu>
+            <NotificationsMenu />
             <div className="ml-2 flex items-center gap-2">
               <Avatar name={fullName} size="sm" />
               <button
