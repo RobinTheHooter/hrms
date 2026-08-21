@@ -206,7 +206,6 @@ export function CandidatesPage() {
             columnData={columns}
             isLoading={isLoading}
             useAgGridPagination={false}
-            sortable={false}
             searchValue={search}
             onSearchChange={handleSearchChange}
             searchPlaceholder="Search by name or email…"
