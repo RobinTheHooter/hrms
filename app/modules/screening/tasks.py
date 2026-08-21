@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.core.config import get_settings
 from app.core.tasks import run_with_session
 from app.modules.candidates.models import Candidate
-from app.modules.screening.openai_client import score_resume
+from app.modules.screening.ai import score_resume
 
 settings = get_settings()
 logger = logging.getLogger("hrms.screening")
