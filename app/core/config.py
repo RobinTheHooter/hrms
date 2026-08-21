@@ -37,7 +37,9 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str = "change-me-in-env"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 1 day
+    # 0 = tokens never auto-expire (we don't forcibly log users out).
+    # Set a positive value to re-enable a hard session lifetime.
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 0
 
     # CORS origins (frontend dev server)
     CORS_ORIGINS: list[str] = ["http://localhost:5173"]
