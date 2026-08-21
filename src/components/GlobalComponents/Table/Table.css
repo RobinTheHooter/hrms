@@ -48,10 +48,23 @@
   color: var(--muted-foreground);
 }
 
-/* Let custom cell renderers vertically center regardless of row height. */
+/* Let custom cell renderers vertically center regardless of row height.
+ * `overflow: hidden` clips content to the column so long values don't spill
+ * into the next column. */
 .ag-theme-quartz.ag-app .ag-cell {
   display: flex;
   align-items: center;
+  overflow: hidden;
+}
+
+/* Flex cells disable the browser's default text-overflow, so restore
+ * single-line truncation with an ellipsis on the value itself. `min-width: 0`
+ * lets the value shrink below its content width inside the flex cell. */
+.ag-theme-quartz.ag-app .ag-cell .ag-cell-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Center a column's header label over its content (e.g. the Actions column). */

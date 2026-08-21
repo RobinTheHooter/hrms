@@ -14,17 +14,19 @@ export function PersonRenderer(params) {
   const suffix = getSuffix ? getSuffix(data) : null
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex w-full min-w-0 items-center gap-3">
       {avatar && <Avatar name={name || '—'} size="sm" />}
-      <div className="leading-tight">
-        <div className="font-medium">
+      <div className="min-w-0 leading-tight">
+        <div className="truncate font-medium">
           {name || '—'}
           {suffix && (
             <span className="ml-2 text-xs text-muted-foreground">{suffix}</span>
           )}
         </div>
         {subtitle != null && (
-          <div className="text-xs text-muted-foreground">{subtitle || '—'}</div>
+          <div className="truncate text-xs text-muted-foreground">
+            {subtitle || '—'}
+          </div>
         )}
       </div>
     </div>
