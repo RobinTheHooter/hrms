@@ -1,19 +1,23 @@
 import {
-  Bell,
   Grid3x3,
   LayoutGrid,
   LogOut,
   Mail,
   Maximize2,
   MessageSquare,
-  Search,
+  Plug,
   Settings,
+  SlidersHorizontal,
   Sparkles,
 } from 'lucide-react'
 import { Suspense } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { ChunkLoader } from '@/components/ChunkLoader'
+import { HeaderMenu } from '@/components/layout/HeaderMenu'
+import { GlobalSearch } from '@/features/search/components/GlobalSearch'
+import { NotificationsMenu } from '@/features/notifications/components/NotificationsMenu'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -36,9 +40,13 @@ function BrandMark() {
   )
 }
 
-function HeaderIcon({ icon: Icon, badge }) {
+function HeaderIcon({ icon: Icon, badge, onClick, title }) {
   return (
-    <button className="relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+    <button
+      onClick={onClick}
+      title={title}
+      className="relative flex size-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+    >
       <Icon className="size-[18px]" />
       {badge && (
         <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary ring-2 ring-card" />
@@ -110,16 +118,7 @@ export function DashboardLayout() {
       <div className="flex min-h-screen flex-col pl-64">
         {/* Top header */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-6">
-          <div className="relative hidden w-full max-w-xs md:block">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              placeholder="Search in HRMS"
-              className="h-9 w-full rounded-lg border bg-muted/40 pr-14 pl-9 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
-            />
-            <kbd className="absolute top-1/2 right-2 -translate-y-1/2 rounded border bg-card px-1.5 py-0.5 text-[10px] text-muted-foreground">
-              CTRL /
-            </kbd>
-          </div>
+          <GlobalSearch />
 
           <div className="ml-auto flex items-center gap-1">
             <Button className="mr-2 gap-1.5" size="sm">
@@ -128,11 +127,51 @@ export function DashboardLayout() {
             </Button>
             <HeaderIcon icon={LayoutGrid} />
             <HeaderIcon icon={Grid3x3} />
-            <HeaderIcon icon={Settings} />
+
+            <HeaderMenu icon={Settings} title="Settings">
+              {({ close }) => (
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      navigate('/integrations')
+                      close()
+                    }}
+                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm hover:bg-muted"
+                  >
+                    <Plug className="size-4 text-muted-foreground" /> Integrations
+                  </button>
+                  <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
+                    <SlidersHorizontal className="size-4" /> Preferences
+                    <span className="ml-auto text-[10px] tracking-wide uppercase">Soon</span>
+                  </div>
+                  <div className="my-1 border-t" />
+                  <button
+                    onClick={() => {
+                      close()
+                      handleLogout()
+                    }}
+                    className="flex w-full cursor-pointer items-center gap-2 px-4 py-2 text-left text-sm text-destructive hover:bg-muted"
+                  >
+                    <LogOut className="size-4" /> Log out
+                  </button>
+                </div>
+              )}
+            </HeaderMenu>
+
             <HeaderIcon icon={Maximize2} />
-            <HeaderIcon icon={MessageSquare} badge />
-            <HeaderIcon icon={Mail} />
-            <HeaderIcon icon={Bell} badge />
+
+            <HeaderIcon
+              icon={MessageSquare}
+              title="Messages"
+              onClick={() => toast('Messages are coming soon.')}
+            />
+            <HeaderIcon
+              icon={Mail}
+              title="Mail"
+              onClick={() => toast('Mail is coming soon.')}
+            />
+
+            <NotificationsMenu />
             <div className="ml-2 flex items-center gap-2">
               <Avatar name={fullName} size="sm" />
               <button
