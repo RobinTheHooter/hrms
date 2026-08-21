@@ -7,7 +7,6 @@ import {
   Maximize2,
   MessageSquare,
   Plug,
-  Search,
   Settings,
   SlidersHorizontal,
   Sparkles,
@@ -18,6 +17,7 @@ import { toast } from 'sonner'
 
 import { ChunkLoader } from '@/components/ChunkLoader'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
+import { GlobalSearch } from '@/features/search/components/GlobalSearch'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -118,16 +118,7 @@ export function DashboardLayout() {
       <div className="flex min-h-screen flex-col pl-64">
         {/* Top header */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-6">
-          <div className="relative hidden w-full max-w-xs md:block">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              placeholder="Search in HRMS"
-              className="h-9 w-full rounded-lg border bg-muted/40 pr-14 pl-9 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/40"
-            />
-            <kbd className="absolute top-1/2 right-2 -translate-y-1/2 rounded border bg-card px-1.5 py-0.5 text-[10px] text-muted-foreground">
-              CTRL /
-            </kbd>
-          </div>
+          <GlobalSearch />
 
           <div className="ml-auto flex items-center gap-1">
             <Button className="mr-2 gap-1.5" size="sm">
