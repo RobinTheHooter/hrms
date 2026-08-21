@@ -22,10 +22,19 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(subject: str | int, expires_delta: timedelta | None = None) -> str:
-    expire = datetime.now(timezone.utc) + (
-        expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
-    payload = {"sub": str(subject), "exp": expire}
+    payload: dict = {"sub": str(subject)}
+
+    # Only add an `exp` claim when an expiry is actually requested. With
+    # ACCESS_TOKEN_EXPIRE_MINUTES = 0 (the default) tokens never auto-expire —
+    # we don't forcibly log users out; a session only ends if the user or an
+    # external cause invalidates it.
+    if expires_delta is not None:
+        payload["exp"] = datetime.now(timezone.utc) + expires_delta
+    elif settings.ACCESS_TOKEN_EXPIRE_MINUTES:
+        payload["exp"] = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
