@@ -53,7 +53,12 @@ export function HeaderMenu({
           setOpen(next)
           if (next) onOpen?.()
         }}
-        className="relative flex size-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className={cn(
+          'relative flex size-9 cursor-pointer items-center justify-center rounded-lg transition-colors',
+          open
+            ? 'bg-primary/10 text-primary'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+        )}
       >
         <Icon className="size-[18px]" />
         {count > 0 ? (
