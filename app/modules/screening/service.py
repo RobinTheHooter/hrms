@@ -10,8 +10,8 @@ from app.core.tasks import enqueue
 from app.modules.auth.models import User
 from app.modules.candidates.models import Candidate
 from app.modules.candidates.service import CandidateService
+from app.modules.screening.ai import score_resume
 from app.modules.screening.extract import extract_text
-from app.modules.screening.openai_client import score_resume
 from app.modules.screening.tasks import screen_candidate
 
 settings = get_settings()
