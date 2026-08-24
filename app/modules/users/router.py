@@ -5,8 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
 from app.common.enums import UserRole
+from app.common.exceptions import AppError
 from app.common.pagination import Page
 from app.common.query import ListParamsDep
+from app.common.schemas import BulkIds, BulkResult
 from app.core.database import get_db
 from app.modules.auth.dependencies import CurrentUser, require_permission
 from app.modules.users.schemas import UserCreate, UserRead, UserUpdate
@@ -36,6 +38,23 @@ async def create_user(
 ) -> UserRead:
     user = await UserService(db).create(data)
     return UserRead.model_validate(user)
+
+
+@router.post("/bulk-delete", response_model=BulkResult)
+async def bulk_delete_users(
+    data: BulkIds,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> BulkResult:
+    service = UserService(db)
+    deleted = 0
+    for user_id in data.ids:
+        try:
+            await service.delete(user_id, actor_id=current_user.id)
+            deleted += 1
+        except AppError:
+            continue
+    return BulkResult(deleted=deleted)
 
 
 @router.get("/{user_id}", response_model=UserRead)

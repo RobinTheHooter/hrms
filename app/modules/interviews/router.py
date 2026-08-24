@@ -7,8 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
 from app.common.enums import InterviewStatus
+from app.common.exceptions import AppError
 from app.common.pagination import Page
 from app.common.query import ListParamsDep
+from app.common.schemas import BulkIds, BulkResult
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.modules.auth.dependencies import require_permission
@@ -72,6 +74,23 @@ async def availability(
         manager_id, start.isoformat(), end.isoformat(), settings.APP_TIMEZONE
     )
     return {"connected": busy is not None, "busy": busy or []}
+
+
+@router.post("/bulk-delete", response_model=BulkResult)
+async def bulk_delete_interviews(
+    data: BulkIds,
+    current_user: ScheduleUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> BulkResult:
+    service = InterviewService(db)
+    deleted = 0
+    for interview_id in data.ids:
+        try:
+            await service.delete(interview_id, current_user)
+            deleted += 1
+        except AppError:
+            continue
+    return BulkResult(deleted=deleted)
 
 
 @router.get("/{interview_id}", response_model=InterviewRead)
