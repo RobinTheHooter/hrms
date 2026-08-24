@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
-from app.common.exceptions import NotFoundError
+from app.common.exceptions import AppError, NotFoundError
+from app.common.schemas import BulkIds, BulkResult
 from app.common.enums import CandidateSource, CandidateStage
 from app.common.pagination import Page
 from app.common.query import ListParamsDep
@@ -62,6 +63,23 @@ async def create_candidate(
 ) -> CandidateRead:
     candidate = await CandidateService(db).create(data, current_user)
     return CandidateRead.model_validate(candidate)
+
+
+@router.post("/bulk-delete", response_model=BulkResult)
+async def bulk_delete_candidates(
+    data: BulkIds,
+    current_user: ManageUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> BulkResult:
+    service = CandidateService(db)
+    deleted = 0
+    for candidate_id in data.ids:
+        try:
+            await service.delete(candidate_id, current_user)
+            deleted += 1
+        except AppError:
+            continue
+    return BulkResult(deleted=deleted)
 
 
 @router.get("/{candidate_id}", response_model=CandidateRead)

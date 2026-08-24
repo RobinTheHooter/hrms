@@ -5,8 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
 from app.common.enums import JobStatus
+from app.common.exceptions import AppError
 from app.common.pagination import Page
 from app.common.query import ListParamsDep
+from app.common.schemas import BulkIds, BulkResult
 from app.core.database import get_db
 from app.modules.auth.dependencies import require_permission
 from app.modules.auth.models import User
@@ -40,6 +42,23 @@ async def create_job(
 ) -> JobRead:
     job = await JobService(db).create(data, created_by_id=current_user.id)
     return JobRead.model_validate(job)
+
+
+@router.post("/bulk-delete", response_model=BulkResult)
+async def bulk_delete_jobs(
+    data: BulkIds,
+    current_user: ManageUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> BulkResult:
+    service = JobService(db)
+    deleted = 0
+    for job_id in data.ids:
+        try:
+            await service.delete(job_id, current_user)
+            deleted += 1
+        except AppError:
+            continue
+    return BulkResult(deleted=deleted)
 
 
 @router.get("/{job_id}", response_model=JobRead)
