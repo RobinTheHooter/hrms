@@ -2,7 +2,6 @@ import { Plus } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import { SelectionBar } from '@/components/GlobalComponents/Table/SelectionBar'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -142,23 +141,21 @@ export function UsersPage() {
           Couldn't load users. Is the backend running?
         </p>
       ) : (
-        <>
-          <SelectionBar
-            count={selected.length}
-            onDelete={handleBulkDelete}
-            onClear={clearSelection}
-            isDeleting={bulkDeleteMut.isPending}
-          />
-          <Table
-            rowData={data?.items ?? []}
-            columnData={columns}
-            isLoading={isLoading}
-            searchPlaceholder="Search by name or email…"
-            selectable
-            onSelectionChanged={setSelected}
-            onGridReady={(p) => (gridApi.current = p.api)}
-          />
-        </>
+        <Table
+          rowData={data?.items ?? []}
+          columnData={columns}
+          isLoading={isLoading}
+          searchPlaceholder="Search by name or email…"
+          selectable
+          onSelectionChanged={setSelected}
+          onGridReady={(p) => (gridApi.current = p.api)}
+          selection={{
+            count: selected.length,
+            onDelete: handleBulkDelete,
+            onClear: clearSelection,
+            isDeleting: bulkDeleteMut.isPending,
+          }}
+        />
       )}
 
       <UserFormDialog

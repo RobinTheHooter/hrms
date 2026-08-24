@@ -4,7 +4,6 @@ import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Pagination } from '@/components/GlobalComponents/Table/Pagination'
-import { SelectionBar } from '@/components/GlobalComponents/Table/SelectionBar'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -239,14 +238,6 @@ export function CandidatesPage() {
         </p>
       ) : (
         <>
-          {canManage && (
-            <SelectionBar
-              count={selected.length}
-              onDelete={handleBulkDelete}
-              onClear={clearSelection}
-              isDeleting={bulkDeleteMut.isPending}
-            />
-          )}
           <Table
             rowData={data?.items ?? []}
             columnData={columns}
@@ -255,6 +246,12 @@ export function CandidatesPage() {
             selectable={canManage}
             onSelectionChanged={setSelected}
             onGridReady={(p) => (gridApi.current = p.api)}
+            selection={{
+              count: selected.length,
+              onDelete: handleBulkDelete,
+              onClear: clearSelection,
+              isDeleting: bulkDeleteMut.isPending,
+            }}
             searchValue={search}
             onSearchChange={handleSearchChange}
             searchPlaceholder="Search by name or email…"

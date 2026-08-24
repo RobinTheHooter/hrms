@@ -3,7 +3,6 @@ import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { SelectionBar } from '@/components/GlobalComponents/Table/SelectionBar'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -160,15 +159,6 @@ export function JobsPage() {
           Couldn't load jobs. Is the backend running?
         </p>
       ) : (
-        <>
-        {canManage && (
-          <SelectionBar
-            count={selected.length}
-            onDelete={handleBulkDelete}
-            onClear={clearSelection}
-            isDeleting={bulkDeleteMut.isPending}
-          />
-        )}
         <Table
           rowData={data?.items ?? []}
           columnData={columns}
@@ -178,6 +168,12 @@ export function JobsPage() {
           selectable={canManage}
           onSelectionChanged={setSelected}
           onGridReady={(p) => (gridApi.current = p.api)}
+          selection={{
+            count: selected.length,
+            onDelete: handleBulkDelete,
+            onClear: clearSelection,
+            isDeleting: bulkDeleteMut.isPending,
+          }}
           toolbar={
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-36">
@@ -192,7 +188,6 @@ export function JobsPage() {
             </Select>
           }
         />
-        </>
       )}
 
       {canManage && (
