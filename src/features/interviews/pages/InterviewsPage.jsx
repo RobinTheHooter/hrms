@@ -6,13 +6,6 @@ import { toast } from 'sonner'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { getInterviewColumns } from '@/features/interviews/columns'
@@ -40,15 +33,13 @@ export function InterviewsPage() {
   const confirm = useConfirm()
 
   const [params] = useSearchParams()
-  const [status, setStatus] = useState(() => params.get('status') ?? 'all')
   const [schedule, setSchedule] = useState({ open: false, mode: 'create', interview: null })
   const [outcome, setOutcome] = useState({ open: false, interview: null })
 
-  const { data, isLoading, isError } = useInterviews({
-    page: 1,
-    size: 1000,
-    status: status === 'all' ? undefined : status,
-  })
+  // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
+  const status = params.get('status') ?? undefined
+
+  const { data, isLoading, isError } = useInterviews({ page: 1, size: 1000, status })
 
   const scheduleMut = useScheduleInterview()
   const updateMut = useUpdateInterview()
@@ -191,17 +182,6 @@ export function InterviewsPage() {
             onClear: clearSelection,
             isDeleting: bulkDeleteMut.isPending,
           }}
-          toolbar={
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {(options?.interview_statuses ?? []).map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          }
         />
       )}
 

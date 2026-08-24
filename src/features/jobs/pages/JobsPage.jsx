@@ -6,13 +6,6 @@ import { toast } from 'sonner'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useOptions } from '@/features/meta/hooks'
@@ -52,14 +45,12 @@ export function JobsPage() {
   const confirm = useConfirm()
 
   const [params] = useSearchParams()
-  const [status, setStatus] = useState(() => params.get('status') ?? 'all')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', job: null })
 
-  const { data, isLoading, isError } = useJobs({
-    page: 1,
-    size: 1000,
-    status: status === 'all' ? undefined : status,
-  })
+  // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
+  const status = params.get('status') ?? undefined
+
+  const { data, isLoading, isError } = useJobs({ page: 1, size: 1000, status })
 
   const createMut = useCreateJob()
   const updateMut = useUpdateJob()
@@ -174,19 +165,6 @@ export function JobsPage() {
             onClear: clearSelection,
             isDeleting: bulkDeleteMut.isPending,
           }}
-          toolbar={
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {(options?.job_statuses ?? []).map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          }
         />
       )}
 
