@@ -8,6 +8,7 @@ import {
 import {
   createCandidate,
   deleteCandidate,
+  getCandidate,
   getEmailTemplates,
   listCandidates,
   notifyCandidate,
@@ -17,6 +18,14 @@ import {
 } from '@/features/candidates/api'
 
 const KEY = ['candidates']
+
+export function useCandidate(id) {
+  return useQuery({
+    queryKey: [...KEY, 'detail', id],
+    queryFn: () => getCandidate(id),
+    enabled: Boolean(id),
+  })
+}
 
 export function useUploadResume() {
   const qc = useQueryClient()

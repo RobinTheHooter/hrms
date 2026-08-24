@@ -1,8 +1,13 @@
 import { apiClient } from '@/lib/apiClient'
 
-export async function listInterviews({ page = 1, size = 20, status } = {}) {
+export async function listInterviews({ page = 1, size = 20, status, candidate_id } = {}) {
   const { data } = await apiClient.get('/interviews', {
-    params: { page, size, status: status || undefined },
+    params: {
+      page,
+      size,
+      status: status || undefined,
+      candidate_id: candidate_id || undefined,
+    },
   })
   return data
 }

@@ -25,6 +25,11 @@ export async function listCandidates({
   return data
 }
 
+export async function getCandidate(id) {
+  const { data } = await apiClient.get(`/candidates/${id}`)
+  return data
+}
+
 export async function createCandidate(payload) {
   const { data } = await apiClient.post('/candidates', payload)
   return data

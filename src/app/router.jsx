@@ -20,7 +20,9 @@ const lazyPage = (factory, name) =>
 const LoginPage = lazyPage(() => import('@/features/auth/pages/LoginPage'), 'LoginPage')
 const DashboardPage = lazyPage(() => import('@/features/dashboard/pages/DashboardPage'), 'DashboardPage')
 const JobsPage = lazyPage(() => import('@/features/jobs/pages/JobsPage'), 'JobsPage')
+const JobDetailPage = lazyPage(() => import('@/features/jobs/pages/JobDetailPage'), 'JobDetailPage')
 const CandidatesPage = lazyPage(() => import('@/features/candidates/pages/CandidatesPage'), 'CandidatesPage')
+const CandidateDetailPage = lazyPage(() => import('@/features/candidates/pages/CandidateDetailPage'), 'CandidateDetailPage')
 const InterviewsPage = lazyPage(() => import('@/features/interviews/pages/InterviewsPage'), 'InterviewsPage')
 const UsersPage = lazyPage(() => import('@/features/users/pages/UsersPage'), 'UsersPage')
 const IntegrationsPage = lazyPage(() => import('@/features/integrations/pages/IntegrationsPage'), 'IntegrationsPage')
@@ -82,7 +84,9 @@ export const router = createBrowserRouter([
               { path: '/', element: <RoleHome /> },
               { path: '/dashboard', element: <DashboardPage /> },
               { path: '/jobs', element: guarded(PERMISSIONS.JOBS_VIEW, <JobsPage />) },
+              { path: '/jobs/:id', element: guarded(PERMISSIONS.JOBS_VIEW, <JobDetailPage />) },
               { path: '/candidates', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidatesPage />) },
+              { path: '/candidates/:id', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidateDetailPage />) },
               { path: '/interviews', element: guarded(PERMISSIONS.INTERVIEWS_VIEW, <InterviewsPage />) },
               { path: '/users', element: guarded(PERMISSIONS.USERS_MANAGE, <UsersPage />) },
               { path: '/integrations', element: <IntegrationsPage /> },

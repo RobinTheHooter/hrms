@@ -22,6 +22,7 @@ export function getJobColumns({ onEdit, onDelete, canManage, options }) {
         getName: (d) => d.title,
         getSubtitle: (d) =>
           [d.department, d.location].filter(Boolean).join(' · ') || '—',
+        getHref: (d) => `/jobs/${d.id}`,
       },
       valueGetter: (p) =>
         [p.data.title, p.data.department, p.data.location]

@@ -32,6 +32,7 @@ export function getCandidateColumns({
       cellRendererParams: {
         getName: (d) => d.full_name,
         getSubtitle: (d) => d.email,
+        getHref: (d) => `/candidates/${d.id}`,
       },
       valueGetter: (p) => `${p.data.full_name ?? ''} ${p.data.email ?? ''}`,
     },

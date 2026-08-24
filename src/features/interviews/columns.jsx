@@ -31,6 +31,7 @@ export function getInterviewColumns({
         avatar: false,
         getName: (d) => d.candidate?.full_name ?? '—',
         getSubtitle: (d) => d.candidate?.job?.title ?? '—',
+        getHref: (d) => (d.candidate ? `/candidates/${d.candidate.id}` : null),
       },
       valueGetter: (p) =>
         `${p.data.candidate?.full_name ?? ''} ${p.data.candidate?.job?.title ?? ''}`,

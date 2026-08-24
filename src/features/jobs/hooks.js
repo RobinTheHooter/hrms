@@ -8,6 +8,7 @@ import {
 import {
   createJob,
   deleteJob,
+  getJob,
   listConsultants,
   listJobs,
   updateJob,
@@ -21,6 +22,14 @@ export function useJobs(params) {
     queryFn: () => listJobs(params),
     placeholderData: keepPreviousData,
     refetchInterval: 15_000,
+  })
+}
+
+export function useJob(id) {
+  return useQuery({
+    queryKey: [...JOBS_KEY, 'detail', id],
+    queryFn: () => getJob(id),
+    enabled: Boolean(id),
   })
 }
 

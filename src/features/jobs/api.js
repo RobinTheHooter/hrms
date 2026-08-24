@@ -7,6 +7,11 @@ export async function listJobs({ page = 1, size = 20, search, status } = {}) {
   return data // Page: { items, total, page, size, pages }
 }
 
+export async function getJob(id) {
+  const { data } = await apiClient.get(`/jobs/${id}`)
+  return data
+}
+
 export async function createJob(payload) {
   const { data } = await apiClient.post('/jobs', payload)
   return data
