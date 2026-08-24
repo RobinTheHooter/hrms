@@ -18,8 +18,11 @@ export function PageHeader({ title, breadcrumb = [], actions, back }) {
       <div className="flex items-center gap-3">
         {back}
         <div>
-        <h1 className="text-xl font-bold tracking-tight">{title}</h1>
-        <nav className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2.5">
+          <span className="h-6 w-1.5 shrink-0 rounded-full bg-gradient-to-b from-primary to-primary/60" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+        </div>
+        <nav className="mt-1.5 flex items-center gap-1 pl-4 text-sm text-muted-foreground">
           <Link
             to="/"
             className="flex items-center rounded-md p-1 transition-colors hover:bg-primary/10 hover:text-primary"
