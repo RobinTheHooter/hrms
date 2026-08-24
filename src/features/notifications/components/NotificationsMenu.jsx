@@ -13,8 +13,8 @@ import { cn } from '@/lib/utils'
 
 // Per-type icon + accent colour so the feed reads at a glance.
 const TYPE_STYLE = {
-  candidate: { icon: UserPlus, className: 'bg-blue-500/10 text-blue-500' },
-  interview: { icon: CalendarClock, className: 'bg-amber-500/10 text-amber-600' },
+  candidate: { icon: UserPlus, className: 'bg-info/12 text-info' },
+  interview: { icon: CalendarClock, className: 'bg-warning/15 text-warning' },
 }
 
 export function NotificationsMenu() {

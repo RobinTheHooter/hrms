@@ -71,7 +71,7 @@ export function AiScreeningDialog({ open, onOpenChange, candidate }) {
             <div className="mb-2 flex items-center gap-2 text-sm font-medium">
               {current.has_resume ? (
                 <>
-                  <FileCheck2 className="size-4 text-emerald-600" /> Resume on file
+                  <FileCheck2 className="size-4 text-success" /> Resume on file
                 </>
               ) : (
                 <>
@@ -118,7 +118,7 @@ export function AiScreeningDialog({ open, onOpenChange, candidate }) {
                   <div className="mb-1 text-xs font-medium text-muted-foreground">Matched</div>
                   <div className="flex flex-wrap gap-1.5">
                     {current.ai_matched.map((k) => (
-                      <span key={k} className="rounded bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">{k}</span>
+                      <span key={k} className="rounded bg-success/12 px-2 py-0.5 text-xs text-success">{k}</span>
                     ))}
                   </div>
                 </div>
@@ -128,7 +128,7 @@ export function AiScreeningDialog({ open, onOpenChange, candidate }) {
                   <div className="mb-1 text-xs font-medium text-muted-foreground">Missing</div>
                   <div className="flex flex-wrap gap-1.5">
                     {current.ai_missing.map((k) => (
-                      <span key={k} className="rounded bg-red-100 px-2 py-0.5 text-xs text-red-700">{k}</span>
+                      <span key={k} className="rounded bg-destructive/12 px-2 py-0.5 text-xs text-destructive">{k}</span>
                     ))}
                   </div>
                 </div>

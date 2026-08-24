@@ -103,7 +103,7 @@ export function getInterviewColumns({
             icon: CheckCircle2,
             title: 'Record outcome',
             onClick: onOutcome,
-            className: 'text-emerald-600',
+            className: 'text-success',
             hidden: !(canConduct && d.status !== 'completed'),
           },
           { icon: Pencil, title: 'Reschedule', onClick: onEdit, hidden: !canSchedule },

@@ -84,7 +84,7 @@ export function IntegrationsPage() {
               ) : connected ? (
                 <div className="mt-4 flex items-center gap-3">
                   <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <CheckCircle2 className="size-4 text-emerald-600" />
+                    <CheckCircle2 className="size-4 text-success" />
                     {status.email}
                   </span>
                   <Button

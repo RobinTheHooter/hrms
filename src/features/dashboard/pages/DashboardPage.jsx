@@ -44,14 +44,19 @@ import { formatWhen, googleCalendarUrl } from '@/features/interviews/constants'
 import { optionLabel, useOptions } from '@/features/meta/hooks'
 
 const STAGE_COLORS = {
-  applied: '#94a3b8',
-  screening: '#3b82f6',
-  interview: '#f59e0b',
-  offer: '#a855f7',
-  hired: '#10b981',
-  rejected: '#ef4444',
+  applied: 'var(--muted-foreground)',
+  screening: 'var(--info)',
+  interview: 'var(--warning)',
+  offer: 'var(--primary)',
+  hired: 'var(--success)',
+  rejected: 'var(--destructive)',
 }
-const SOURCE_COLORS = ['#f97316', '#0d9488', '#3b82f6', '#a855f7']
+const SOURCE_COLORS = [
+  'var(--primary)',
+  'var(--info)',
+  'var(--success)',
+  'var(--warning)',
+]
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -215,9 +220,9 @@ export function DashboardPage() {
                     onClick={(d) => go(`/candidates?stage=${d.stage}`)}
                   >
                     {pipeline.map((s) => (
-                      <Cell key={s.stage} fill={STAGE_COLORS[s.stage] ?? '#94a3b8'} />
+                      <Cell key={s.stage} fill={STAGE_COLORS[s.stage] ?? 'var(--muted-foreground)'} />
                     ))}
-                    <LabelList dataKey="label" position="right" fontSize={11} fill="#374151" />
+                    <LabelList dataKey="label" position="right" fontSize={11} fill="var(--muted-foreground)" />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -366,7 +371,7 @@ export function DashboardPage() {
                     cursor="pointer"
                     onClick={(d) => go(`/jobs?search=${encodeURIComponent(d.department)}`)}
                   >
-                    <LabelList dataKey="label" position="right" fontSize={11} fill="#374151" />
+                    <LabelList dataKey="label" position="right" fontSize={11} fill="var(--muted-foreground)" />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

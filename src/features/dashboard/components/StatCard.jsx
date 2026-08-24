@@ -2,9 +2,9 @@ import { Card, CardContent } from '@/components/ui/card'
 
 const TONES = {
   orange: 'bg-primary/10 text-primary',
-  blue: 'bg-blue-100 text-blue-700',
-  emerald: 'bg-emerald-100 text-emerald-700',
-  amber: 'bg-amber-100 text-amber-700',
+  blue: 'bg-info/12 text-info',
+  emerald: 'bg-success/12 text-success',
+  amber: 'bg-warning/15 text-warning',
 }
 
 export function StatCard({ icon: Icon, tone, label, value, onClick }) {
