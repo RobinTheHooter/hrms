@@ -1,6 +1,6 @@
-import { ArrowLeft, FileText, Mail, Pencil, Sparkles } from 'lucide-react'
+import { FileText, Mail, Pencil, Sparkles } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -68,7 +68,6 @@ function toFormValues(c) {
 
 export function CandidateDetailPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const { data: user } = useCurrentUser()
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
@@ -120,12 +119,13 @@ export function CandidateDetailPage() {
     <div>
       <PageHeader
         title={candidate.full_name}
-        breadcrumb={['Recruitment', 'Candidates', candidate.full_name]}
+        breadcrumb={[
+          'Recruitment',
+          { label: 'Candidates', to: '/candidates' },
+          candidate.full_name,
+        ]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/candidates')}>
-              <ArrowLeft className="size-4" /> Back
-            </Button>
             {canManage && (
               <>
                 <Button variant="outline" size="sm" onClick={() => setScreen(true)}>

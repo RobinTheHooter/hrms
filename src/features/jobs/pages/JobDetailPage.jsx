@@ -1,6 +1,6 @@
-import { ArrowLeft, Pencil } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -47,7 +47,6 @@ function toFormValues(job) {
 
 export function JobDetailPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const { data: user } = useCurrentUser()
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.JOBS_MANAGE)
@@ -86,18 +85,17 @@ export function JobDetailPage() {
     <div>
       <PageHeader
         title={job.title}
-        breadcrumb={['Recruitment', 'Jobs', job.title]}
+        breadcrumb={[
+          'Recruitment',
+          { label: 'Jobs', to: '/jobs' },
+          job.title,
+        ]}
         actions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/jobs')}>
-              <ArrowLeft className="size-4" /> Back
+          canManage && (
+            <Button size="sm" onClick={() => setEdit(true)}>
+              <Pencil className="size-4" /> Edit
             </Button>
-            {canManage && (
-              <Button size="sm" onClick={() => setEdit(true)}>
-                <Pencil className="size-4" /> Edit
-              </Button>
-            )}
-          </div>
+          )
         }
       />
 
