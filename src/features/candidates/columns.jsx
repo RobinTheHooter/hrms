@@ -8,7 +8,7 @@ import { ResumeRenderer } from '@/components/GlobalComponents/TableComponents/Re
 import { StageRenderer } from '@/components/GlobalComponents/TableComponents/StageRenderer'
 import { stageVariant } from '@/features/candidates/constants'
 import { optionLabel } from '@/features/meta/hooks'
-import { priorityVariant } from '@/lib/priority'
+import { priorityComparator, priorityVariant } from '@/lib/priority'
 
 export function getCandidateColumns({
   onEdit,
@@ -74,6 +74,7 @@ export function getCandidateColumns({
       headerName: 'Priority',
       colId: 'priority',
       valueGetter: (p) => optionLabel(options?.priorities, p.data.priority),
+      comparator: priorityComparator,
       cellRenderer: BadgeRenderer,
       cellRendererParams: { getVariant: (_v, d) => priorityVariant(d.priority) },
     },
