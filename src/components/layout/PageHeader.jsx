@@ -19,24 +19,31 @@ export function PageHeader({ title, breadcrumb = [], actions, back }) {
         {back}
         <div>
         <h1 className="text-xl font-bold tracking-tight">{title}</h1>
-        <nav className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Link to="/" className="flex items-center transition-colors hover:text-foreground">
+        <nav className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+          <Link
+            to="/"
+            className="flex items-center rounded-md p-1 transition-colors hover:bg-primary/10 hover:text-primary"
+          >
             <Home className="size-3.5" />
           </Link>
           {crumbs.map((crumb, i) => {
             const isLast = i === crumbs.length - 1
             return (
-              <span key={crumb.label} className="flex items-center gap-1.5">
-                <ChevronRight className="size-3.5" />
+              <span key={crumb.label} className="flex items-center gap-1">
+                <ChevronRight className="size-3.5 text-muted-foreground/40" />
                 {crumb.to && !isLast ? (
                   <Link
                     to={crumb.to}
-                    className="transition-colors hover:text-foreground hover:underline"
+                    className="rounded-md px-1.5 py-0.5 font-medium transition-colors hover:bg-primary/10 hover:text-primary"
                   >
                     {crumb.label}
                   </Link>
                 ) : (
-                  <span className={isLast ? 'text-foreground' : undefined}>
+                  <span
+                    className={
+                      isLast ? 'px-1.5 py-0.5 font-semibold text-foreground' : 'px-1.5'
+                    }
+                  >
                     {crumb.label}
                   </span>
                 )}
