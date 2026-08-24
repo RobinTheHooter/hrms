@@ -44,6 +44,11 @@ export async function deleteCandidate(id) {
   await apiClient.delete(`/candidates/${id}`)
 }
 
+export async function bulkDeleteCandidates(ids) {
+  const { data } = await apiClient.post('/candidates/bulk-delete', { ids })
+  return data
+}
+
 export async function getEmailTemplates(id) {
   const { data } = await apiClient.get(`/candidates/${id}/email-templates`)
   return data // { enabled, candidate_email, templates: [{ key, label, subject, body }] }

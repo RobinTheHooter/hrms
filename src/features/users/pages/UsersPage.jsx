@@ -1,7 +1,8 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
+import { SelectionBar } from '@/components/GlobalComponents/Table/SelectionBar'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,7 @@ import { useOptions } from '@/features/meta/hooks'
 import { getUserColumns } from '@/features/users/columns'
 import { UserFormDialog } from '@/features/users/components/UserFormDialog'
 import {
+  useBulkDeleteUsers,
   useCreateUser,
   useDeleteUser,
   useUpdateUser,
@@ -30,6 +32,34 @@ export function UsersPage() {
   const createMut = useCreateUser()
   const updateMut = useUpdateUser()
   const deleteMut = useDeleteUser()
+  const bulkDeleteMut = useBulkDeleteUsers()
+
+  const [selected, setSelected] = useState([])
+  const gridApi = useRef(null)
+  const clearSelection = () => {
+    gridApi.current?.deselectAll()
+    setSelected([])
+  }
+
+  const handleBulkDelete = async () => {
+    const ok = await confirm({
+      title: `Delete ${selected.length} user${selected.length > 1 ? 's' : ''}?`,
+      description: 'This permanently removes the selected accounts.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    bulkDeleteMut.mutate(
+      selected.map((u) => u.id),
+      {
+        onSuccess: (res) => {
+          toast.success(`Deleted ${res?.deleted ?? selected.length} user(s)`)
+          clearSelection()
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to delete users')),
+      },
+    )
+  }
 
   const openCreate = () => setDialog({ open: true, mode: 'create', user: null })
   const openEdit = (user) => setDialog({ open: true, mode: 'edit', user })
@@ -112,12 +142,23 @@ export function UsersPage() {
           Couldn't load users. Is the backend running?
         </p>
       ) : (
-        <Table
-          rowData={data?.items ?? []}
-          columnData={columns}
-          isLoading={isLoading}
-          searchPlaceholder="Search by name or email…"
-        />
+        <>
+          <SelectionBar
+            count={selected.length}
+            onDelete={handleBulkDelete}
+            onClear={clearSelection}
+            isDeleting={bulkDeleteMut.isPending}
+          />
+          <Table
+            rowData={data?.items ?? []}
+            columnData={columns}
+            isLoading={isLoading}
+            searchPlaceholder="Search by name or email…"
+            selectable
+            onSelectionChanged={setSelected}
+            onGridReady={(p) => (gridApi.current = p.api)}
+          />
+        </>
       )}
 
       <UserFormDialog

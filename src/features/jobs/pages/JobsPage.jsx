@@ -1,8 +1,9 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { SelectionBar } from '@/components/GlobalComponents/Table/SelectionBar'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -19,6 +20,7 @@ import { useOptions } from '@/features/meta/hooks'
 import { getJobColumns } from '@/features/jobs/columns'
 import { JobFormDialog } from '@/features/jobs/components/JobFormDialog'
 import {
+  useBulkDeleteJobs,
   useCreateJob,
   useDeleteJob,
   useJobs,
@@ -63,6 +65,34 @@ export function JobsPage() {
   const createMut = useCreateJob()
   const updateMut = useUpdateJob()
   const deleteMut = useDeleteJob()
+  const bulkDeleteMut = useBulkDeleteJobs()
+
+  const [selected, setSelected] = useState([])
+  const gridApi = useRef(null)
+  const clearSelection = () => {
+    gridApi.current?.deselectAll()
+    setSelected([])
+  }
+
+  const handleBulkDelete = async () => {
+    const ok = await confirm({
+      title: `Delete ${selected.length} job${selected.length > 1 ? 's' : ''}?`,
+      description: 'This permanently removes the selected jobs.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    bulkDeleteMut.mutate(
+      selected.map((j) => j.id),
+      {
+        onSuccess: (res) => {
+          toast.success(`Deleted ${res?.deleted ?? selected.length} job(s)`)
+          clearSelection()
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to delete jobs')),
+      },
+    )
+  }
 
   const openCreate = () => setDialog({ open: true, mode: 'create', job: null })
   const openEdit = (job) => setDialog({ open: true, mode: 'edit', job })
@@ -130,12 +160,24 @@ export function JobsPage() {
           Couldn't load jobs. Is the backend running?
         </p>
       ) : (
+        <>
+        {canManage && (
+          <SelectionBar
+            count={selected.length}
+            onDelete={handleBulkDelete}
+            onClear={clearSelection}
+            isDeleting={bulkDeleteMut.isPending}
+          />
+        )}
         <Table
           rowData={data?.items ?? []}
           columnData={columns}
           isLoading={isLoading}
           initialSearch={params.get('search') ?? ''}
           searchPlaceholder="Search by title, department, location…"
+          selectable={canManage}
+          onSelectionChanged={setSelected}
+          onGridReady={(p) => (gridApi.current = p.api)}
           toolbar={
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-36">
@@ -150,6 +192,7 @@ export function JobsPage() {
             </Select>
           }
         />
+        </>
       )}
 
       {canManage && (

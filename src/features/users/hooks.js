@@ -5,7 +5,13 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 
-import { createUser, deleteUser, listUsers, updateUser } from '@/features/users/api'
+import {
+  bulkDeleteUsers,
+  createUser,
+  deleteUser,
+  listUsers,
+  updateUser,
+} from '@/features/users/api'
 
 const USERS_KEY = ['users']
 
@@ -37,6 +43,14 @@ export function useDeleteUser() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: deleteUser,
+    onSuccess: () => qc.invalidateQueries({ queryKey: USERS_KEY }),
+  })
+}
+
+export function useBulkDeleteUsers() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: bulkDeleteUsers,
     onSuccess: () => qc.invalidateQueries({ queryKey: USERS_KEY }),
   })
 }

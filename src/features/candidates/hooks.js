@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query'
 
 import {
+  bulkDeleteCandidates,
   createCandidate,
   deleteCandidate,
   getCandidate,
@@ -86,6 +87,14 @@ export function useDeleteCandidate() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: deleteCandidate,
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  })
+}
+
+export function useBulkDeleteCandidates() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: bulkDeleteCandidates,
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }

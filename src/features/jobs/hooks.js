@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query'
 
 import {
+  bulkDeleteJobs,
   createJob,
   deleteJob,
   getJob,
@@ -57,6 +58,14 @@ export function useDeleteJob() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: deleteJob,
+    onSuccess: () => qc.invalidateQueries({ queryKey: JOBS_KEY }),
+  })
+}
+
+export function useBulkDeleteJobs() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: bulkDeleteJobs,
     onSuccess: () => qc.invalidateQueries({ queryKey: JOBS_KEY }),
   })
 }

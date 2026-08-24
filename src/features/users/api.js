@@ -20,3 +20,8 @@ export async function updateUser(id, payload) {
 export async function deleteUser(id) {
   await apiClient.delete(`/users/${id}`)
 }
+
+export async function bulkDeleteUsers(ids) {
+  const { data } = await apiClient.post('/users/bulk-delete', { ids })
+  return data
+}

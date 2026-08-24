@@ -85,6 +85,10 @@ export function Table({
   // Column header sorting. Disable when only the current page is loaded
   // (server-side), since client sort would reorder just that page.
   sortable = true,
+  // Row selection: adds a checkbox column and reports selected rows.
+  selectable = false,
+  onSelectionChanged,
+  onGridReady,
 }) {
   const [quick, setQuick] = useState(initialSearch)
 
@@ -97,6 +101,27 @@ export function Table({
     () => ({ ...DEFAULT_COL_DEF, sortable }),
     [sortable],
   )
+
+  const columns = useMemo(() => {
+    if (!selectable) return columnData
+    return [
+      {
+        colId: '__select__',
+        headerName: '',
+        width: 44,
+        minWidth: 44,
+        maxWidth: 44,
+        flex: 0,
+        pinned: 'left',
+        sortable: false,
+        filter: false,
+        resizable: false,
+        checkboxSelection: true,
+        headerCheckboxSelection: true,
+      },
+      ...columnData,
+    ]
+  }, [selectable, columnData])
 
   // Keep the latest fetchRows without forcing the datasource to be rebuilt on
   // every render — the datasource is only recreated when `refreshKey` changes,
@@ -160,11 +185,19 @@ export function Table({
       >
         <AgGridReact
           theme="legacy"
-          columnDefs={columnData}
+          columnDefs={columns}
           defaultColDef={defaultColDef}
           getRowId={resolveRowId}
           rowClassRules={rowClassRules}
           onRowClicked={onRowClicked}
+          onGridReady={onGridReady}
+          rowSelection={selectable ? 'multiple' : undefined}
+          suppressRowClickSelection={selectable || undefined}
+          onSelectionChanged={
+            selectable && onSelectionChanged
+              ? (e) => onSelectionChanged(e.api.getSelectedRows())
+              : undefined
+          }
           tooltipShowDelay={0}
           tooltipHideDelay={2000}
           animateRows

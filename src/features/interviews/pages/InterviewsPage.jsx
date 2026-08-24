@@ -1,8 +1,9 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { SelectionBar } from '@/components/GlobalComponents/Table/SelectionBar'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ import { toLocalInput } from '@/features/interviews/constants'
 import { InterviewScheduleDialog } from '@/features/interviews/components/InterviewScheduleDialog'
 import { OutcomeDialog } from '@/features/interviews/components/OutcomeDialog'
 import {
+  useBulkDeleteInterviews,
   useDeleteInterview,
   useInterviews,
   useRecordOutcome,
@@ -53,6 +55,34 @@ export function InterviewsPage() {
   const updateMut = useUpdateInterview()
   const outcomeMut = useRecordOutcome()
   const deleteMut = useDeleteInterview()
+  const bulkDeleteMut = useBulkDeleteInterviews()
+
+  const [selected, setSelected] = useState([])
+  const gridApi = useRef(null)
+  const clearSelection = () => {
+    gridApi.current?.deselectAll()
+    setSelected([])
+  }
+
+  const handleBulkDelete = async () => {
+    const ok = await confirm({
+      title: `Delete ${selected.length} interview${selected.length > 1 ? 's' : ''}?`,
+      description: 'This permanently removes the selected interviews.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    bulkDeleteMut.mutate(
+      selected.map((i) => i.id),
+      {
+        onSuccess: (res) => {
+          toast.success(`Deleted ${res?.deleted ?? selected.length} interview(s)`)
+          clearSelection()
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to delete interviews')),
+      },
+    )
+  }
 
   const openSchedule = () => setSchedule({ open: true, mode: 'create', interview: null })
   const openReschedule = (interview) => setSchedule({ open: true, mode: 'edit', interview })
@@ -148,11 +178,23 @@ export function InterviewsPage() {
           Couldn't load interviews. Is the backend running?
         </p>
       ) : (
+        <>
+        {canSchedule && (
+          <SelectionBar
+            count={selected.length}
+            onDelete={handleBulkDelete}
+            onClear={clearSelection}
+            isDeleting={bulkDeleteMut.isPending}
+          />
+        )}
         <Table
           rowData={data?.items ?? []}
           columnData={columns}
           isLoading={isLoading}
           searchPlaceholder="Search candidate, manager…"
+          selectable={canSchedule}
+          onSelectionChanged={setSelected}
+          onGridReady={(p) => (gridApi.current = p.api)}
           toolbar={
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
@@ -165,6 +207,7 @@ export function InterviewsPage() {
             </Select>
           }
         />
+        </>
       )}
 
       {canSchedule && (

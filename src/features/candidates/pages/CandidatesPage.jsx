@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Pagination } from '@/components/GlobalComponents/Table/Pagination'
+import { SelectionBar } from '@/components/GlobalComponents/Table/SelectionBar'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,7 @@ import { CandidateFormDialog } from '@/features/candidates/components/CandidateF
 import { NotifyDialog } from '@/features/candidates/components/NotifyDialog'
 import { downloadResume } from '@/features/candidates/api'
 import {
+  useBulkDeleteCandidates,
   useCandidates,
   useCreateCandidate,
   useDeleteCandidate,
@@ -113,6 +115,34 @@ export function CandidatesPage() {
   const updateMut = useUpdateCandidate()
   const deleteMut = useDeleteCandidate()
   const uploadMut = useUploadResume()
+  const bulkDeleteMut = useBulkDeleteCandidates()
+
+  const [selected, setSelected] = useState([])
+  const gridApi = useRef(null)
+  const clearSelection = () => {
+    gridApi.current?.deselectAll()
+    setSelected([])
+  }
+
+  const handleBulkDelete = async () => {
+    const ok = await confirm({
+      title: `Delete ${selected.length} candidate${selected.length > 1 ? 's' : ''}?`,
+      description: 'This permanently removes the selected candidates and their records.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    bulkDeleteMut.mutate(
+      selected.map((c) => c.id),
+      {
+        onSuccess: (res) => {
+          toast.success(`Deleted ${res?.deleted ?? selected.length} candidate(s)`)
+          clearSelection()
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to delete candidates')),
+      },
+    )
+  }
 
   const openCreate = () => setDialog({ open: true, mode: 'create', candidate: null })
   const openEdit = (candidate) => setDialog({ open: true, mode: 'edit', candidate })
@@ -209,11 +239,22 @@ export function CandidatesPage() {
         </p>
       ) : (
         <>
+          {canManage && (
+            <SelectionBar
+              count={selected.length}
+              onDelete={handleBulkDelete}
+              onClear={clearSelection}
+              isDeleting={bulkDeleteMut.isPending}
+            />
+          )}
           <Table
             rowData={data?.items ?? []}
             columnData={columns}
             isLoading={isLoading}
             useAgGridPagination={false}
+            selectable={canManage}
+            onSelectionChanged={setSelected}
+            onGridReady={(p) => (gridApi.current = p.api)}
             searchValue={search}
             onSearchChange={handleSearchChange}
             searchPlaceholder="Search by name or email…"

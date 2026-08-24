@@ -27,6 +27,11 @@ export async function recordOutcome(id, payload) {
   return data
 }
 
+export async function bulkDeleteInterviews(ids) {
+  const { data } = await apiClient.post('/interviews/bulk-delete', { ids })
+  return data
+}
+
 export async function deleteInterview(id) {
   await apiClient.delete(`/interviews/${id}`)
 }

@@ -26,6 +26,11 @@ export async function deleteJob(id) {
   await apiClient.delete(`/jobs/${id}`)
 }
 
+export async function bulkDeleteJobs(ids) {
+  const { data } = await apiClient.post('/jobs/bulk-delete', { ids })
+  return data
+}
+
 /** Consultants for the "assign" dropdown (admin/HR only). */
 export async function listConsultants() {
   const { data } = await apiClient.get('/users', {
