@@ -1,18 +1,11 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { getInterviewColumns } from '@/features/interviews/columns'
@@ -20,6 +13,7 @@ import { toLocalInput } from '@/features/interviews/constants'
 import { InterviewScheduleDialog } from '@/features/interviews/components/InterviewScheduleDialog'
 import { OutcomeDialog } from '@/features/interviews/components/OutcomeDialog'
 import {
+  useBulkDeleteInterviews,
   useDeleteInterview,
   useInterviews,
   useRecordOutcome,
@@ -28,6 +22,7 @@ import {
 } from '@/features/interviews/hooks'
 import { useOptions } from '@/features/meta/hooks'
 
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { errorMessage } from '@/lib/api-error'
 
 export function InterviewsPage() {
@@ -35,29 +30,62 @@ export function InterviewsPage() {
   const { data: options } = useOptions()
   const canSchedule = can(user, PERMISSIONS.INTERVIEWS_SCHEDULE)
   const canConduct = can(user, PERMISSIONS.INTERVIEWS_CONDUCT)
+  const confirm = useConfirm()
 
   const [params] = useSearchParams()
-  const [status, setStatus] = useState(() => params.get('status') ?? 'all')
   const [schedule, setSchedule] = useState({ open: false, mode: 'create', interview: null })
   const [outcome, setOutcome] = useState({ open: false, interview: null })
 
-  const { data, isLoading, isError } = useInterviews({
-    page: 1,
-    size: 1000,
-    status: status === 'all' ? undefined : status,
-  })
+  // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
+  const status = params.get('status') ?? undefined
+
+  const { data, isLoading, isError } = useInterviews({ page: 1, size: 1000, status })
 
   const scheduleMut = useScheduleInterview()
   const updateMut = useUpdateInterview()
   const outcomeMut = useRecordOutcome()
   const deleteMut = useDeleteInterview()
+  const bulkDeleteMut = useBulkDeleteInterviews()
+
+  const [selected, setSelected] = useState([])
+  const gridApi = useRef(null)
+  const clearSelection = () => {
+    gridApi.current?.deselectAll()
+    setSelected([])
+  }
+
+  const handleBulkDelete = async () => {
+    const ok = await confirm({
+      title: `Delete ${selected.length} interview${selected.length > 1 ? 's' : ''}?`,
+      description: 'This permanently removes the selected interviews.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    bulkDeleteMut.mutate(
+      selected.map((i) => i.id),
+      {
+        onSuccess: (res) => {
+          toast.success(`Deleted ${res?.deleted ?? selected.length} interview(s)`)
+          clearSelection()
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to delete interviews')),
+      },
+    )
+  }
 
   const openSchedule = () => setSchedule({ open: true, mode: 'create', interview: null })
   const openReschedule = (interview) => setSchedule({ open: true, mode: 'edit', interview })
   const openOutcome = (interview) => setOutcome({ open: true, interview })
 
-  const handleDelete = (interview) => {
-    if (!window.confirm('Delete this interview?')) return
+  const handleDelete = async (interview) => {
+    const ok = await confirm({
+      title: 'Delete interview?',
+      description: 'This permanently removes the interview and its calendar sync.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
     deleteMut.mutate(interview.id, {
       onSuccess: () => toast.success('Interview deleted'),
       onError: (e) => toast.error(errorMessage(e, 'Failed to delete')),
@@ -145,17 +173,15 @@ export function InterviewsPage() {
           columnData={columns}
           isLoading={isLoading}
           searchPlaceholder="Search candidate, manager…"
-          toolbar={
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {(options?.interview_statuses ?? []).map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          }
+          selectable={canSchedule}
+          onSelectionChanged={setSelected}
+          onGridReady={(p) => (gridApi.current = p.api)}
+          selection={{
+            count: selected.length,
+            onDelete: handleBulkDelete,
+            onClear: clearSelection,
+            isDeleting: bulkDeleteMut.isPending,
+          }}
         />
       )}
 

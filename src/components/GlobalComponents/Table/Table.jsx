@@ -2,9 +2,10 @@ import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-quartz.css'
 import { AgGridReact } from 'ag-grid-react'
-import { Search } from 'lucide-react'
+import { Search, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import './Table.css'
@@ -85,6 +86,13 @@ export function Table({
   // Column header sorting. Disable when only the current page is loaded
   // (server-side), since client sort would reorder just that page.
   sortable = true,
+  // Row selection: adds a checkbox column and reports selected rows.
+  selectable = false,
+  onSelectionChanged,
+  onGridReady,
+  // Bulk-action state, rendered inline at the right of the toolbar row when
+  // rows are selected: { count, onDelete, onClear, isDeleting }.
+  selection,
 }) {
   const [quick, setQuick] = useState(initialSearch)
 
@@ -97,6 +105,27 @@ export function Table({
     () => ({ ...DEFAULT_COL_DEF, sortable }),
     [sortable],
   )
+
+  const columns = useMemo(() => {
+    if (!selectable) return columnData
+    return [
+      {
+        colId: '__select__',
+        headerName: '',
+        width: 44,
+        minWidth: 44,
+        maxWidth: 44,
+        flex: 0,
+        pinned: 'left',
+        sortable: false,
+        filter: false,
+        resizable: false,
+        checkboxSelection: true,
+        headerCheckboxSelection: true,
+      },
+      ...columnData,
+    ]
+  }, [selectable, columnData])
 
   // Keep the latest fetchRows without forcing the datasource to be rebuilt on
   // every render — the datasource is only recreated when `refreshKey` changes,
@@ -137,7 +166,7 @@ export function Table({
 
   return (
     <div>
-      {(quickFilter || toolbar) && (
+      {(quickFilter || toolbar || selection?.count > 0) && (
         <div className="flex flex-wrap items-center gap-3 pb-4">
           {quickFilter && (
             <div className="relative w-full max-w-sm">
@@ -151,6 +180,30 @@ export function Table({
             </div>
           )}
           {toolbar}
+          {selection?.count > 0 && (
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {selection.count} selected
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={selection.onClear}
+                disabled={selection.isDeleting}
+              >
+                Clear
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={selection.onDelete}
+                disabled={selection.isDeleting}
+              >
+                <Trash2 className="size-4" />
+                {selection.isDeleting ? 'Deleting…' : 'Delete selected'}
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -160,11 +213,19 @@ export function Table({
       >
         <AgGridReact
           theme="legacy"
-          columnDefs={columnData}
+          columnDefs={columns}
           defaultColDef={defaultColDef}
           getRowId={resolveRowId}
           rowClassRules={rowClassRules}
           onRowClicked={onRowClicked}
+          onGridReady={onGridReady}
+          rowSelection={selectable ? 'multiple' : undefined}
+          suppressRowClickSelection={selectable || undefined}
+          onSelectionChanged={
+            selectable && onSelectionChanged
+              ? (e) => onSelectionChanged(e.api.getSelectedRows())
+              : undefined
+          }
           tooltipShowDelay={0}
           tooltipHideDelay={2000}
           animateRows

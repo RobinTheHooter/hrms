@@ -7,13 +7,6 @@ import { Pagination } from '@/components/GlobalComponents/Table/Pagination'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { getCandidateColumns } from '@/features/candidates/columns'
@@ -22,15 +15,16 @@ import { CandidateFormDialog } from '@/features/candidates/components/CandidateF
 import { NotifyDialog } from '@/features/candidates/components/NotifyDialog'
 import { downloadResume } from '@/features/candidates/api'
 import {
+  useBulkDeleteCandidates,
   useCandidates,
   useCreateCandidate,
   useDeleteCandidate,
   useUpdateCandidate,
   useUploadResume,
 } from '@/features/candidates/hooks'
-import { useJobs } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
 
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { errorMessage } from '@/lib/api-error'
 
 function toFormValues(c) {
@@ -58,6 +52,7 @@ export function CandidatesPage() {
   const { data: user } = useCurrentUser()
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
+  const confirm = useConfirm()
 
   const [params] = useSearchParams()
   // Server-side pagination: only the current page is fetched, so the candidates
@@ -66,17 +61,16 @@ export function CandidatesPage() {
   const [pageSize, setPageSize] = useState(20)
   const [search, setSearch] = useState(() => params.get('search') ?? '')
   const [debouncedSearch, setDebouncedSearch] = useState(() => params.get('search') ?? '')
-  const [stage, setStage] = useState(() => params.get('stage') ?? 'all')
-  const [source, setSource] = useState(() => params.get('source') ?? 'all')
-  const [jobId, setJobId] = useState(() => params.get('job') ?? 'all')
-  const [minScore, setMinScore] = useState(() => params.get('min_score') ?? 'all')
-  const [sort, setSort] = useState(() => params.get('sort') ?? 'recent')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', candidate: null })
   const [notify, setNotify] = useState({ open: false, candidate: null })
   const [screen, setScreen] = useState({ open: false, candidate: null })
 
-  const { data: jobsPage } = useJobs({ page: 1, size: 1000 })
-  const jobs = jobsPage?.items ?? []
+  // Filters come from the URL (e.g. dashboard drill-downs); no on-page dropdowns.
+  const stage = params.get('stage') ?? undefined
+  const source = params.get('source') ?? undefined
+  const jobId = params.get('job') ?? undefined
+  const minScore = params.get('min_score') ?? undefined
+  const sort = params.get('sort') === 'score' ? 'score' : undefined
 
   // Debounce free-text search, then reset to the first page.
   const timer = useRef()
@@ -90,27 +84,49 @@ export function CandidatesPage() {
   }
   useEffect(() => () => clearTimeout(timer.current), [])
 
-  // Changing a filter/sort always returns to the first page.
-  const withReset = (setter) => (value) => {
-    setter(value)
-    setPage(1)
-  }
-
   const { data, isLoading, isFetching, isError } = useCandidates({
     page,
     size: pageSize,
     search: debouncedSearch || undefined,
-    stage: stage === 'all' ? undefined : stage,
-    source: source === 'all' ? undefined : source,
-    jobId: jobId === 'all' ? undefined : Number(jobId),
-    min_score: minScore === 'all' ? undefined : Number(minScore),
-    sort: sort === 'score' ? 'score' : undefined,
+    stage,
+    source,
+    jobId: jobId ? Number(jobId) : undefined,
+    min_score: minScore ? Number(minScore) : undefined,
+    sort,
   })
 
   const createMut = useCreateCandidate()
   const updateMut = useUpdateCandidate()
   const deleteMut = useDeleteCandidate()
   const uploadMut = useUploadResume()
+  const bulkDeleteMut = useBulkDeleteCandidates()
+
+  const [selected, setSelected] = useState([])
+  const gridApi = useRef(null)
+  const clearSelection = () => {
+    gridApi.current?.deselectAll()
+    setSelected([])
+  }
+
+  const handleBulkDelete = async () => {
+    const ok = await confirm({
+      title: `Delete ${selected.length} candidate${selected.length > 1 ? 's' : ''}?`,
+      description: 'This permanently removes the selected candidates and their records.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    bulkDeleteMut.mutate(
+      selected.map((c) => c.id),
+      {
+        onSuccess: (res) => {
+          toast.success(`Deleted ${res?.deleted ?? selected.length} candidate(s)`)
+          clearSelection()
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to delete candidates')),
+      },
+    )
+  }
 
   const openCreate = () => setDialog({ open: true, mode: 'create', candidate: null })
   const openEdit = (candidate) => setDialog({ open: true, mode: 'edit', candidate })
@@ -139,8 +155,14 @@ export function CandidatesPage() {
     )
   }
 
-  const handleDelete = (candidate) => {
-    if (!window.confirm(`Delete ${candidate.full_name}?`)) return
+  const handleDelete = async (candidate) => {
+    const ok = await confirm({
+      title: 'Delete candidate?',
+      description: `This permanently removes ${candidate.full_name} and their records.`,
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
     deleteMut.mutate(candidate.id, {
       onSuccess: () => toast.success('Candidate deleted'),
       onError: (e) => toast.error(errorMessage(e, 'Failed to delete candidate')),
@@ -206,56 +228,18 @@ export function CandidatesPage() {
             columnData={columns}
             isLoading={isLoading}
             useAgGridPagination={false}
+            selectable={canManage}
+            onSelectionChanged={setSelected}
+            onGridReady={(p) => (gridApi.current = p.api)}
+            selection={{
+              count: selected.length,
+              onDelete: handleBulkDelete,
+              onClear: clearSelection,
+              isDeleting: bulkDeleteMut.isPending,
+            }}
             searchValue={search}
             onSearchChange={handleSearchChange}
             searchPlaceholder="Search by name or email…"
-            toolbar={
-              <>
-                <Select value={stage} onValueChange={withReset(setStage)}>
-                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All stages</SelectItem>
-                    {(options?.candidate_stages ?? []).map((s) => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={source} onValueChange={withReset(setSource)}>
-                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All sources</SelectItem>
-                    {(options?.candidate_sources ?? []).map((s) => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={jobId} onValueChange={withReset(setJobId)}>
-                  <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All jobs</SelectItem>
-                    {jobs.map((j) => (
-                      <SelectItem key={j.id} value={String(j.id)}>{j.title}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={minScore} onValueChange={withReset(setMinScore)}>
-                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Any AI score</SelectItem>
-                    <SelectItem value="60">60+</SelectItem>
-                    <SelectItem value="75">75+</SelectItem>
-                    <SelectItem value="85">85+</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={sort} onValueChange={withReset(setSort)}>
-                  <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recent">Most recent</SelectItem>
-                    <SelectItem value="score">Top AI score</SelectItem>
-                  </SelectContent>
-                </Select>
-              </>
-            }
           />
           <Pagination
             page={page}

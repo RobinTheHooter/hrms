@@ -7,6 +7,11 @@ export async function listJobs({ page = 1, size = 20, search, status } = {}) {
   return data // Page: { items, total, page, size, pages }
 }
 
+export async function getJob(id) {
+  const { data } = await apiClient.get(`/jobs/${id}`)
+  return data
+}
+
 export async function createJob(payload) {
   const { data } = await apiClient.post('/jobs', payload)
   return data
@@ -19,6 +24,11 @@ export async function updateJob(id, payload) {
 
 export async function deleteJob(id) {
   await apiClient.delete(`/jobs/${id}`)
+}
+
+export async function bulkDeleteJobs(ids) {
+  const { data } = await apiClient.post('/jobs/bulk-delete', { ids })
+  return data
 }
 
 /** Consultants for the "assign" dropdown (admin/HR only). */

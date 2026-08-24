@@ -1,30 +1,25 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useOptions } from '@/features/meta/hooks'
 import { getJobColumns } from '@/features/jobs/columns'
 import { JobFormDialog } from '@/features/jobs/components/JobFormDialog'
 import {
+  useBulkDeleteJobs,
   useCreateJob,
   useDeleteJob,
   useJobs,
   useUpdateJob,
 } from '@/features/jobs/hooks'
 
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { errorMessage } from '@/lib/api-error'
 
 function toFormValues(job) {
@@ -47,27 +42,60 @@ export function JobsPage() {
   const { data: user } = useCurrentUser()
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.JOBS_MANAGE)
+  const confirm = useConfirm()
 
   const [params] = useSearchParams()
-  const [status, setStatus] = useState(() => params.get('status') ?? 'all')
   const [dialog, setDialog] = useState({ open: false, mode: 'create', job: null })
 
-  const { data, isLoading, isError } = useJobs({
-    page: 1,
-    size: 1000,
-    status: status === 'all' ? undefined : status,
-  })
+  // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
+  const status = params.get('status') ?? undefined
+
+  const { data, isLoading, isError } = useJobs({ page: 1, size: 1000, status })
 
   const createMut = useCreateJob()
   const updateMut = useUpdateJob()
   const deleteMut = useDeleteJob()
+  const bulkDeleteMut = useBulkDeleteJobs()
+
+  const [selected, setSelected] = useState([])
+  const gridApi = useRef(null)
+  const clearSelection = () => {
+    gridApi.current?.deselectAll()
+    setSelected([])
+  }
+
+  const handleBulkDelete = async () => {
+    const ok = await confirm({
+      title: `Delete ${selected.length} job${selected.length > 1 ? 's' : ''}?`,
+      description: 'This permanently removes the selected jobs.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    bulkDeleteMut.mutate(
+      selected.map((j) => j.id),
+      {
+        onSuccess: (res) => {
+          toast.success(`Deleted ${res?.deleted ?? selected.length} job(s)`)
+          clearSelection()
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to delete jobs')),
+      },
+    )
+  }
 
   const openCreate = () => setDialog({ open: true, mode: 'create', job: null })
   const openEdit = (job) => setDialog({ open: true, mode: 'edit', job })
   const closeDialog = () => setDialog((d) => ({ ...d, open: false }))
 
-  const handleDelete = (job) => {
-    if (!window.confirm(`Delete "${job.title}"?`)) return
+  const handleDelete = async (job) => {
+    const ok = await confirm({
+      title: 'Delete job?',
+      description: `This permanently removes "${job.title}".`,
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
     deleteMut.mutate(job.id, {
       onSuccess: () => toast.success('Job deleted'),
       onError: (e) => toast.error(errorMessage(e, 'Failed to delete job')),
@@ -128,19 +156,15 @@ export function JobsPage() {
           isLoading={isLoading}
           initialSearch={params.get('search') ?? ''}
           searchPlaceholder="Search by title, department, location…"
-          toolbar={
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {(options?.job_statuses ?? []).map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          }
+          selectable={canManage}
+          onSelectionChanged={setSelected}
+          onGridReady={(p) => (gridApi.current = p.api)}
+          selection={{
+            count: selected.length,
+            onDelete: handleBulkDelete,
+            onClear: clearSelection,
+            isDeleting: bulkDeleteMut.isPending,
+          }}
         />
       )}
 

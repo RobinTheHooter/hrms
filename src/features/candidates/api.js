@@ -25,6 +25,11 @@ export async function listCandidates({
   return data
 }
 
+export async function getCandidate(id) {
+  const { data } = await apiClient.get(`/candidates/${id}`)
+  return data
+}
+
 export async function createCandidate(payload) {
   const { data } = await apiClient.post('/candidates', payload)
   return data
@@ -37,6 +42,11 @@ export async function updateCandidate(id, payload) {
 
 export async function deleteCandidate(id) {
   await apiClient.delete(`/candidates/${id}`)
+}
+
+export async function bulkDeleteCandidates(ids) {
+  const { data } = await apiClient.post('/candidates/bulk-delete', { ids })
+  return data
 }
 
 export async function getEmailTemplates(id) {

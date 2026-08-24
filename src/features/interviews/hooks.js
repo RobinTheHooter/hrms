@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query'
 
 import {
+  bulkDeleteInterviews,
   deleteInterview,
   getAvailability,
   listHiringManagers,
@@ -64,4 +65,8 @@ export function useRecordOutcome() {
 
 export function useDeleteInterview() {
   return useInterviewMutation(deleteInterview)
+}
+
+export function useBulkDeleteInterviews() {
+  return useInterviewMutation(bulkDeleteInterviews)
 }

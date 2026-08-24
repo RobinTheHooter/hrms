@@ -221,7 +221,7 @@ export function InterviewScheduleDialog({
                 can't be shown.
               </p>
             ) : avail.busy.length === 0 ? (
-              <p className="text-xs text-emerald-600">No conflicts on {day}.</p>
+              <p className="text-xs text-success">No conflicts on {day}.</p>
             ) : (
               <div className="rounded-md border bg-muted/30 p-3">
                 <div className="mb-1.5 text-xs font-medium">

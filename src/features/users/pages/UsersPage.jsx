@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Table } from '@/components/GlobalComponents/Table/Table'
@@ -10,17 +10,20 @@ import { useOptions } from '@/features/meta/hooks'
 import { getUserColumns } from '@/features/users/columns'
 import { UserFormDialog } from '@/features/users/components/UserFormDialog'
 import {
+  useBulkDeleteUsers,
   useCreateUser,
   useDeleteUser,
   useUpdateUser,
   useUsers,
 } from '@/features/users/hooks'
 
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { errorMessage } from '@/lib/api-error'
 
 export function UsersPage() {
   const { data: currentUser } = useCurrentUser()
   const { data: options } = useOptions()
+  const confirm = useConfirm()
   const [dialog, setDialog] = useState({ open: false, mode: 'create', user: null })
 
   const { data, isLoading, isError } = useUsers({ page: 1, size: 1000 })
@@ -28,13 +31,47 @@ export function UsersPage() {
   const createMut = useCreateUser()
   const updateMut = useUpdateUser()
   const deleteMut = useDeleteUser()
+  const bulkDeleteMut = useBulkDeleteUsers()
+
+  const [selected, setSelected] = useState([])
+  const gridApi = useRef(null)
+  const clearSelection = () => {
+    gridApi.current?.deselectAll()
+    setSelected([])
+  }
+
+  const handleBulkDelete = async () => {
+    const ok = await confirm({
+      title: `Delete ${selected.length} user${selected.length > 1 ? 's' : ''}?`,
+      description: 'This permanently removes the selected accounts.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
+    bulkDeleteMut.mutate(
+      selected.map((u) => u.id),
+      {
+        onSuccess: (res) => {
+          toast.success(`Deleted ${res?.deleted ?? selected.length} user(s)`)
+          clearSelection()
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to delete users')),
+      },
+    )
+  }
 
   const openCreate = () => setDialog({ open: true, mode: 'create', user: null })
   const openEdit = (user) => setDialog({ open: true, mode: 'edit', user })
   const closeDialog = () => setDialog((d) => ({ ...d, open: false }))
 
-  const handleDelete = (user) => {
-    if (!window.confirm(`Delete ${user.full_name}?`)) return
+  const handleDelete = async (user) => {
+    const ok = await confirm({
+      title: 'Delete user?',
+      description: `This permanently removes ${user.full_name}'s account.`,
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
     deleteMut.mutate(user.id, {
       onSuccess: () => toast.success('User deleted'),
       onError: (e) => toast.error(errorMessage(e, 'Failed to delete user')),
@@ -109,6 +146,15 @@ export function UsersPage() {
           columnData={columns}
           isLoading={isLoading}
           searchPlaceholder="Search by name or email…"
+          selectable
+          onSelectionChanged={setSelected}
+          onGridReady={(p) => (gridApi.current = p.api)}
+          selection={{
+            count: selected.length,
+            onDelete: handleBulkDelete,
+            onClear: clearSelection,
+            isDeleting: bulkDeleteMut.isPending,
+          }}
         />
       )}
 

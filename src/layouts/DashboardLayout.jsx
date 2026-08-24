@@ -1,18 +1,6 @@
-import {
-  Grid3x3,
-  LayoutGrid,
-  LogOut,
-  Mail,
-  Maximize2,
-  MessageSquare,
-  Plug,
-  Settings,
-  SlidersHorizontal,
-  Sparkles,
-} from 'lucide-react'
+import { LogOut, Plug, Settings, SlidersHorizontal, Sparkles } from 'lucide-react'
 import { Suspense } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 
 import { ChunkLoader } from '@/components/ChunkLoader'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
@@ -37,21 +25,6 @@ function BrandMark() {
         Smart<span className="text-primary">HR</span>
       </span>
     </div>
-  )
-}
-
-function HeaderIcon({ icon: Icon, badge, onClick, title }) {
-  return (
-    <button
-      onClick={onClick}
-      title={title}
-      className="relative flex size-9 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-    >
-      <Icon className="size-[18px]" />
-      {badge && (
-        <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary ring-2 ring-card" />
-      )}
-    </button>
   )
 }
 
@@ -125,9 +98,6 @@ export function DashboardLayout() {
               <Sparkles className="size-4" />
               AI Center
             </Button>
-            <HeaderIcon icon={LayoutGrid} />
-            <HeaderIcon icon={Grid3x3} />
-
             <HeaderMenu icon={Settings} title="Settings">
               {({ close }) => (
                 <div className="py-1">
@@ -157,19 +127,6 @@ export function DashboardLayout() {
                 </div>
               )}
             </HeaderMenu>
-
-            <HeaderIcon icon={Maximize2} />
-
-            <HeaderIcon
-              icon={MessageSquare}
-              title="Messages"
-              onClick={() => toast('Messages are coming soon.')}
-            />
-            <HeaderIcon
-              icon={Mail}
-              title="Mail"
-              onClick={() => toast('Mail is coming soon.')}
-            />
 
             <NotificationsMenu />
             <div className="ml-2 flex items-center gap-2">

@@ -1,8 +1,13 @@
 import { apiClient } from '@/lib/apiClient'
 
-export async function listInterviews({ page = 1, size = 20, status } = {}) {
+export async function listInterviews({ page = 1, size = 20, status, candidate_id } = {}) {
   const { data } = await apiClient.get('/interviews', {
-    params: { page, size, status: status || undefined },
+    params: {
+      page,
+      size,
+      status: status || undefined,
+      candidate_id: candidate_id || undefined,
+    },
   })
   return data
 }
@@ -19,6 +24,11 @@ export async function updateInterview(id, payload) {
 
 export async function recordOutcome(id, payload) {
   const { data } = await apiClient.patch(`/interviews/${id}/outcome`, payload)
+  return data
+}
+
+export async function bulkDeleteInterviews(ids) {
+  const { data } = await apiClient.post('/interviews/bulk-delete', { ids })
   return data
 }
 

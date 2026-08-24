@@ -6,8 +6,10 @@ import {
 } from '@tanstack/react-query'
 
 import {
+  bulkDeleteCandidates,
   createCandidate,
   deleteCandidate,
+  getCandidate,
   getEmailTemplates,
   listCandidates,
   notifyCandidate,
@@ -17,6 +19,14 @@ import {
 } from '@/features/candidates/api'
 
 const KEY = ['candidates']
+
+export function useCandidate(id) {
+  return useQuery({
+    queryKey: [...KEY, 'detail', id],
+    queryFn: () => getCandidate(id),
+    enabled: Boolean(id),
+  })
+}
 
 export function useUploadResume() {
   const qc = useQueryClient()
@@ -77,6 +87,14 @@ export function useDeleteCandidate() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: deleteCandidate,
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  })
+}
+
+export function useBulkDeleteCandidates() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: bulkDeleteCandidates,
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }

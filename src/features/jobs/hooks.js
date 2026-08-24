@@ -6,8 +6,10 @@ import {
 } from '@tanstack/react-query'
 
 import {
+  bulkDeleteJobs,
   createJob,
   deleteJob,
+  getJob,
   listConsultants,
   listJobs,
   updateJob,
@@ -21,6 +23,14 @@ export function useJobs(params) {
     queryFn: () => listJobs(params),
     placeholderData: keepPreviousData,
     refetchInterval: 15_000,
+  })
+}
+
+export function useJob(id) {
+  return useQuery({
+    queryKey: [...JOBS_KEY, 'detail', id],
+    queryFn: () => getJob(id),
+    enabled: Boolean(id),
   })
 }
 
@@ -48,6 +58,14 @@ export function useDeleteJob() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: deleteJob,
+    onSuccess: () => qc.invalidateQueries({ queryKey: JOBS_KEY }),
+  })
+}
+
+export function useBulkDeleteJobs() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: bulkDeleteJobs,
     onSuccess: () => qc.invalidateQueries({ queryKey: JOBS_KEY }),
   })
 }
