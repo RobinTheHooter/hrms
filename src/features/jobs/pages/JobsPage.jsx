@@ -25,6 +25,7 @@ import {
   useUpdateJob,
 } from '@/features/jobs/hooks'
 
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { errorMessage } from '@/lib/api-error'
 
 function toFormValues(job) {
@@ -47,6 +48,7 @@ export function JobsPage() {
   const { data: user } = useCurrentUser()
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.JOBS_MANAGE)
+  const confirm = useConfirm()
 
   const [params] = useSearchParams()
   const [status, setStatus] = useState(() => params.get('status') ?? 'all')
@@ -66,8 +68,14 @@ export function JobsPage() {
   const openEdit = (job) => setDialog({ open: true, mode: 'edit', job })
   const closeDialog = () => setDialog((d) => ({ ...d, open: false }))
 
-  const handleDelete = (job) => {
-    if (!window.confirm(`Delete "${job.title}"?`)) return
+  const handleDelete = async (job) => {
+    const ok = await confirm({
+      title: 'Delete job?',
+      description: `This permanently removes "${job.title}".`,
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
     deleteMut.mutate(job.id, {
       onSuccess: () => toast.success('Job deleted'),
       onError: (e) => toast.error(errorMessage(e, 'Failed to delete job')),

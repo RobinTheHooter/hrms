@@ -31,6 +31,7 @@ import {
 import { useJobs } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
 
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { errorMessage } from '@/lib/api-error'
 
 function toFormValues(c) {
@@ -58,6 +59,7 @@ export function CandidatesPage() {
   const { data: user } = useCurrentUser()
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
+  const confirm = useConfirm()
 
   const [params] = useSearchParams()
   // Server-side pagination: only the current page is fetched, so the candidates
@@ -139,8 +141,14 @@ export function CandidatesPage() {
     )
   }
 
-  const handleDelete = (candidate) => {
-    if (!window.confirm(`Delete ${candidate.full_name}?`)) return
+  const handleDelete = async (candidate) => {
+    const ok = await confirm({
+      title: 'Delete candidate?',
+      description: `This permanently removes ${candidate.full_name} and their records.`,
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
     deleteMut.mutate(candidate.id, {
       onSuccess: () => toast.success('Candidate deleted'),
       onError: (e) => toast.error(errorMessage(e, 'Failed to delete candidate')),

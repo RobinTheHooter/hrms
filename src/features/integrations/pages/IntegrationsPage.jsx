@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { getGoogleConnectUrl } from '@/features/integrations/api'
 import {
@@ -18,6 +19,7 @@ export function IntegrationsPage() {
   const [params, setParams] = useSearchParams()
   const { data: status, isLoading } = useGoogleStatus()
   const disconnect = useDisconnectGoogle()
+  const confirm = useConfirm()
 
   // Toast + clean the URL after returning from Google's consent screen.
   useEffect(() => {
@@ -39,8 +41,15 @@ export function IntegrationsPage() {
     }
   }
 
-  const handleDisconnect = () => {
-    if (!window.confirm('Disconnect Google Calendar?')) return
+  const handleDisconnect = async () => {
+    const ok = await confirm({
+      title: 'Disconnect Google Calendar?',
+      description:
+        'Interview events will no longer sync to your calendar until you reconnect.',
+      confirmLabel: 'Disconnect',
+      variant: 'destructive',
+    })
+    if (!ok) return
     disconnect.mutate(undefined, {
       onSuccess: () => toast.success('Disconnected'),
       onError: () => toast.error('Failed to disconnect'),

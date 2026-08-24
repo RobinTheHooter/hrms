@@ -28,6 +28,7 @@ import {
 } from '@/features/interviews/hooks'
 import { useOptions } from '@/features/meta/hooks'
 
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { errorMessage } from '@/lib/api-error'
 
 export function InterviewsPage() {
@@ -35,6 +36,7 @@ export function InterviewsPage() {
   const { data: options } = useOptions()
   const canSchedule = can(user, PERMISSIONS.INTERVIEWS_SCHEDULE)
   const canConduct = can(user, PERMISSIONS.INTERVIEWS_CONDUCT)
+  const confirm = useConfirm()
 
   const [params] = useSearchParams()
   const [status, setStatus] = useState(() => params.get('status') ?? 'all')
@@ -56,8 +58,14 @@ export function InterviewsPage() {
   const openReschedule = (interview) => setSchedule({ open: true, mode: 'edit', interview })
   const openOutcome = (interview) => setOutcome({ open: true, interview })
 
-  const handleDelete = (interview) => {
-    if (!window.confirm('Delete this interview?')) return
+  const handleDelete = async (interview) => {
+    const ok = await confirm({
+      title: 'Delete interview?',
+      description: 'This permanently removes the interview and its calendar sync.',
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
     deleteMut.mutate(interview.id, {
       onSuccess: () => toast.success('Interview deleted'),
       onError: (e) => toast.error(errorMessage(e, 'Failed to delete')),

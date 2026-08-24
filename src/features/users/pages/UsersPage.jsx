@@ -16,11 +16,13 @@ import {
   useUsers,
 } from '@/features/users/hooks'
 
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { errorMessage } from '@/lib/api-error'
 
 export function UsersPage() {
   const { data: currentUser } = useCurrentUser()
   const { data: options } = useOptions()
+  const confirm = useConfirm()
   const [dialog, setDialog] = useState({ open: false, mode: 'create', user: null })
 
   const { data, isLoading, isError } = useUsers({ page: 1, size: 1000 })
@@ -33,8 +35,14 @@ export function UsersPage() {
   const openEdit = (user) => setDialog({ open: true, mode: 'edit', user })
   const closeDialog = () => setDialog((d) => ({ ...d, open: false }))
 
-  const handleDelete = (user) => {
-    if (!window.confirm(`Delete ${user.full_name}?`)) return
+  const handleDelete = async (user) => {
+    const ok = await confirm({
+      title: 'Delete user?',
+      description: `This permanently removes ${user.full_name}'s account.`,
+      confirmLabel: 'Delete',
+      variant: 'destructive',
+    })
+    if (!ok) return
     deleteMut.mutate(user.id, {
       onSuccess: () => toast.success('User deleted'),
       onError: (e) => toast.error(errorMessage(e, 'Failed to delete user')),

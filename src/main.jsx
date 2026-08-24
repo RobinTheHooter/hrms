@@ -6,13 +6,16 @@ import { Toaster } from 'sonner'
 
 import { queryClient } from '@/app/queryClient'
 import { router } from '@/app/router'
+import { ConfirmProvider } from '@/components/ui/confirm-dialog'
 import './index.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <Toaster richColors position="top-right" />
+      <ConfirmProvider>
+        <RouterProvider router={router} />
+        <Toaster richColors position="top-right" />
+      </ConfirmProvider>
     </QueryClientProvider>
   </StrictMode>,
 )
