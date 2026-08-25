@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react'
+import { Ban, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 
 import { ActionsRenderer } from '@/components/GlobalComponents/TableComponents/ActionsRenderer'
 import { BadgeRenderer } from '@/components/GlobalComponents/TableComponents/BadgeRenderer'
@@ -9,7 +9,7 @@ import { priorityVariant } from '@/lib/priority'
 
 // Ag-Grid column defs for the Jobs table. Headers live here in the frontend;
 // custom cells are composed from the shared TableComponents renderers.
-export function getJobColumns({ onEdit, onDelete, canManage, options }) {
+export function getJobColumns({ onEdit, onDelete, onToggleStatus, canManage, options }) {
   const columns = [
     {
       headerName: 'Role',
@@ -67,14 +67,19 @@ export function getJobColumns({ onEdit, onDelete, canManage, options }) {
       colId: 'actions',
       headerClass: 'header-center',
       flex: 0,
-      width: 110,
-      minWidth: 110,
+      width: 150,
+      minWidth: 150,
       sortable: false,
       filter: false,
       resizable: false,
       cellRenderer: ActionsRenderer,
       cellRendererParams: {
-        getActions: () => [
+        getActions: (d) => [
+          {
+            icon: d.status === 'open' ? Ban : RotateCcw,
+            title: d.status === 'open' ? 'Close job' : 'Reopen job',
+            onClick: onToggleStatus,
+          },
           { icon: Pencil, title: 'Edit', onClick: onEdit },
           { icon: Trash2, title: 'Delete', danger: true, onClick: onDelete },
         ],

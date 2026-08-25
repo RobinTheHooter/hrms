@@ -88,10 +88,25 @@ export function JobsPage() {
   const openEdit = (job) => setDialog({ open: true, mode: 'edit', job })
   const closeDialog = () => setDialog((d) => ({ ...d, open: false }))
 
+  const handleToggleStatus = (job) => {
+    const next = job.status === 'open' ? 'closed' : 'open'
+    updateMut.mutate(
+      { id: job.id, payload: { status: next } },
+      {
+        onSuccess: () => toast.success(next === 'closed' ? 'Job closed' : 'Job reopened'),
+        onError: (e) => toast.error(errorMessage(e, 'Failed to update job')),
+      },
+    )
+  }
+
   const handleDelete = async (job) => {
+    const count = job.candidate_count ?? 0
     const ok = await confirm({
       title: 'Delete job?',
-      description: `This permanently removes "${job.title}".`,
+      description:
+        count > 0
+          ? `"${job.title}" has ${count} candidate${count > 1 ? 's' : ''}. Deleting also permanently removes them and their interviews — consider closing the job instead.`
+          : `This permanently removes "${job.title}".`,
       confirmLabel: 'Delete',
       variant: 'destructive',
     })
@@ -126,7 +141,14 @@ export function JobsPage() {
   }
 
   const columns = useMemo(
-    () => getJobColumns({ onEdit: openEdit, onDelete: handleDelete, canManage, options }),
+    () =>
+      getJobColumns({
+        onEdit: openEdit,
+        onDelete: handleDelete,
+        onToggleStatus: handleToggleStatus,
+        canManage,
+        options,
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [canManage, options],
   )
