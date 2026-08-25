@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
 
 import { FormDialog } from '@/components/ui/form-dialog'
 import { Input } from '@/components/ui/input'
@@ -17,24 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useJobs } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
-
-const schema = z.object({
-  job_id: z.string().min(1, 'Select a job'),
-  full_name: z.string().min(1, 'Required'),
-  email: z.string().email('Enter a valid email'),
-  phone: z.string().optional().or(z.literal('')),
-  current_role: z.string().optional().or(z.literal('')),
-  experience_years: z.string().optional().or(z.literal('')),
-  skills: z.string().optional().or(z.literal('')),
-  source: z.string().min(1, 'Required'),
-  current_ctc: z.string().optional().or(z.literal('')),
-  expected_ctc: z.string().optional().or(z.literal('')),
-  notice_period_days: z.string().optional().or(z.literal('')),
-  resume_url: z.string().optional().or(z.literal('')),
-  stage: z.string().min(1, 'Required'),
-  priority: z.string().min(1, 'Required'),
-  notes: z.string().optional().or(z.literal('')),
-})
+import { candidateSchema } from '@/lib/validation'
 
 const EMPTY = {
   job_id: '',
@@ -79,7 +61,7 @@ export function CandidateFormDialog({
     control,
     reset,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(schema), defaultValues: EMPTY })
+  } = useForm({ resolver: zodResolver(candidateSchema), defaultValues: EMPTY })
 
   useEffect(() => {
     if (open) {

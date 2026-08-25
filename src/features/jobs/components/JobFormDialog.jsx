@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
 
 import { FormDialog } from '@/components/ui/form-dialog'
 import { Input } from '@/components/ui/input'
@@ -17,19 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { useConsultants } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
-
-const schema = z.object({
-  title: z.string().min(1, 'Required'),
-  department: z.string().optional().or(z.literal('')),
-  location: z.string().optional().or(z.literal('')),
-  employment_type: z.string().min(1, 'Required'),
-  positions: z.coerce.number().int().min(1, 'Min 1').max(999),
-  status: z.string().min(1, 'Required'),
-  priority: z.string().min(1, 'Required'),
-  assigned_consultant_id: z.string(), // 'none' or numeric string
-  description: z.string().optional().or(z.literal('')),
-  required_skills: z.string().optional().or(z.literal('')),
-})
+import { jobSchema } from '@/lib/validation'
 
 const EMPTY = {
   title: '',
@@ -63,7 +50,7 @@ export function JobFormDialog({
     control,
     reset,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(schema), defaultValues: EMPTY })
+  } = useForm({ resolver: zodResolver(jobSchema), defaultValues: EMPTY })
 
   useEffect(() => {
     if (open) reset(initialValues ?? EMPTY)

@@ -1,17 +1,7 @@
-import { z } from 'zod'
-
-export const employeeSchema = z.object({
-  first_name: z.string().min(1, 'Required'),
-  last_name: z.string().min(1, 'Required'),
-  email: z.string().email('Enter a valid email'),
-  phone: z.string().max(30).optional().or(z.literal('')),
-  job_title: z.string().min(1, 'Required'),
-  department: z.string().max(150).optional().or(z.literal('')),
-  employment_type: z.enum(['full_time', 'part_time', 'contract', 'intern']),
-  status: z.enum(['active', 'probation', 'on_leave', 'terminated']),
-  date_of_joining: z.string().min(1, 'Required'), // yyyy-mm-dd
-  salary: z.string().optional().or(z.literal('')),
-})
+// Validation lives in the global schema library; re-exported here so existing
+// imports (`@/features/employees/schema`) keep working alongside the form
+// value <-> payload helpers below.
+export { employeeSchema } from '@/lib/validation'
 
 export const emptyEmployee = {
   first_name: '',

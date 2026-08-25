@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Controller, useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -9,8 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Field } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useJobs } from '@/features/jobs/hooks'
+import { offerSchema } from '@/lib/validation'
 
 const EMPTY = { title: '', ctc: '', start_date: '', expiry_date: '', notes: '' }
 
@@ -54,11 +56,17 @@ export function OfferDialog({
   )
 }
 
-// Mounted fresh on open, so state seeds from the offer via useState — no effect.
+// Mounted fresh on open, so defaultValues seed from the offer — no effect needed.
 function OfferForm({ offer, defaultTitle, isSubmitting, onCancel, onSubmit }) {
   const isEdit = Boolean(offer)
-  const [form, setForm] = useState(() =>
-    offer
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(offerSchema),
+    defaultValues: offer
       ? {
           title: offer.title ?? '',
           ctc: offer.ctc != null ? String(offer.ctc) : '',
@@ -67,7 +75,7 @@ function OfferForm({ offer, defaultTitle, isSubmitting, onCancel, onSubmit }) {
           notes: offer.notes ?? '',
         }
       : { ...EMPTY, title: defaultTitle ?? '' },
-  )
+  })
 
   const { data: jobsPage } = useJobs({ page: 1, size: 1000 })
   // Unique job titles for the role dropdown; include the current value so an
@@ -78,70 +86,63 @@ function OfferForm({ offer, defaultTitle, isSubmitting, onCancel, onSubmit }) {
         ...(jobsPage?.items ?? []).map((j) => j.title),
         offer?.title,
         defaultTitle,
-        form.title,
       ].filter(Boolean),
     ),
   )
 
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
-
-  const submit = () => {
+  const submit = handleSubmit((v) => {
     onSubmit({
-      title: form.title,
-      ctc: form.ctc === '' ? null : Number(form.ctc),
-      start_date: form.start_date || null,
-      expiry_date: form.expiry_date || null,
-      notes: form.notes || null,
+      title: v.title,
+      ctc: v.ctc === '' ? null : Number(v.ctc),
+      start_date: v.start_date || null,
+      expiry_date: v.expiry_date || null,
+      notes: v.notes || null,
     })
-  }
+  })
 
   return (
-    <>
-        <div className="space-y-4">
-          <div>
-            <Label className="mb-1">Role / title</Label>
-            <Select
-              value={form.title}
-              onValueChange={(v) => setForm((f) => ({ ...f, title: v }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                {roleOptions.map((title) => (
-                  <SelectItem key={title} value={title}>
-                    {title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div>
-              <Label className="mb-1">CTC</Label>
-              <Input type="number" min="0" value={form.ctc} onChange={set('ctc')} />
-            </div>
-            <div>
-              <Label className="mb-1">Start date</Label>
-              <Input type="date" value={form.start_date} onChange={set('start_date')} />
-            </div>
-            <div>
-              <Label className="mb-1">Offer expires</Label>
-              <Input type="date" value={form.expiry_date} onChange={set('expiry_date')} />
-            </div>
-          </div>
-          <div>
-            <Label className="mb-1">Notes</Label>
-            <Textarea rows={3} value={form.notes} onChange={set('notes')} />
-          </div>
+    <form onSubmit={submit} className="space-y-4">
+        <Field label="Role / title" error={errors.title}>
+          <Controller
+            control={control}
+            name="title"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roleOptions.map((title) => (
+                    <SelectItem key={title} value={title}>
+                      {title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </Field>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Field label="CTC" error={errors.ctc}>
+            <Input type="number" min="0" {...register('ctc')} />
+          </Field>
+          <Field label="Start date" error={errors.start_date}>
+            <Input type="date" {...register('start_date')} />
+          </Field>
+          <Field label="Offer expires" error={errors.expiry_date}>
+            <Input type="date" {...register('expiry_date')} />
+          </Field>
         </div>
+        <Field label="Notes" error={errors.notes}>
+          <Textarea rows={3} {...register('notes')} />
+        </Field>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button disabled={isSubmitting || !form.title} onClick={submit}>
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Saving…' : isEdit ? 'Save offer' : 'Create offer'}
           </Button>
         </DialogFooter>
-    </>
+    </form>
   )
 }

@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
-import { z } from 'zod'
 
 import { FormDialog } from '@/components/ui/form-dialog'
 import { Input } from '@/components/ui/input'
@@ -19,6 +18,7 @@ import { useCandidates } from '@/features/candidates/hooks'
 import { nowInputIST } from '@/features/interviews/constants'
 import { useAvailability, useHiringManagers } from '@/features/interviews/hooks'
 import { useOptions } from '@/features/meta/hooks'
+import { interviewSchema } from '@/lib/validation'
 
 const fmtTime = (iso) =>
   new Date(iso).toLocaleTimeString('en-IN', {
@@ -27,15 +27,6 @@ const fmtTime = (iso) =>
     timeZone: 'Asia/Kolkata',
   })
 
-const schema = z.object({
-  candidate_id: z.string().min(1, 'Select a candidate'),
-  hiring_manager_id: z.string(),
-  mode: z.string().min(1, 'Required'),
-  scheduled_at: z.string().min(1, 'Pick a date & time'),
-  location_or_link: z.string().optional().or(z.literal('')),
-  priority: z.string().min(1, 'Required'),
-  notes: z.string().optional().or(z.literal('')),
-})
 
 const EMPTY = {
   candidate_id: '',
@@ -69,7 +60,7 @@ export function InterviewScheduleDialog({
     control,
     reset,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(schema), defaultValues: EMPTY })
+  } = useForm({ resolver: zodResolver(interviewSchema), defaultValues: EMPTY })
 
   useEffect(() => {
     if (open) reset(initialValues ?? EMPTY)

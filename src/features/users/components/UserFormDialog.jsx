@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
 
 import { FormDialog } from '@/components/ui/form-dialog'
 import { Input } from '@/components/ui/input'
@@ -15,20 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useOptions } from '@/features/meta/hooks'
-
-const passwordField = (required) =>
-  required
-    ? z.string().min(8, 'At least 8 characters')
-    : z.string().min(8, 'At least 8 characters').or(z.literal(''))
-
-const makeSchema = (isEdit) =>
-  z.object({
-    full_name: z.string().min(1, 'Required'),
-    email: z.string().email('Enter a valid email'),
-    password: passwordField(!isEdit),
-    role: z.string().min(1, 'Required'),
-    is_active: z.enum(['true', 'false']),
-  })
+import { makeUserSchema } from '@/lib/validation'
 
 export function UserFormDialog({
   open,
@@ -47,7 +33,7 @@ export function UserFormDialog({
     control,
     reset,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(makeSchema(isEdit)) })
+  } = useForm({ resolver: zodResolver(makeUserSchema(isEdit)) })
 
   useEffect(() => {
     if (open) {
