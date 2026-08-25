@@ -222,38 +222,38 @@ export function CandidatesPage() {
           Couldn't load candidates. Is the backend running?
         </p>
       ) : (
-        <>
-          <Table
-            rowData={data?.items ?? []}
-            columnData={columns}
-            isLoading={isLoading}
-            useAgGridPagination={false}
-            selectable={canManage}
-            onSelectionChanged={setSelected}
-            onGridReady={(p) => (gridApi.current = p.api)}
-            selection={{
-              count: selected.length,
-              onDelete: handleBulkDelete,
-              onClear: clearSelection,
-              isDeleting: bulkDeleteMut.isPending,
-            }}
-            searchValue={search}
-            onSearchChange={handleSearchChange}
-            searchPlaceholder="Search by name or email…"
-          />
-          <Pagination
-            page={page}
-            pageSize={pageSize}
-            total={data?.total ?? 0}
-            pages={data?.pages ?? 0}
-            isFetching={isFetching}
-            onPageChange={setPage}
-            onPageSizeChange={(n) => {
-              setPageSize(n)
-              setPage(1)
-            }}
-          />
-        </>
+        <Table
+          rowData={data?.items ?? []}
+          columnData={columns}
+          isLoading={isLoading}
+          useAgGridPagination={false}
+          selectable={canManage}
+          onSelectionChanged={setSelected}
+          onGridReady={(p) => (gridApi.current = p.api)}
+          selection={{
+            count: selected.length,
+            onDelete: handleBulkDelete,
+            onClear: clearSelection,
+            isDeleting: bulkDeleteMut.isPending,
+          }}
+          searchValue={search}
+          onSearchChange={handleSearchChange}
+          searchPlaceholder="Search by name or email…"
+          footer={
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={data?.total ?? 0}
+              pages={data?.pages ?? 0}
+              isFetching={isFetching}
+              onPageChange={setPage}
+              onPageSizeChange={(n) => {
+                setPageSize(n)
+                setPage(1)
+              }}
+            />
+          }
+        />
       )}
 
       {canManage && (

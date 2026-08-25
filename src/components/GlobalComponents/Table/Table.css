@@ -35,8 +35,12 @@
   --ag-control-panel-background-color: var(--card);
   --ag-menu-background-color: var(--popover);
   --ag-tooltip-background-color: var(--popover);
+}
 
+.ag-theme-quartz.ag-app .ag-root-wrapper {
   border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
 /* Header labels a touch bolder / smaller-caps for a cleaner look. */
@@ -73,6 +77,7 @@
 }
 
 .ag-theme-quartz.ag-app .ag-paging-panel {
+  background: var(--card);
   border-top: 1px solid var(--border);
   color: var(--muted-foreground);
 }

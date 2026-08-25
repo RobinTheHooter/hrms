@@ -47,8 +47,11 @@ export function JobsPage() {
   const [params] = useSearchParams()
   const [dialog, setDialog] = useState({ open: false, mode: 'create', job: null })
 
-  // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
-  const status = params.get('status') ?? undefined
+  // Active tab = open jobs; Inactive = closed. Seed from a status deep-link.
+  const [tab, setTab] = useState(() =>
+    params.get('status') === 'closed' ? 'inactive' : 'active',
+  )
+  const status = tab === 'inactive' ? 'closed' : 'open'
 
   const { data, isLoading, isError } = useJobs({ page: 1, size: 1000, status })
 
@@ -88,10 +91,25 @@ export function JobsPage() {
   const openEdit = (job) => setDialog({ open: true, mode: 'edit', job })
   const closeDialog = () => setDialog((d) => ({ ...d, open: false }))
 
+  const handleToggleStatus = (job) => {
+    const next = job.status === 'open' ? 'closed' : 'open'
+    updateMut.mutate(
+      { id: job.id, payload: { status: next } },
+      {
+        onSuccess: () => toast.success(next === 'closed' ? 'Job closed' : 'Job reopened'),
+        onError: (e) => toast.error(errorMessage(e, 'Failed to update job')),
+      },
+    )
+  }
+
   const handleDelete = async (job) => {
+    const count = job.candidate_count ?? 0
     const ok = await confirm({
       title: 'Delete job?',
-      description: `This permanently removes "${job.title}".`,
+      description:
+        count > 0
+          ? `"${job.title}" has ${count} candidate${count > 1 ? 's' : ''}. Deleting also permanently removes them and their interviews — consider closing the job instead.`
+          : `This permanently removes "${job.title}".`,
       confirmLabel: 'Delete',
       variant: 'destructive',
     })
@@ -126,9 +144,39 @@ export function JobsPage() {
   }
 
   const columns = useMemo(
-    () => getJobColumns({ onEdit: openEdit, onDelete: handleDelete, canManage, options }),
+    () =>
+      getJobColumns({
+        onEdit: openEdit,
+        onDelete: handleDelete,
+        onToggleStatus: handleToggleStatus,
+        canManage,
+        options,
+        tab,
+      }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canManage, options],
+    [canManage, options, tab],
+  )
+
+  const tabs = (
+    <div className="inline-flex rounded-lg border bg-muted/40 p-0.5">
+      {[
+        { key: 'active', label: 'Active' },
+        { key: 'inactive', label: 'Inactive' },
+      ].map((t) => (
+        <button
+          key={t.key}
+          onClick={() => setTab(t.key)}
+          className={
+            'cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium transition-colors ' +
+            (tab === t.key
+              ? 'bg-card text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground')
+          }
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
   )
 
   return (
@@ -165,6 +213,7 @@ export function JobsPage() {
             onClear: clearSelection,
             isDeleting: bulkDeleteMut.isPending,
           }}
+          toolbar={tabs}
         />
       )}
 
