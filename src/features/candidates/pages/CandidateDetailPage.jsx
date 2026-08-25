@@ -125,8 +125,10 @@ export function CandidateDetailPage() {
   const uploadMut = useUploadResume()
 
   const [edit, setEdit] = useState(false)
-  const [notify, setNotify] = useState(false)
+  const [notify, setNotify] = useState({ open: false, templateKey: undefined })
   const [screen, setScreen] = useState(false)
+
+  const openEmail = (templateKey) => setNotify({ open: true, templateKey })
 
   if (isLoading) return <LoadingBlock />
   if (isError || !candidate) {
@@ -165,7 +167,7 @@ export function CandidateDetailPage() {
                 <Button variant="outline" size="sm" onClick={() => setScreen(true)}>
                   <Sparkles className="size-4 text-primary" /> AI screen
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setNotify(true)}>
+                <Button variant="outline" size="sm" onClick={() => openEmail()}>
                   <Mail className="size-4" /> Email
                 </Button>
                 <Button size="sm" onClick={() => setEdit(true)}>
@@ -269,7 +271,11 @@ export function CandidateDetailPage() {
                     ? 'Candidate advanced to Offer.'
                     : 'Candidate marked Rejected.'}
                 </span>
-                <Button variant="outline" size="sm" onClick={() => setNotify(true)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEmail(candidate.stage === 'offer' ? 'offer' : 'rejected')}
+                >
                   <Mail className="size-4" />
                   {candidate.stage === 'offer' ? 'Send offer email' : 'Send rejection email'}
                 </Button>
@@ -319,7 +325,12 @@ export function CandidateDetailPage() {
             onSubmit={handleSubmit}
             isSubmitting={updateMut.isPending || uploadMut.isPending}
           />
-          <NotifyDialog open={notify} onOpenChange={setNotify} candidate={candidate} />
+          <NotifyDialog
+            open={notify.open}
+            onOpenChange={(open) => setNotify((n) => ({ ...n, open }))}
+            candidate={candidate}
+            initialTemplateKey={notify.templateKey}
+          />
           <AiScreeningDialog open={screen} onOpenChange={setScreen} candidate={candidate} />
         </>
       )}
