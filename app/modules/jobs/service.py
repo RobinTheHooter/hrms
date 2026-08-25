@@ -30,11 +30,11 @@ class JobService:
         items, total = await self.repo.list(
             params, search=search, status=status, consultant_id=consultant_id
         )
-        return Page.create(
-            items=[JobRead.model_validate(j) for j in items],
-            total=total,
-            params=params,
-        )
+        reads = [JobRead.model_validate(j) for j in items]
+        counts = await self.repo.candidate_counts([j.id for j in items])
+        for r in reads:
+            r.candidate_count = counts.get(r.id, 0)
+        return Page.create(items=reads, total=total, params=params)
 
     async def get(self, job_id: int, user: User) -> Job:
         job = await self.repo.get_by_id(job_id)

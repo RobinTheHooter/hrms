@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.enums import JobStatus
 from app.common.pagination import PageParams
+from app.modules.candidates.models import Candidate
 from app.modules.jobs.models import Job
 
 
@@ -45,6 +46,18 @@ class JobRepository:
         items = (await self.db.execute(stmt)).scalars().all()
         total = (await self.db.execute(count_stmt)).scalar_one()
         return list(items), total
+
+    async def candidate_counts(self, job_ids: list[int]) -> dict[int, int]:
+        """Number of candidates per job, for the given job ids."""
+        if not job_ids:
+            return {}
+        stmt = (
+            select(Candidate.job_id, func.count(Candidate.id))
+            .where(Candidate.job_id.in_(job_ids))
+            .group_by(Candidate.job_id)
+        )
+        rows = (await self.db.execute(stmt)).all()
+        return {job_id: count for job_id, count in rows}
 
     async def create(self, job: Job) -> Job:
         self.db.add(job)
