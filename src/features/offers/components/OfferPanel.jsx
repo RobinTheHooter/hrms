@@ -177,6 +177,7 @@ export function OfferPanel({ candidate, canManage }) {
         onOpenChange={(open) => setDialog((d) => ({ ...d, open }))}
         offer={dialog.offer}
         candidateName={candidate.full_name}
+        defaultTitle={candidate.job?.title}
         onSubmit={handleSubmit}
         isSubmitting={createMut.isPending || updateMut.isPending}
       />

@@ -11,13 +11,43 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { useJobs } from '@/features/jobs/hooks'
 
 const EMPTY = { title: '', ctc: '', start_date: '', expiry_date: '', notes: '' }
 
-export function OfferDialog({ open, onOpenChange, offer, candidateName, onSubmit, isSubmitting }) {
+export function OfferDialog({
+  open,
+  onOpenChange,
+  offer,
+  candidateName,
+  defaultTitle,
+  onSubmit,
+  isSubmitting,
+}) {
   const [form, setForm] = useState(EMPTY)
   const isEdit = Boolean(offer)
+
+  const { data: jobsPage } = useJobs({ page: 1, size: 1000 })
+  // Unique job titles for the role dropdown; include the current value so an
+  // edited offer's role always shows even if that job no longer exists.
+  const roleOptions = Array.from(
+    new Set(
+      [
+        ...(jobsPage?.items ?? []).map((j) => j.title),
+        offer?.title,
+        defaultTitle,
+        form.title,
+      ].filter(Boolean),
+    ),
+  )
 
   useEffect(() => {
     if (!open) return
@@ -30,9 +60,9 @@ export function OfferDialog({ open, onOpenChange, offer, candidateName, onSubmit
             expiry_date: offer.expiry_date ?? '',
             notes: offer.notes ?? '',
           }
-        : EMPTY,
+        : { ...EMPTY, title: defaultTitle ?? '' },
     )
-  }, [open, offer])
+  }, [open, offer, defaultTitle])
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
@@ -57,7 +87,21 @@ export function OfferDialog({ open, onOpenChange, offer, candidateName, onSubmit
         <div className="space-y-4">
           <div>
             <Label className="mb-1">Role / title</Label>
-            <Input value={form.title} onChange={set('title')} placeholder="e.g. Senior Frontend Developer" />
+            <Select
+              value={form.title}
+              onValueChange={(v) => setForm((f) => ({ ...f, title: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleOptions.map((title) => (
+                  <SelectItem key={title} value={title}>
+                    {title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
