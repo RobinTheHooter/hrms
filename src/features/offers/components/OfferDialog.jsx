@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -32,8 +32,42 @@ export function OfferDialog({
   onSubmit,
   isSubmitting,
 }) {
-  const [form, setForm] = useState(EMPTY)
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{offer ? 'Edit offer' : 'Create offer'}</DialogTitle>
+          <DialogDescription>{candidateName}</DialogDescription>
+        </DialogHeader>
+
+        {open && (
+          <OfferForm
+            offer={offer}
+            defaultTitle={defaultTitle}
+            isSubmitting={isSubmitting}
+            onCancel={() => onOpenChange(false)}
+            onSubmit={onSubmit}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// Mounted fresh on open, so state seeds from the offer via useState — no effect.
+function OfferForm({ offer, defaultTitle, isSubmitting, onCancel, onSubmit }) {
   const isEdit = Boolean(offer)
+  const [form, setForm] = useState(() =>
+    offer
+      ? {
+          title: offer.title ?? '',
+          ctc: offer.ctc != null ? String(offer.ctc) : '',
+          start_date: offer.start_date ?? '',
+          expiry_date: offer.expiry_date ?? '',
+          notes: offer.notes ?? '',
+        }
+      : { ...EMPTY, title: defaultTitle ?? '' },
+  )
 
   const { data: jobsPage } = useJobs({ page: 1, size: 1000 })
   // Unique job titles for the role dropdown; include the current value so an
@@ -49,21 +83,6 @@ export function OfferDialog({
     ),
   )
 
-  useEffect(() => {
-    if (!open) return
-    setForm(
-      offer
-        ? {
-            title: offer.title ?? '',
-            ctc: offer.ctc != null ? String(offer.ctc) : '',
-            start_date: offer.start_date ?? '',
-            expiry_date: offer.expiry_date ?? '',
-            notes: offer.notes ?? '',
-          }
-        : { ...EMPTY, title: defaultTitle ?? '' },
-    )
-  }, [open, offer, defaultTitle])
-
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
   const submit = () => {
@@ -77,13 +96,7 @@ export function OfferDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit offer' : 'Create offer'}</DialogTitle>
-          <DialogDescription>{candidateName}</DialogDescription>
-        </DialogHeader>
-
+    <>
         <div className="space-y-4">
           <div>
             <Label className="mb-1">Role / title</Label>
@@ -124,12 +137,11 @@ export function OfferDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={onCancel}>Cancel</Button>
           <Button disabled={isSubmitting || !form.title} onClick={submit}>
             {isSubmitting ? 'Saving…' : isEdit ? 'Save offer' : 'Create offer'}
           </Button>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </>
   )
 }

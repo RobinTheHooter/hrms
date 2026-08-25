@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -50,21 +50,38 @@ function Rating({ value, onChange }) {
 }
 
 export function OutcomeDialog({ open, onOpenChange, interview, onSubmit, isSubmitting }) {
-  const [recommendation, setRecommendation] = useState('yes')
-  const [ratings, setRatings] = useState({})
-  const [strengths, setStrengths] = useState('')
-  const [concerns, setConcerns] = useState('')
-  const [notes, setNotes] = useState('')
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[92vh] max-w-lg overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Interview scorecard</DialogTitle>
+          <DialogDescription>
+            {interview?.candidate?.full_name} · {interview?.candidate?.job?.title}
+          </DialogDescription>
+        </DialogHeader>
 
-  useEffect(() => {
-    if (!open) return
-    const fb = interview?.feedback ?? {}
-    setRecommendation(fb.recommendation ?? 'yes')
-    setRatings(fb.ratings ?? {})
-    setStrengths(fb.strengths ?? '')
-    setConcerns(fb.concerns ?? '')
-    setNotes(interview?.notes ?? '')
-  }, [open, interview])
+        {open && (
+          <ScorecardForm
+            interview={interview}
+            isSubmitting={isSubmitting}
+            onCancel={() => onOpenChange(false)}
+            onSubmit={onSubmit}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// Mounted fresh each time the dialog opens, so state seeds from the interview
+// via useState initializers — no reset effect needed.
+function ScorecardForm({ interview, isSubmitting, onCancel, onSubmit }) {
+  const fb = interview?.feedback ?? {}
+  const [recommendation, setRecommendation] = useState(fb.recommendation ?? 'yes')
+  const [ratings, setRatings] = useState(fb.ratings ?? {})
+  const [strengths, setStrengths] = useState(fb.strengths ?? '')
+  const [concerns, setConcerns] = useState(fb.concerns ?? '')
+  const [notes, setNotes] = useState(interview?.notes ?? '')
 
   const positive = RECOMMENDATIONS.find((r) => r.value === recommendation)?.positive
   const outcome = positive ? 'selected' : 'rejected'
@@ -83,15 +100,7 @@ export function OutcomeDialog({ open, onOpenChange, interview, onSubmit, isSubmi
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] max-w-lg overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Interview scorecard</DialogTitle>
-          <DialogDescription>
-            {interview?.candidate?.full_name} · {interview?.candidate?.job?.title}
-          </DialogDescription>
-        </DialogHeader>
-
+    <>
         <div className="space-y-5">
           {/* Recommendation */}
           <div>
@@ -159,12 +168,11 @@ export function OutcomeDialog({ open, onOpenChange, interview, onSubmit, isSubmi
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={onCancel}>Cancel</Button>
           <Button disabled={isSubmitting} onClick={submit}>
             {isSubmitting ? 'Saving…' : 'Save Score Card'}
           </Button>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    </>
   )
 }
