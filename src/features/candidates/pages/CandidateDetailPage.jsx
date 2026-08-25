@@ -45,6 +45,50 @@ function Chips({ items, variant = 'secondary' }) {
   )
 }
 
+const COMPETENCY_LABEL = {
+  technical: 'Technical',
+  communication: 'Communication',
+  culture_fit: 'Culture fit',
+  problem_solving: 'Problem solving',
+}
+const RECOMMENDATION = {
+  strong_yes: { label: 'Strong Yes', variant: 'success' },
+  yes: { label: 'Yes', variant: 'success' },
+  no: { label: 'No', variant: 'destructive' },
+  strong_no: { label: 'Strong No', variant: 'destructive' },
+}
+
+function InterviewFeedback({ feedback }) {
+  const rec = RECOMMENDATION[feedback.recommendation]
+  const ratings = Object.entries(feedback.ratings ?? {}).filter(([, v]) => v)
+  return (
+    <div className="mt-2 space-y-2 rounded-lg border bg-muted/20 p-3">
+      {rec && <Badge variant={rec.variant}>{rec.label}</Badge>}
+      {ratings.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {ratings.map(([k, v]) => (
+            <span key={k} className="rounded border bg-card px-2 py-0.5 text-xs">
+              {COMPETENCY_LABEL[k] ?? k} · {v}/5
+            </span>
+          ))}
+        </div>
+      )}
+      {feedback.strengths && (
+        <div>
+          <div className="text-xs font-medium text-muted-foreground">Strengths</div>
+          <p className="text-sm">{feedback.strengths}</p>
+        </div>
+      )}
+      {feedback.concerns && (
+        <div>
+          <div className="text-xs font-medium text-muted-foreground">Concerns</div>
+          <p className="text-sm">{feedback.concerns}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function toFormValues(c) {
   const str = (v) => (v != null ? String(v) : '')
   return {
@@ -237,29 +281,45 @@ export function CandidateDetailPage() {
 
           {/* Interviews */}
           <Panel title="Interview history">
+            {canManage && (candidate.stage === 'offer' || candidate.stage === 'rejected') && (
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-primary/5 px-3 py-2">
+                <span className="text-sm">
+                  {candidate.stage === 'offer'
+                    ? 'Candidate advanced to Offer.'
+                    : 'Candidate marked Rejected.'}
+                </span>
+                <Button variant="outline" size="sm" onClick={() => setNotify(true)}>
+                  <Mail className="size-4" />
+                  {candidate.stage === 'offer' ? 'Send offer email' : 'Send rejection email'}
+                </Button>
+              </div>
+            )}
             {interviews.length === 0 ? (
               <p className="py-4 text-sm text-muted-foreground">No interviews scheduled.</p>
             ) : (
               <ul className="divide-y">
                 {interviews.map((iv) => (
-                  <li key={iv.id} className="flex items-center gap-3 py-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm">{formatWhen(iv.scheduled_at)}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {optionLabel(options?.interview_modes, iv.mode)}
-                        {iv.hiring_manager ? ` · ${iv.hiring_manager.full_name}` : ''}
+                  <li key={iv.id} className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm">{formatWhen(iv.scheduled_at)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {optionLabel(options?.interview_modes, iv.mode)}
+                          {iv.hiring_manager ? ` · ${iv.hiring_manager.full_name}` : ''}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant={statusVariant(iv.status)}>
+                          {optionLabel(options?.interview_statuses, iv.status)}
+                        </Badge>
+                        {iv.outcome && (
+                          <Badge variant={outcomeVariant(iv.outcome)}>
+                            {optionLabel(options?.interview_outcomes, iv.outcome)}
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <Badge variant={statusVariant(iv.status)}>
-                        {optionLabel(options?.interview_statuses, iv.status)}
-                      </Badge>
-                      {iv.outcome && (
-                        <Badge variant={outcomeVariant(iv.outcome)}>
-                          {optionLabel(options?.interview_outcomes, iv.outcome)}
-                        </Badge>
-                      )}
-                    </div>
+                    {iv.feedback && <InterviewFeedback feedback={iv.feedback} />}
                   </li>
                 ))}
               </ul>
