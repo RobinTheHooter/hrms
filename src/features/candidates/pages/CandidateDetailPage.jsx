@@ -120,6 +120,7 @@ export function CandidateDetailPage() {
   const { data: candidate, isLoading, isError } = useCandidate(id)
   const { data: interviewsPage } = useInterviews({ page: 1, size: 50, candidate_id: Number(id) })
   const interviews = interviewsPage?.items ?? []
+  const latestOutcome = interviews.find((iv) => iv.outcome)?.outcome ?? null
 
   const updateMut = useUpdateCandidate()
   const uploadMut = useUploadResume()
@@ -261,20 +262,20 @@ export function CandidateDetailPage() {
 
           {/* Interviews */}
           <Panel title="Interview history">
-            {canManage && (candidate.stage === 'offer' || candidate.stage === 'rejected') && (
+            {canManage && (latestOutcome === 'selected' || latestOutcome === 'rejected') && (
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-primary/5 px-3 py-2">
                 <span className="text-sm">
-                  {candidate.stage === 'offer'
+                  {latestOutcome === 'selected'
                     ? 'Candidate advanced to Offer.'
                     : 'Candidate marked Rejected.'}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => openEmail(candidate.stage === 'offer' ? 'offer' : 'rejected')}
+                  onClick={() => openEmail(latestOutcome === 'selected' ? 'offer' : 'rejected')}
                 >
                   <Mail className="size-4" />
-                  {candidate.stage === 'offer' ? 'Send offer email' : 'Send rejection email'}
+                  {latestOutcome === 'selected' ? 'Send offer email' : 'Send rejection email'}
                 </Button>
               </div>
             )}
