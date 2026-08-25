@@ -18,7 +18,7 @@ class EmployeeRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list(
+    async def paginate(
         self, params: PageParams, search: str | None = None
     ) -> tuple[list[Employee], int]:
         stmt = select(Employee)

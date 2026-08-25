@@ -18,7 +18,7 @@ class EmployeeService:
     async def list(
         self, params: PageParams, search: str | None = None
     ) -> Page[EmployeeRead]:
-        items, total = await self.repo.list(params, search)
+        items, total = await self.repo.paginate(params, search)
         return Page.create(
             items=[EmployeeRead.model_validate(e) for e in items],
             total=total,

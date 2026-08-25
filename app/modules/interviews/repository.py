@@ -15,7 +15,7 @@ class InterviewRepository:
     async def get_by_id(self, interview_id: int) -> Interview | None:
         return await self.db.get(Interview, interview_id)
 
-    async def list(
+    async def paginate(
         self,
         params: PageParams,
         *,

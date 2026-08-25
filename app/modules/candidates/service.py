@@ -53,7 +53,7 @@ class CandidateService:
         min_score: int | None = None,
         sort: str | None = None,
     ) -> Page[CandidateRead]:
-        items, total = await self.repo.list(
+        items, total = await self.repo.paginate(
             params,
             search=search,
             stage=stage,
