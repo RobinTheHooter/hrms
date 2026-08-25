@@ -108,7 +108,7 @@ export function OutcomeDialog({ open, onOpenChange, interview, onSubmit, isSubmi
                       'rounded-lg border px-2 py-2 text-xs font-medium transition-colors',
                       active && r.positive && 'border-success bg-success/12 text-success',
                       active && !r.positive &&
-                        'border-destructive bg-destructive/12 text-destructive',
+                      'border-destructive bg-destructive/12 text-destructive',
                       !active && 'text-muted-foreground hover:bg-muted',
                     )}
                   >
@@ -161,7 +161,7 @@ export function OutcomeDialog({ open, onOpenChange, interview, onSubmit, isSubmi
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button disabled={isSubmitting} onClick={submit}>
-            {isSubmitting ? 'Saving…' : 'Save scorecard'}
+            {isSubmitting ? 'Saving…' : 'Save Score Card'}
           </Button>
         </DialogFooter>
       </DialogContent>

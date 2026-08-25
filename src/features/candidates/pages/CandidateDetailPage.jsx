@@ -19,6 +19,7 @@ import { stageVariant } from '@/features/candidates/constants'
 import { useCandidate, useUpdateCandidate, useUploadResume } from '@/features/candidates/hooks'
 import { formatWhen, outcomeVariant, statusVariant } from '@/features/interviews/constants'
 import { useInterviews } from '@/features/interviews/hooks'
+import { OfferPanel } from '@/features/offers/components/OfferPanel'
 import { optionLabel, useOptions } from '@/features/meta/hooks'
 import { priorityVariant } from '@/lib/priority'
 import { errorMessage } from '@/lib/api-error'
@@ -278,6 +279,9 @@ export function CandidateDetailPage() {
               <p className="text-sm text-muted-foreground">No resume on file.</p>
             )}
           </Panel>
+
+          {/* Offer */}
+          <OfferPanel candidate={candidate} canManage={canManage} />
 
           {/* Interviews */}
           <Panel title="Interview history">
