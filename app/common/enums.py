@@ -69,3 +69,11 @@ class Priority(StrEnum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
+
+
+class OfferStatus(StrEnum):
+    DRAFT = "draft"
+    SENT = "sent"
+    ACCEPTED = "accepted"
+    DECLINED = "declined"
+    WITHDRAWN = "withdrawn"

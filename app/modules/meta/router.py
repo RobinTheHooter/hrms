@@ -17,6 +17,7 @@ from app.common.enums import (
     InterviewOutcome,
     InterviewStatus,
     JobStatus,
+    OfferStatus,
     Priority,
     UserRole,
 )
@@ -53,6 +54,7 @@ class OptionsResponse(BaseModel):
     interview_modes: list[Option]
     interview_statuses: list[Option]
     interview_outcomes: list[Option]
+    offer_statuses: list[Option]
     priorities: list[Option]
     user_roles: list[Option]
 
@@ -75,6 +77,7 @@ async def get_options() -> OptionsResponse:
         interview_modes=_options(InterviewMode),
         interview_statuses=_options(InterviewStatus),
         interview_outcomes=_options(InterviewOutcome),
+        offer_statuses=_options(OfferStatus),
         priorities=_options(Priority),
         # Only the assignable ATS roles (legacy manager/employee excluded).
         user_roles=_options(
