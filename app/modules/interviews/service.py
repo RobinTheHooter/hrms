@@ -1,3 +1,4 @@
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.enums import (
@@ -173,13 +174,25 @@ class InterviewService:
         if data.feedback is not None:
             interview.feedback = data.feedback.model_dump(exclude_none=True)
 
-        # Reflect the outcome back onto the candidate's pipeline stage.
-        candidate = interview.candidate
-        if data.outcome == InterviewOutcome.SELECTED:
-            candidate.stage = CandidateStage.OFFER
-        elif data.outcome == InterviewOutcome.REJECTED:
-            candidate.stage = CandidateStage.REJECTED
+        # Reflect the outcome back onto the candidate's pipeline stage, but only
+        if await self._is_latest_interview(interview):
+            candidate = interview.candidate
+            if data.outcome == InterviewOutcome.SELECTED:
+                candidate.stage = CandidateStage.OFFER
+            elif data.outcome == InterviewOutcome.REJECTED:
+                candidate.stage = CandidateStage.REJECTED
         return interview
+
+    async def _is_latest_interview(self, interview: Interview) -> bool:
+        """True if no other interview for the candidate is scheduled later."""
+        newer = await self.db.scalar(
+            select(func.count(Interview.id)).where(
+                Interview.candidate_id == interview.candidate_id,
+                Interview.id != interview.id,
+                Interview.scheduled_at > interview.scheduled_at,
+            )
+        )
+        return not newer
 
     async def delete(self, interview_id: int, user: User) -> None:
         interview = await self.get(interview_id, user)
