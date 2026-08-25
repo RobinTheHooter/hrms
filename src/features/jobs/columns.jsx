@@ -9,7 +9,14 @@ import { priorityVariant } from '@/lib/priority'
 
 // Ag-Grid column defs for the Jobs table. Headers live here in the frontend;
 // custom cells are composed from the shared TableComponents renderers.
-export function getJobColumns({ onEdit, onDelete, onToggleStatus, canManage, options }) {
+export function getJobColumns({
+  onEdit,
+  onDelete,
+  onToggleStatus,
+  canManage,
+  options,
+  tab = 'active',
+}) {
   const columns = [
     {
       headerName: 'Role',
@@ -74,15 +81,19 @@ export function getJobColumns({ onEdit, onDelete, onToggleStatus, canManage, opt
       resizable: false,
       cellRenderer: ActionsRenderer,
       cellRendererParams: {
-        getActions: (d) => [
-          {
-            icon: d.status === 'open' ? Ban : RotateCcw,
-            title: d.status === 'open' ? 'Close job' : 'Reopen job',
-            onClick: onToggleStatus,
-          },
-          { icon: Pencil, title: 'Edit', onClick: onEdit },
-          { icon: Trash2, title: 'Delete', danger: true, onClick: onDelete },
-        ],
+        // Inactive tab (closed jobs): only Reopen + Delete.
+        // Active tab (open jobs): Close, Edit, Delete.
+        getActions: () =>
+          tab === 'inactive'
+            ? [
+                { icon: RotateCcw, title: 'Reopen job', onClick: onToggleStatus },
+                { icon: Trash2, title: 'Delete', danger: true, onClick: onDelete },
+              ]
+            : [
+                { icon: Ban, title: 'Close job', onClick: onToggleStatus },
+                { icon: Pencil, title: 'Edit', onClick: onEdit },
+                { icon: Trash2, title: 'Delete', danger: true, onClick: onDelete },
+              ],
       },
     })
   }

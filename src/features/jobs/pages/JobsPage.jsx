@@ -47,8 +47,11 @@ export function JobsPage() {
   const [params] = useSearchParams()
   const [dialog, setDialog] = useState({ open: false, mode: 'create', job: null })
 
-  // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
-  const status = params.get('status') ?? undefined
+  // Active tab = open jobs; Inactive = closed. Seed from a status deep-link.
+  const [tab, setTab] = useState(() =>
+    params.get('status') === 'closed' ? 'inactive' : 'active',
+  )
+  const status = tab === 'inactive' ? 'closed' : 'open'
 
   const { data, isLoading, isError } = useJobs({ page: 1, size: 1000, status })
 
@@ -148,9 +151,32 @@ export function JobsPage() {
         onToggleStatus: handleToggleStatus,
         canManage,
         options,
+        tab,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canManage, options],
+    [canManage, options, tab],
+  )
+
+  const tabs = (
+    <div className="inline-flex rounded-lg border bg-muted/40 p-0.5">
+      {[
+        { key: 'active', label: 'Active' },
+        { key: 'inactive', label: 'Inactive' },
+      ].map((t) => (
+        <button
+          key={t.key}
+          onClick={() => setTab(t.key)}
+          className={
+            'cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium transition-colors ' +
+            (tab === t.key
+              ? 'bg-card text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground')
+          }
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
   )
 
   return (
@@ -187,6 +213,7 @@ export function JobsPage() {
             onClear: clearSelection,
             isDeleting: bulkDeleteMut.isPending,
           }}
+          toolbar={tabs}
         />
       )}
 
