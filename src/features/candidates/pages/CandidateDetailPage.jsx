@@ -179,10 +179,8 @@ export function CandidateDetailPage() {
         }
       />
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          {/* Profile */}
-          <Panel title="Profile">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Panel title="Profile" className="lg:col-span-2">
             <div className="mb-4 flex items-center gap-3">
               <Avatar name={candidate.full_name} />
               <div>
@@ -224,8 +222,13 @@ export function CandidateDetailPage() {
             </div>
           </Panel>
 
-          {/* AI screening */}
-          <Panel title="AI screening">
+        <Panel title="Resume">
+          <ResumePreview candidate={candidate} />
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
+        <Panel title="AI screening" className="lg:col-span-2">
             {candidate.ai_score == null ? (
               <p className="py-4 text-sm text-muted-foreground">
                 Not screened yet.{' '}
@@ -251,14 +254,8 @@ export function CandidateDetailPage() {
               </div>
             )}
           </Panel>
-        </div>
 
         <div className="space-y-4">
-          {/* Resume */}
-          <Panel title="Resume">
-            <ResumePreview candidate={candidate} />
-          </Panel>
-
           {/* Offer */}
           <OfferPanel candidate={candidate} canManage={canManage} />
 
