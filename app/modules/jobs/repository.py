@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,7 +14,7 @@ class JobRepository:
     async def get_by_id(self, job_id: int) -> Job | None:
         return await self.db.get(Job, job_id)
 
-    async def list(
+    async def paginate(
         self,
         params: PageParams,
         *,

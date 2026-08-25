@@ -27,7 +27,7 @@ class JobService:
     ) -> Page[JobRead]:
         # Managers (HR/admin) see all; consultants see only their assigned jobs.
         consultant_id = None if self._can_manage(user) else user.id
-        items, total = await self.repo.list(
+        items, total = await self.repo.paginate(
             params, search=search, status=status, consultant_id=consultant_id
         )
         reads = [JobRead.model_validate(j) for j in items]

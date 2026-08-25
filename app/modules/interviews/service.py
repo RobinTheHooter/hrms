@@ -57,7 +57,7 @@ class InterviewService:
         status: InterviewStatus | None = None,
     ) -> Page[InterviewRead]:
         consultant_id, manager_id = self._scope(user)
-        items, total = await self.repo.list(
+        items, total = await self.repo.paginate(
             params, status=status, consultant_id=consultant_id, manager_id=manager_id
         )
         return Page.create(

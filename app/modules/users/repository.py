@@ -17,7 +17,7 @@ class UserRepository:
         result = await self.db.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
-    async def list(
+    async def paginate(
         self,
         params: PageParams,
         search: str | None = None,
