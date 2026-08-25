@@ -5,6 +5,10 @@ import { AgGridReact } from 'ag-grid-react'
 import { Search, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import {
+  DEFAULT_PAGE_SIZE,
+  PAGE_SIZE_OPTIONS,
+} from '@/components/GlobalComponents/Table/constants'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,10 +17,6 @@ import './Table.css'
 // Ag-Grid v33 is modular; register the community bundle once (includes the
 // client-side AND infinite row models).
 ModuleRegistry.registerModules([AllCommunityModule])
-
-// App-wide table page-size standard. Change here to change every table.
-export const PAGE_SIZE_OPTIONS = [20, 50, 100]
-export const DEFAULT_PAGE_SIZE = 20
 
 const DEFAULT_COL_DEF = {
   sortable: true,

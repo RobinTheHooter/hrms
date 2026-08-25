@@ -5,7 +5,7 @@ import {
   ChevronsRight,
 } from 'lucide-react'
 
-import { PAGE_SIZE_OPTIONS } from '@/components/GlobalComponents/Table/Table'
+import { PAGE_SIZE_OPTIONS } from '@/components/GlobalComponents/Table/constants'
 import {
   Select,
   SelectContent,

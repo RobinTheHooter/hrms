@@ -1,4 +1,4 @@
-import { FileText, Mail, Pencil, Sparkles } from 'lucide-react'
+import { Mail, Pencil, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -11,7 +11,7 @@ import { Panel } from '@/components/ui/panel'
 import { LoadingBlock } from '@/components/ui/spinner'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
-import { downloadResume } from '@/features/candidates/api'
+import { ResumePreview } from '@/features/candidates/components/ResumePreview'
 import { AiScreeningDialog } from '@/features/candidates/components/AiScreeningDialog'
 import { CandidateFormDialog } from '@/features/candidates/components/CandidateFormDialog'
 import { NotifyDialog } from '@/features/candidates/components/NotifyDialog'
@@ -19,6 +19,7 @@ import { stageVariant } from '@/features/candidates/constants'
 import { useCandidate, useUpdateCandidate, useUploadResume } from '@/features/candidates/hooks'
 import { formatWhen, outcomeVariant, statusVariant } from '@/features/interviews/constants'
 import { useInterviews } from '@/features/interviews/hooks'
+import { OfferPanel } from '@/features/offers/components/OfferPanel'
 import { optionLabel, useOptions } from '@/features/meta/hooks'
 import { priorityVariant } from '@/lib/priority'
 import { errorMessage } from '@/lib/api-error'
@@ -41,6 +42,50 @@ function Chips({ items, variant = 'secondary' }) {
       {items.map((t, i) => (
         <Badge key={i} variant={variant}>{t}</Badge>
       ))}
+    </div>
+  )
+}
+
+const COMPETENCY_LABEL = {
+  technical: 'Technical',
+  communication: 'Communication',
+  culture_fit: 'Culture fit',
+  problem_solving: 'Problem solving',
+}
+const RECOMMENDATION = {
+  strong_yes: { label: 'Strong Yes', variant: 'success' },
+  yes: { label: 'Yes', variant: 'success' },
+  no: { label: 'No', variant: 'destructive' },
+  strong_no: { label: 'Strong No', variant: 'destructive' },
+}
+
+function InterviewFeedback({ feedback }) {
+  const rec = RECOMMENDATION[feedback.recommendation]
+  const ratings = Object.entries(feedback.ratings ?? {}).filter(([, v]) => v)
+  return (
+    <div className="mt-2 space-y-2 rounded-lg border bg-muted/20 p-3">
+      {rec && <Badge variant={rec.variant}>{rec.label}</Badge>}
+      {ratings.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {ratings.map(([k, v]) => (
+            <span key={k} className="rounded border bg-card px-2 py-0.5 text-xs">
+              {COMPETENCY_LABEL[k] ?? k} · {v}/5
+            </span>
+          ))}
+        </div>
+      )}
+      {feedback.strengths && (
+        <div>
+          <div className="text-xs font-medium text-muted-foreground">Strengths</div>
+          <p className="text-sm">{feedback.strengths}</p>
+        </div>
+      )}
+      {feedback.concerns && (
+        <div>
+          <div className="text-xs font-medium text-muted-foreground">Concerns</div>
+          <p className="text-sm">{feedback.concerns}</p>
+        </div>
+      )}
     </div>
   )
 }
@@ -80,8 +125,10 @@ export function CandidateDetailPage() {
   const uploadMut = useUploadResume()
 
   const [edit, setEdit] = useState(false)
-  const [notify, setNotify] = useState(false)
+  const [notify, setNotify] = useState({ open: false, templateKey: undefined })
   const [screen, setScreen] = useState(false)
+
+  const openEmail = (templateKey) => setNotify({ open: true, templateKey })
 
   if (isLoading) return <LoadingBlock />
   if (isError || !candidate) {
@@ -91,17 +138,6 @@ export function CandidateDetailPage() {
         <p className="p-6 text-sm text-destructive">Candidate not found.</p>
       </div>
     )
-  }
-
-  const viewResume = async () => {
-    try {
-      const blob = await downloadResume(candidate.id)
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
-      setTimeout(() => URL.revokeObjectURL(url), 60000)
-    } catch {
-      toast.error('Could not open the resume')
-    }
   }
 
   const handleSubmit = async (payload, file) => {
@@ -131,7 +167,7 @@ export function CandidateDetailPage() {
                 <Button variant="outline" size="sm" onClick={() => setScreen(true)}>
                   <Sparkles className="size-4 text-primary" /> AI screen
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setNotify(true)}>
+                <Button variant="outline" size="sm" onClick={() => openEmail()}>
                   <Mail className="size-4" /> Email
                 </Button>
                 <Button size="sm" onClick={() => setEdit(true)}>
@@ -144,9 +180,7 @@ export function CandidateDetailPage() {
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="space-y-4 lg:col-span-2">
-          {/* Profile */}
-          <Panel title="Profile">
+        <Panel title="Profile" className="lg:col-span-2">
             <div className="mb-4 flex items-center gap-3">
               <Avatar name={candidate.full_name} />
               <div>
@@ -188,8 +222,13 @@ export function CandidateDetailPage() {
             </div>
           </Panel>
 
-          {/* AI screening */}
-          <Panel title="AI screening">
+        <Panel title="Resume">
+          <ResumePreview candidate={candidate} />
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
+        <Panel title="AI screening" className="lg:col-span-2">
             {candidate.ai_score == null ? (
               <p className="py-4 text-sm text-muted-foreground">
                 Not screened yet.{' '}
@@ -215,51 +254,56 @@ export function CandidateDetailPage() {
               </div>
             )}
           </Panel>
-        </div>
 
         <div className="space-y-4">
-          {/* Resume */}
-          <Panel title="Resume">
-            {candidate.resume_url ? (
-              <a href={candidate.resume_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                <FileText className="size-4" /> View resume (link)
-              </a>
-            ) : candidate.has_resume_file ? (
-              <button onClick={viewResume}
-                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                <FileText className="size-4" /> View uploaded resume
-              </button>
-            ) : (
-              <p className="text-sm text-muted-foreground">No resume on file.</p>
-            )}
-          </Panel>
+          {/* Offer */}
+          <OfferPanel candidate={candidate} canManage={canManage} />
 
           {/* Interviews */}
           <Panel title="Interview history">
+            {canManage && (candidate.stage === 'offer' || candidate.stage === 'rejected') && (
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-primary/5 px-3 py-2">
+                <span className="text-sm">
+                  {candidate.stage === 'offer'
+                    ? 'Candidate advanced to Offer.'
+                    : 'Candidate marked Rejected.'}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEmail(candidate.stage === 'offer' ? 'offer' : 'rejected')}
+                >
+                  <Mail className="size-4" />
+                  {candidate.stage === 'offer' ? 'Send offer email' : 'Send rejection email'}
+                </Button>
+              </div>
+            )}
             {interviews.length === 0 ? (
               <p className="py-4 text-sm text-muted-foreground">No interviews scheduled.</p>
             ) : (
               <ul className="divide-y">
                 {interviews.map((iv) => (
-                  <li key={iv.id} className="flex items-center gap-3 py-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm">{formatWhen(iv.scheduled_at)}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {optionLabel(options?.interview_modes, iv.mode)}
-                        {iv.hiring_manager ? ` · ${iv.hiring_manager.full_name}` : ''}
+                  <li key={iv.id} className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm">{formatWhen(iv.scheduled_at)}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {optionLabel(options?.interview_modes, iv.mode)}
+                          {iv.hiring_manager ? ` · ${iv.hiring_manager.full_name}` : ''}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge variant={statusVariant(iv.status)}>
+                          {optionLabel(options?.interview_statuses, iv.status)}
+                        </Badge>
+                        {iv.outcome && (
+                          <Badge variant={outcomeVariant(iv.outcome)}>
+                            {optionLabel(options?.interview_outcomes, iv.outcome)}
+                          </Badge>
+                        )}
                       </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <Badge variant={statusVariant(iv.status)}>
-                        {optionLabel(options?.interview_statuses, iv.status)}
-                      </Badge>
-                      {iv.outcome && (
-                        <Badge variant={outcomeVariant(iv.outcome)}>
-                          {optionLabel(options?.interview_outcomes, iv.outcome)}
-                        </Badge>
-                      )}
-                    </div>
+                    {iv.feedback && <InterviewFeedback feedback={iv.feedback} />}
                   </li>
                 ))}
               </ul>
@@ -278,7 +322,12 @@ export function CandidateDetailPage() {
             onSubmit={handleSubmit}
             isSubmitting={updateMut.isPending || uploadMut.isPending}
           />
-          <NotifyDialog open={notify} onOpenChange={setNotify} candidate={candidate} />
+          <NotifyDialog
+            open={notify.open}
+            onOpenChange={(open) => setNotify((n) => ({ ...n, open }))}
+            candidate={candidate}
+            initialTemplateKey={notify.templateKey}
+          />
           <AiScreeningDialog open={screen} onOpenChange={setScreen} candidate={candidate} />
         </>
       )}

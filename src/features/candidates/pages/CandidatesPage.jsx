@@ -27,6 +27,15 @@ import { useOptions } from '@/features/meta/hooks'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { errorMessage } from '@/lib/api-error'
 
+// Prefill the email template that matches the candidate's current stage.
+const STAGE_TEMPLATE = {
+  applied: 'application_received',
+  screening: 'shortlisted',
+  interview: 'interview',
+  offer: 'offer',
+  rejected: 'rejected',
+}
+
 function toFormValues(c) {
   const str = (v) => (v != null ? String(v) : '')
   return {
@@ -278,6 +287,7 @@ export function CandidatesPage() {
           open={notify.open}
           onOpenChange={(open) => setNotify((n) => ({ ...n, open }))}
           candidate={notify.candidate}
+          initialTemplateKey={STAGE_TEMPLATE[notify.candidate?.stage]}
         />
       )}
 
