@@ -6,7 +6,6 @@ import {
 } from 'lucide-react'
 
 import { PAGE_SIZE_OPTIONS } from '@/components/GlobalComponents/Table/Table'
-import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -39,15 +38,19 @@ export function Pagination({
     onPageChange?.(p)
   }
 
+  const arrowBtn =
+    'flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors ' +
+    'hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40'
+
   return (
-    <div className="flex flex-wrap items-center justify-end gap-3 border-t px-4 py-3 text-sm text-muted-foreground">
+    <div className="flex flex-wrap items-center justify-end gap-6 border-t px-4 py-2.5 text-[13px] text-muted-foreground">
       <div className="flex items-center gap-2">
-        <span>Rows per page</span>
+        <span>Page Size:</span>
         <Select
           value={String(pageSize)}
           onValueChange={(v) => onPageSizeChange?.(Number(v))}
         >
-          <SelectTrigger className="h-8 w-[76px]">
+          <SelectTrigger className="h-8 w-[72px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -61,53 +64,45 @@ export function Pagination({
       </div>
 
       <span className="tabular-nums">
-        {from}–{to} of {total}
+        {from} to {to} of {total}
       </span>
 
       <div className="flex items-center gap-1">
-        <Button
-          variant="outline"
-          size="icon"
-          className="size-8"
+        <button
+          className={arrowBtn}
           onClick={() => goto(1)}
           disabled={page <= 1 || isFetching}
           title="First page"
         >
           <ChevronsLeft className="size-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="size-8"
+        </button>
+        <button
+          className={arrowBtn}
           onClick={() => goto(page - 1)}
           disabled={page <= 1 || isFetching}
           title="Previous page"
         >
           <ChevronLeft className="size-4" />
-        </Button>
-        <span className="px-2 whitespace-nowrap tabular-nums">
+        </button>
+        <span className="px-3 whitespace-nowrap tabular-nums">
           Page {page} of {pages || 1}
         </span>
-        <Button
-          variant="outline"
-          size="icon"
-          className="size-8"
+        <button
+          className={arrowBtn}
           onClick={() => goto(page + 1)}
           disabled={page >= pages || isFetching}
           title="Next page"
         >
           <ChevronRight className="size-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="size-8"
+        </button>
+        <button
+          className={arrowBtn}
           onClick={() => goto(pages)}
           disabled={page >= pages || isFetching}
           title="Last page"
         >
           <ChevronsRight className="size-4" />
-        </Button>
+        </button>
       </div>
     </div>
   )

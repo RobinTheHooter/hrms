@@ -78,6 +78,7 @@ export function Table({
   searchPlaceholder = 'Search…',
   initialSearch = '',
   toolbar = null,
+  footer = null,
   rowClassRules,
   onRowClicked,
   // Toggle Ag-Grid's built-in pagination. Set false when the page drives
@@ -208,7 +209,7 @@ export function Table({
       )}
 
       <div
-        className="ag-theme-quartz ag-app overflow-hidden rounded-xl border"
+        className="ag-theme-quartz ag-app overflow-hidden rounded-xl border bg-card"
         style={serverSide ? { height } : undefined}
       >
         <AgGridReact
@@ -255,6 +256,7 @@ export function Table({
                   : {}),
               })}
         />
+        {footer}
       </div>
     </div>
   )
