@@ -1,4 +1,4 @@
-import { FileText, Mail, Pencil, Sparkles } from 'lucide-react'
+import { Mail, Pencil, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -11,7 +11,7 @@ import { Panel } from '@/components/ui/panel'
 import { LoadingBlock } from '@/components/ui/spinner'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
-import { downloadResume } from '@/features/candidates/api'
+import { ResumePreview } from '@/features/candidates/components/ResumePreview'
 import { AiScreeningDialog } from '@/features/candidates/components/AiScreeningDialog'
 import { CandidateFormDialog } from '@/features/candidates/components/CandidateFormDialog'
 import { NotifyDialog } from '@/features/candidates/components/NotifyDialog'
@@ -138,17 +138,6 @@ export function CandidateDetailPage() {
     )
   }
 
-  const viewResume = async () => {
-    try {
-      const blob = await downloadResume(candidate.id)
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank')
-      setTimeout(() => URL.revokeObjectURL(url), 60000)
-    } catch {
-      toast.error('Could not open the resume')
-    }
-  }
-
   const handleSubmit = async (payload, file) => {
     try {
       await updateMut.mutateAsync({ id: candidate.id, payload })
@@ -265,19 +254,7 @@ export function CandidateDetailPage() {
         <div className="space-y-4">
           {/* Resume */}
           <Panel title="Resume">
-            {candidate.resume_url ? (
-              <a href={candidate.resume_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                <FileText className="size-4" /> View resume (link)
-              </a>
-            ) : candidate.has_resume_file ? (
-              <button onClick={viewResume}
-                className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
-                <FileText className="size-4" /> View uploaded resume
-              </button>
-            ) : (
-              <p className="text-sm text-muted-foreground">No resume on file.</p>
-            )}
+            <ResumePreview candidate={candidate} />
           </Panel>
 
           {/* Offer */}
