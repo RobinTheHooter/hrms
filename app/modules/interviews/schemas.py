@@ -52,9 +52,17 @@ class InterviewUpdate(BaseModel):
     notes: str | None = None
 
 
+class InterviewFeedback(BaseModel):
+    recommendation: str | None = None  # strong_yes | yes | no | strong_no
+    ratings: dict[str, int] | None = None  # competency -> 1..5
+    strengths: str | None = None
+    concerns: str | None = None
+
+
 class InterviewOutcomeUpdate(BaseModel):
     outcome: InterviewOutcome
     notes: str | None = None
+    feedback: InterviewFeedback | None = None
 
 
 class InterviewRead(BaseModel):
@@ -73,5 +81,6 @@ class InterviewRead(BaseModel):
     outcome: InterviewOutcome
     priority: Priority
     notes: str | None
+    feedback: dict | None = None
     created_at: datetime
     updated_at: datetime

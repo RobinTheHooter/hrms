@@ -170,6 +170,8 @@ class InterviewService:
         interview.status = InterviewStatus.COMPLETED
         if data.notes is not None:
             interview.notes = data.notes
+        if data.feedback is not None:
+            interview.feedback = data.feedback.model_dump(exclude_none=True)
 
         # Reflect the outcome back onto the candidate's pipeline stage.
         candidate = interview.candidate

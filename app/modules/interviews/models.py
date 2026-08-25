@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, String, Text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -44,6 +44,9 @@ class Interview(Base, TimestampMixin):
         default=InterviewOutcome.PENDING,
     )
     notes: Mapped[str | None] = mapped_column(Text)
+    # Structured post-interview scorecard:
+    # { recommendation, ratings: {competency: 1-5}, strengths, concerns }
+    feedback: Mapped[dict | None] = mapped_column(JSON)
     priority: Mapped[Priority] = mapped_column(
         SAEnum(Priority, name="priority", create_type=False),
         default=Priority.MEDIUM,
