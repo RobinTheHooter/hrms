@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { CalendarClock, StickyNote, Users } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
 import { FormDialog } from '@/components/ui/form-dialog'
+import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import { Field } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -91,6 +92,29 @@ export function InterviewScheduleDialog({
     onSubmit(payload)
   })
 
+  const selectRow = (name, label, opts, emptyText, placeholder, span) => (
+    <FieldRow label={label} error={errors[name]} span={span}>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <Select value={field.value} onValueChange={field.onChange}>
+            <SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger>
+            <SelectContent>
+              {opts.length === 0 ? (
+                <SelectEmpty>{emptyText}</SelectEmpty>
+              ) : (
+                opts.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        )}
+      />
+    </FieldRow>
+  )
+
   return (
     <FormDialog
       open={open}
@@ -99,142 +123,105 @@ export function InterviewScheduleDialog({
       description="Assign a hiring manager and set the date & time."
       onSubmit={submit}
       isSubmitting={isSubmitting}
-      contentClassName="max-w-xl"
-      formClassName="grid grid-cols-1 gap-4 sm:grid-cols-2"
-      footerClassName="sm:col-span-2"
+      contentClassName="max-h-[90vh] max-w-3xl overflow-y-auto"
+      formClassName="space-y-6"
     >
-          <Field label="Candidate" error={errors.candidate_id} className="sm:col-span-2">
-            <Controller
-              control={control}
-              name="candidate_id"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange} disabled={isEdit}>
-                  <SelectTrigger><SelectValue placeholder="Select a candidate" /></SelectTrigger>
-                  <SelectContent>
-                    {candidates.length === 0 ? (
-                      <SelectEmpty>No candidates found</SelectEmpty>
-                    ) : (
-                      candidates.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.full_name}
-                          {c.job?.title ? ` · ${c.job.title}` : ''}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <Field label="Hiring manager" error={errors.hiring_manager_id}>
-            <Controller
-              control={control}
-              name="hiring_manager_id"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select hiring manager" /></SelectTrigger>
-                  <SelectContent>
-                    {managers.length === 0 ? (
-                      <SelectEmpty>No hiring managers found</SelectEmpty>
-                    ) : (
-                      managers.map((m) => (
-                        <SelectItem key={m.id} value={String(m.id)}>
-                          {m.full_name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <Field label="Mode" error={errors.mode}>
-            <Controller
-              control={control}
-              name="mode"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {modes.length === 0 ? (
-                      <SelectEmpty>No modes found</SelectEmpty>
-                    ) : (
-                      modes.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <Field label="Date & time (IST)" error={errors.scheduled_at}>
-            <Input type="datetime-local" min={nowInputIST()} {...register('scheduled_at')} />
-          </Field>
-          <Field label="Location / meeting link" error={errors.location_or_link}>
-            <Input placeholder="https://… or office address" {...register('location_or_link')} />
-          </Field>
-
-          <Field label="Priority" error={errors.priority}>
-            <Controller
-              control={control}
-              name="priority"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {priorities.length === 0 ? (
-                      <SelectEmpty>No priorities found</SelectEmpty>
-                    ) : (
-                      priorities.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <div className="sm:col-span-2">
-            {!managerNum || !day ? (
-              <p className="text-xs text-muted-foreground">
-                Pick a hiring manager and date to see their availability.
-              </p>
-            ) : availLoading ? (
-              <p className="text-xs text-muted-foreground">Checking availability…</p>
-            ) : !avail?.connected ? (
-              <p className="text-xs text-muted-foreground">
-                This manager hasn't connected Google Calendar, so availability
-                can't be shown.
-              </p>
-            ) : avail.busy.length === 0 ? (
-              <p className="text-xs text-success">No conflicts on {day}.</p>
-            ) : (
-              <div className="rounded-md border bg-muted/30 p-3">
-                <div className="mb-1.5 text-xs font-medium">
-                  Busy on {day} (IST) — avoid these:
-                </div>
-                <ul className="flex flex-wrap gap-1.5">
-                  {avail.busy.map((b, i) => (
-                    <li
-                      key={i}
-                      className="rounded bg-destructive/10 px-2 py-0.5 text-xs text-destructive"
-                    >
-                      {fmtTime(b.start)}–{fmtTime(b.end)}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+      <FormSection icon={Users} title="Who">
+        <FieldRow label="Candidate" span="half" error={errors.candidate_id}>
+          <Controller
+            control={control}
+            name="candidate_id"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange} disabled={isEdit}>
+                <SelectTrigger><SelectValue placeholder="Select a candidate" /></SelectTrigger>
+                <SelectContent>
+                  {candidates.length === 0 ? (
+                    <SelectEmpty>No candidates found</SelectEmpty>
+                  ) : (
+                    candidates.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        {c.full_name}
+                        {c.job?.title ? ` · ${c.job.title}` : ''}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
             )}
-          </div>
+          />
+        </FieldRow>
+        <FieldRow label="Hiring manager" error={errors.hiring_manager_id}>
+          <Controller
+            control={control}
+            name="hiring_manager_id"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger><SelectValue placeholder="Select hiring manager" /></SelectTrigger>
+                <SelectContent>
+                  {managers.length === 0 ? (
+                    <SelectEmpty>No hiring managers found</SelectEmpty>
+                  ) : (
+                    managers.map((m) => (
+                      <SelectItem key={m.id} value={String(m.id)}>
+                        {m.full_name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </FieldRow>
+      </FormSection>
 
-          <Field label="Notes" error={errors.notes} className="sm:col-span-2">
-            <Textarea rows={3} {...register('notes')} />
-          </Field>
+      <FormSection icon={CalendarClock} title="When & where">
+        {selectRow('mode', 'Mode', modes, 'No modes found', 'Select mode')}
+        <FieldRow label="Date & time (IST)" error={errors.scheduled_at}>
+          <Input type="datetime-local" min={nowInputIST()} {...register('scheduled_at')} />
+        </FieldRow>
+        <FieldRow label="Location / meeting link" error={errors.location_or_link}>
+          <Input placeholder="https://… or office address" {...register('location_or_link')} />
+        </FieldRow>
+        <div className="sm:col-span-2 md:col-span-3">
+          {!managerNum || !day ? (
+            <p className="text-xs text-muted-foreground">
+              Pick a hiring manager and date to see their availability.
+            </p>
+          ) : availLoading ? (
+            <p className="text-xs text-muted-foreground">Checking availability…</p>
+          ) : !avail?.connected ? (
+            <p className="text-xs text-muted-foreground">
+              This manager hasn't connected Google Calendar, so availability
+              can't be shown.
+            </p>
+          ) : avail.busy.length === 0 ? (
+            <p className="text-xs text-success">No conflicts on {day}.</p>
+          ) : (
+            <div className="rounded-md border bg-muted/30 p-3">
+              <div className="mb-1.5 text-xs font-medium">
+                Busy on {day} (IST) — avoid these:
+              </div>
+              <ul className="flex flex-wrap gap-1.5">
+                {avail.busy.map((b, i) => (
+                  <li
+                    key={i}
+                    className="rounded bg-destructive/10 px-2 py-0.5 text-xs text-destructive"
+                  >
+                    {fmtTime(b.start)}–{fmtTime(b.end)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </FormSection>
+
+      <FormSection icon={StickyNote} title="Details">
+        {selectRow('priority', 'Priority', priorities, 'No priorities found', 'Select priority')}
+        <FieldRow label="Notes" span="full" error={errors.notes}>
+          <Textarea rows={3} placeholder="Agenda, focus areas, or context for the panel…" {...register('notes')} />
+        </FieldRow>
+      </FormSection>
     </FormDialog>
   )
 }

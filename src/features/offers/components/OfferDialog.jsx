@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Banknote, CalendarClock, StickyNote } from 'lucide-react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
@@ -10,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Field } from '@/components/ui/field'
+import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -36,7 +37,7 @@ export function OfferDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{offer ? 'Edit offer' : 'Create offer'}</DialogTitle>
           <DialogDescription>{candidateName}</DialogDescription>
@@ -101,41 +102,47 @@ function OfferForm({ offer, defaultTitle, isSubmitting, onCancel, onSubmit }) {
   })
 
   return (
-    <form onSubmit={submit} className="space-y-4">
-        <Field label="Role / title" error={errors.title}>
-          <Controller
-            control={control}
-            name="title"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roleOptions.map((title) => (
-                    <SelectItem key={title} value={title}>
-                      {title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </Field>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Field label="CTC" error={errors.ctc}>
-            <Input type="number" min="0" {...register('ctc')} />
-          </Field>
-          <Field label="Start date" error={errors.start_date}>
+    <form onSubmit={submit} className="space-y-6">
+        <FormSection icon={Banknote} title="Role & compensation">
+          <FieldRow label="Role / title" span="half" error={errors.title}>
+            <Controller
+              control={control}
+              name="title"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roleOptions.map((title) => (
+                      <SelectItem key={title} value={title}>
+                        {title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </FieldRow>
+          <FieldRow label="CTC" error={errors.ctc}>
+            <Input type="number" min="0" placeholder="1500000" {...register('ctc')} />
+          </FieldRow>
+        </FormSection>
+
+        <FormSection icon={CalendarClock} title="Timeline">
+          <FieldRow label="Start date" error={errors.start_date}>
             <Input type="date" {...register('start_date')} />
-          </Field>
-          <Field label="Offer expires" error={errors.expiry_date}>
+          </FieldRow>
+          <FieldRow label="Offer expires" error={errors.expiry_date}>
             <Input type="date" {...register('expiry_date')} />
-          </Field>
-        </div>
-        <Field label="Notes" error={errors.notes}>
-          <Textarea rows={3} {...register('notes')} />
-        </Field>
+          </FieldRow>
+        </FormSection>
+
+        <FormSection icon={StickyNote} title="Notes">
+          <FieldRow label="Notes" span="full" error={errors.notes}>
+            <Textarea rows={3} placeholder="Any special terms or context…" {...register('notes')} />
+          </FieldRow>
+        </FormSection>
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>

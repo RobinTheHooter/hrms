@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Banknote, Briefcase, FileText, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { FormDialog } from '@/components/ui/form-dialog'
+import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import { Field } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -91,6 +92,29 @@ export function CandidateFormDialog({
     onSubmit(payload, file)
   })
 
+  const selectRow = (name, label, opts, emptyText, extra = {}) => (
+    <FieldRow label={label} error={errors[name]}>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <Select value={field.value} onValueChange={field.onChange} {...extra}>
+            <SelectTrigger><SelectValue placeholder={`Select ${label.toLowerCase()}`} /></SelectTrigger>
+            <SelectContent>
+              {opts.length === 0 ? (
+                <SelectEmpty>{emptyText}</SelectEmpty>
+              ) : (
+                opts.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        )}
+      />
+    </FieldRow>
+  )
+
   return (
     <FormDialog
       open={open}
@@ -99,148 +123,93 @@ export function CandidateFormDialog({
       description="Attach the candidate to a job and capture their details."
       onSubmit={submit}
       isSubmitting={isSubmitting}
-      contentClassName="max-h-[90vh] max-w-2xl overflow-y-auto"
-      formClassName="grid grid-cols-1 gap-4 sm:grid-cols-2"
-      footerClassName="sm:col-span-2"
+      contentClassName="max-h-[90vh] max-w-3xl overflow-y-auto"
+      formClassName="space-y-6"
     >
-          <Field label="Job" error={errors.job_id} className="sm:col-span-2">
-            <Controller
-              control={control}
-              name="job_id"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={isEdit}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a job" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jobs.length === 0 ? (
-                      <SelectEmpty>No jobs found</SelectEmpty>
-                    ) : (
-                      jobs.map((j) => (
-                        <SelectItem key={j.id} value={String(j.id)}>
-                          {j.title}
-                          {j.department ? ` · ${j.department}` : ''}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
+      <FormSection icon={User} title="Personal & contact">
+        <FieldRow label="Full name" error={errors.full_name}>
+          <Input placeholder="Aditi Sharma" {...register('full_name')} />
+        </FieldRow>
+        <FieldRow label="Email" error={errors.email}>
+          <Input type="email" placeholder="name@company.com" {...register('email')} />
+        </FieldRow>
+        <FieldRow label="Phone" error={errors.phone}>
+          <Input placeholder="+91 98765 43210" {...register('phone')} />
+        </FieldRow>
+        <FieldRow label="Current role" error={errors.current_role}>
+          <Input placeholder="Backend Engineer" {...register('current_role')} />
+        </FieldRow>
+        <FieldRow label="Experience (years)" error={errors.experience_years}>
+          <Input type="number" step="0.5" min="0" placeholder="5" {...register('experience_years')} />
+        </FieldRow>
+        <FieldRow label="Skills" error={errors.skills}>
+          <Input placeholder="React, Node, SQL…" {...register('skills')} />
+        </FieldRow>
+      </FormSection>
 
-          <Field label="Full name" error={errors.full_name}>
-            <Input {...register('full_name')} />
-          </Field>
-          <Field label="Email" error={errors.email}>
-            <Input type="email" {...register('email')} />
-          </Field>
-          <Field label="Phone" error={errors.phone}>
-            <Input {...register('phone')} />
-          </Field>
-          <Field label="Current role" error={errors.current_role}>
-            <Input {...register('current_role')} />
-          </Field>
-          <Field label="Experience (years)" error={errors.experience_years}>
-            <Input type="number" step="0.5" min="0" {...register('experience_years')} />
-          </Field>
-          <Field label="Notice period (days)" error={errors.notice_period_days}>
-            <Input type="number" min="0" {...register('notice_period_days')} />
-          </Field>
-          <Field label="Current CTC" error={errors.current_ctc}>
-            <Input type="number" min="0" {...register('current_ctc')} />
-          </Field>
-          <Field label="Expected CTC" error={errors.expected_ctc}>
-            <Input type="number" min="0" {...register('expected_ctc')} />
-          </Field>
+      <FormSection icon={Briefcase} title="Application">
+        <FieldRow label="Job" span="half" error={errors.job_id}>
+          <Controller
+            control={control}
+            name="job_id"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange} disabled={isEdit}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a job" />
+                </SelectTrigger>
+                <SelectContent>
+                  {jobs.length === 0 ? (
+                    <SelectEmpty>No jobs found</SelectEmpty>
+                  ) : (
+                    jobs.map((j) => (
+                      <SelectItem key={j.id} value={String(j.id)}>
+                        {j.title}
+                        {j.department ? ` · ${j.department}` : ''}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </FieldRow>
+        {selectRow('source', 'Source', sources, 'No sources found')}
+        {selectRow('stage', 'Stage', stages, 'No stages found')}
+        {selectRow('priority', 'Priority', priorities, 'No priorities found')}
+      </FormSection>
 
-          <Field label="Source" error={errors.source}>
-            <Controller
-              control={control}
-              name="source"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {sources.length === 0 ? (
-                      <SelectEmpty>No sources found</SelectEmpty>
-                    ) : (
-                      sources.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-          <Field label="Stage" error={errors.stage}>
-            <Controller
-              control={control}
-              name="stage"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {stages.length === 0 ? (
-                      <SelectEmpty>No stages found</SelectEmpty>
-                    ) : (
-                      stages.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-          <Field label="Priority" error={errors.priority}>
-            <Controller
-              control={control}
-              name="priority"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {priorities.length === 0 ? (
-                      <SelectEmpty>No priorities found</SelectEmpty>
-                    ) : (
-                      priorities.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
+      <FormSection icon={Banknote} title="Compensation">
+        <FieldRow label="Current CTC" error={errors.current_ctc}>
+          <Input type="number" min="0" placeholder="1200000" {...register('current_ctc')} />
+        </FieldRow>
+        <FieldRow label="Expected CTC" error={errors.expected_ctc}>
+          <Input type="number" min="0" placeholder="1500000" {...register('expected_ctc')} />
+        </FieldRow>
+        <FieldRow label="Notice period (days)" error={errors.notice_period_days}>
+          <Input type="number" min="0" placeholder="30" {...register('notice_period_days')} />
+        </FieldRow>
+      </FormSection>
 
-          <Field label="Resume file (PDF, DOCX, TXT)" className="sm:col-span-2">
-            <input
-              type="file"
-              accept=".pdf,.docx,.txt"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Uploading a resume runs AI screening automatically.
-              {isEdit ? ' Replaces any existing resume.' : ''}
-            </p>
-          </Field>
-
-          <Field label="Resume URL (optional)" error={errors.resume_url} className="sm:col-span-2">
-            <Input placeholder="https://…" {...register('resume_url')} />
-          </Field>
-          <Field label="Skills" error={errors.skills} className="sm:col-span-2">
-            <Input placeholder="React, Node, SQL…" {...register('skills')} />
-          </Field>
-          <Field label="Notes" error={errors.notes} className="sm:col-span-2">
-            <Textarea rows={3} {...register('notes')} />
-          </Field>
+      <FormSection icon={FileText} title="Resume & notes">
+        <FieldRow
+          label="Resume file"
+          span="half"
+          description="PDF, DOCX or TXT — uploading runs AI screening automatically."
+        >
+          <input
+            type="file"
+            accept=".pdf,.docx,.txt"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+          />
+        </FieldRow>
+        <FieldRow label="Resume URL" description="Optional" error={errors.resume_url}>
+          <Input placeholder="https://…" {...register('resume_url')} />
+        </FieldRow>
+        <FieldRow label="Notes" span="full" error={errors.notes}>
+          <Textarea rows={3} placeholder="Anything worth flagging about this candidate…" {...register('notes')} />
+        </FieldRow>
+      </FormSection>
     </FormDialog>
   )
 }

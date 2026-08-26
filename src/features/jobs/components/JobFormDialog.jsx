@@ -1,10 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { FileText, Target, UserCog } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
 import { FormDialog } from '@/components/ui/form-dialog'
+import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import { Field } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -73,6 +74,29 @@ export function JobFormDialog({
     })
   })
 
+  const selectRow = (name, label, opts, emptyText, span) => (
+    <FieldRow label={label} error={errors[name]} span={span}>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <Select value={field.value} onValueChange={field.onChange}>
+            <SelectTrigger><SelectValue placeholder={`Select ${label.toLowerCase()}`} /></SelectTrigger>
+            <SelectContent>
+              {opts.length === 0 ? (
+                <SelectEmpty>{emptyText}</SelectEmpty>
+              ) : (
+                opts.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        )}
+      />
+    </FieldRow>
+  )
+
   return (
     <FormDialog
       open={open}
@@ -81,124 +105,69 @@ export function JobFormDialog({
       description="Define the role and assign a consultant."
       onSubmit={submit}
       isSubmitting={isSubmitting}
-      contentClassName="max-w-2xl"
-      formClassName="grid grid-cols-1 gap-4 sm:grid-cols-2"
-      footerClassName="sm:col-span-2"
+      contentClassName="max-h-[90vh] max-w-3xl overflow-y-auto"
+      formClassName="space-y-6"
     >
-          <Field label="Job title" error={errors.title}>
-            <Input {...register('title')} />
-          </Field>
-          <Field label="Department" error={errors.department}>
-            <Input {...register('department')} />
-          </Field>
-          <Field label="Location" error={errors.location}>
-            <Input {...register('location')} />
-          </Field>
-          <Field label="Openings" error={errors.positions}>
-            <Input type="number" min="1" {...register('positions')} />
-          </Field>
+      <FormSection icon={Target} title="Role basics">
+        <FieldRow label="Job title" span="half" error={errors.title}>
+          <Input placeholder="Senior Backend Engineer" {...register('title')} />
+        </FieldRow>
+        <FieldRow label="Department" error={errors.department}>
+          <Input placeholder="Engineering" {...register('department')} />
+        </FieldRow>
+        <FieldRow label="Location" error={errors.location}>
+          <Input placeholder="Bengaluru / Remote" {...register('location')} />
+        </FieldRow>
+        {selectRow('employment_type', 'Employment type', employmentTypes, 'No types found')}
+      </FormSection>
 
-          <Field label="Employment type" error={errors.employment_type}>
-            <Controller
-              control={control}
-              name="employment_type"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {employmentTypes.length === 0 ? (
-                      <SelectEmpty>No types found</SelectEmpty>
-                    ) : (
-                      employmentTypes.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
+      <FormSection icon={UserCog} title="Hiring details">
+        <FieldRow label="Openings" error={errors.positions}>
+          <Input type="number" min="1" placeholder="1" {...register('positions')} />
+        </FieldRow>
+        {selectRow('status', 'Status', jobStatuses, 'No statuses found')}
+        {selectRow('priority', 'Priority', priorities, 'No priorities found')}
+        <FieldRow label="Assigned consultant" span="half" error={errors.assigned_consultant_id}>
+          <Controller
+            control={control}
+            name="assigned_consultant_id"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger><SelectValue placeholder="Select consultant" /></SelectTrigger>
+                <SelectContent>
+                  {consultants.length === 0 ? (
+                    <SelectEmpty>No consultants found</SelectEmpty>
+                  ) : (
+                    consultants.map((c) => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        {c.full_name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          />
+        </FieldRow>
+      </FormSection>
 
-          <Field label="Status" error={errors.status}>
-            <Controller
-              control={control}
-              name="status"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {jobStatuses.length === 0 ? (
-                      <SelectEmpty>No statuses found</SelectEmpty>
-                    ) : (
-                      jobStatuses.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <Field label="Priority" error={errors.priority}>
-            <Controller
-              control={control}
-              name="priority"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {priorities.length === 0 ? (
-                      <SelectEmpty>No priorities found</SelectEmpty>
-                    ) : (
-                      priorities.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <Field label="Assigned consultant" error={errors.assigned_consultant_id}>
-            <Controller
-              control={control}
-              name="assigned_consultant_id"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select consultant" /></SelectTrigger>
-                  <SelectContent>
-                    {consultants.length === 0 ? (
-                      <SelectEmpty>No consultants found</SelectEmpty>
-                    ) : (
-                      consultants.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.full_name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <div className="sm:col-span-2">
-            <Field label="Description" error={errors.description}>
-              <Textarea rows={3} {...register('description')} />
-            </Field>
-          </div>
-
-          <div className="sm:col-span-2">
-            <Field label="Required skills / keywords (for AI screening)" error={errors.required_skills}>
-              <Textarea
-                rows={2}
-                placeholder="e.g. React, TypeScript, REST APIs, 3+ years"
-                {...register('required_skills')}
-              />
-            </Field>
-          </div>
+      <FormSection icon={FileText} title="Description & screening">
+        <FieldRow label="Description" span="full" error={errors.description}>
+          <Textarea rows={3} placeholder="Responsibilities, requirements, and what success looks like…" {...register('description')} />
+        </FieldRow>
+        <FieldRow
+          label="Required skills / keywords"
+          span="full"
+          description="Used for AI screening — e.g. React, TypeScript, REST APIs, 3+ years"
+          error={errors.required_skills}
+        >
+          <Textarea
+            rows={2}
+            placeholder="e.g. React, TypeScript, REST APIs, 3+ years"
+            {...register('required_skills')}
+          />
+        </FieldRow>
+      </FormSection>
     </FormDialog>
   )
 }
