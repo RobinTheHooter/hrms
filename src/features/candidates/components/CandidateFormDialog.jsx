@@ -3,17 +3,10 @@ import { Banknote, Briefcase, FileText, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import { Combobox } from '@/components/ui/combobox'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectEmpty,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useJobs } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
@@ -92,24 +85,19 @@ export function CandidateFormDialog({
     onSubmit(payload, file)
   })
 
-  const selectRow = (name, label, opts, emptyText, extra = {}) => (
+  const selectRow = (name, label, opts, emptyText) => (
     <FieldRow label={label} error={errors[name]}>
       <Controller
         control={control}
         name={name}
         render={({ field }) => (
-          <Select value={field.value} onValueChange={field.onChange} {...extra}>
-            <SelectTrigger><SelectValue placeholder={`Select ${label.toLowerCase()}`} /></SelectTrigger>
-            <SelectContent>
-              {opts.length === 0 ? (
-                <SelectEmpty>{emptyText}</SelectEmpty>
-              ) : (
-                opts.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
+          <Combobox
+            value={field.value}
+            onValueChange={field.onChange}
+            options={opts}
+            placeholder={`Select ${label.toLowerCase()}`}
+            emptyText={emptyText}
+          />
         )}
       />
     </FieldRow>
@@ -153,23 +141,18 @@ export function CandidateFormDialog({
             control={control}
             name="job_id"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange} disabled={isEdit}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a job" />
-                </SelectTrigger>
-                <SelectContent>
-                  {jobs.length === 0 ? (
-                    <SelectEmpty>No jobs found</SelectEmpty>
-                  ) : (
-                    jobs.map((j) => (
-                      <SelectItem key={j.id} value={String(j.id)}>
-                        {j.title}
-                        {j.department ? ` · ${j.department}` : ''}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isEdit}
+                placeholder="Select a job"
+                searchPlaceholder="Search jobs…"
+                emptyText="No jobs found"
+                options={jobs.map((j) => ({
+                  value: String(j.id),
+                  label: j.department ? `${j.title} · ${j.department}` : j.title,
+                }))}
+              />
             )}
           />
         </FieldRow>

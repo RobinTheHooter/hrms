@@ -3,17 +3,10 @@ import { ShieldCheck, UserCircle } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import { Combobox } from '@/components/ui/combobox'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectEmpty,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useOptions } from '@/features/meta/hooks'
 import { makeUserSchema } from '@/lib/validation'
 
@@ -102,22 +95,13 @@ export function UserFormDialog({
             control={control}
             name="role"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.length === 0 ? (
-                    <SelectEmpty>No roles found</SelectEmpty>
-                  ) : (
-                    roles.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>
-                        {r.label}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={field.value}
+                onValueChange={field.onChange}
+                options={roles}
+                placeholder="Select role"
+                emptyText="No roles found"
+              />
             )}
           />
         </FieldRow>
@@ -126,15 +110,15 @@ export function UserFormDialog({
             control={control}
             name="is_active"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">Active</SelectItem>
-                  <SelectItem value="false">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={field.value}
+                onValueChange={field.onChange}
+                placeholder="Select status"
+                options={[
+                  { value: 'true', label: 'Active' },
+                  { value: 'false', label: 'Inactive' },
+                ]}
+              />
             )}
           />
         </FieldRow>

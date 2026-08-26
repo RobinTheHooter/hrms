@@ -3,17 +3,10 @@ import { CalendarClock, StickyNote, Users } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm, useWatch } from 'react-hook-form'
 
+import { Combobox } from '@/components/ui/combobox'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectEmpty,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useCandidates } from '@/features/candidates/hooks'
 import { nowInputIST } from '@/features/interviews/constants'
@@ -98,18 +91,13 @@ export function InterviewScheduleDialog({
         control={control}
         name={name}
         render={({ field }) => (
-          <Select value={field.value} onValueChange={field.onChange}>
-            <SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger>
-            <SelectContent>
-              {opts.length === 0 ? (
-                <SelectEmpty>{emptyText}</SelectEmpty>
-              ) : (
-                opts.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
+          <Combobox
+            value={field.value}
+            onValueChange={field.onChange}
+            options={opts}
+            placeholder={placeholder}
+            emptyText={emptyText}
+          />
         )}
       />
     </FieldRow>
@@ -132,21 +120,18 @@ export function InterviewScheduleDialog({
             control={control}
             name="candidate_id"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange} disabled={isEdit}>
-                <SelectTrigger><SelectValue placeholder="Select a candidate" /></SelectTrigger>
-                <SelectContent>
-                  {candidates.length === 0 ? (
-                    <SelectEmpty>No candidates found</SelectEmpty>
-                  ) : (
-                    candidates.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>
-                        {c.full_name}
-                        {c.job?.title ? ` · ${c.job.title}` : ''}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isEdit}
+                placeholder="Select a candidate"
+                searchPlaceholder="Search candidates…"
+                emptyText="No candidates found"
+                options={candidates.map((c) => ({
+                  value: String(c.id),
+                  label: c.job?.title ? `${c.full_name} · ${c.job.title}` : c.full_name,
+                }))}
+              />
             )}
           />
         </FieldRow>
@@ -155,20 +140,17 @@ export function InterviewScheduleDialog({
             control={control}
             name="hiring_manager_id"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger><SelectValue placeholder="Select hiring manager" /></SelectTrigger>
-                <SelectContent>
-                  {managers.length === 0 ? (
-                    <SelectEmpty>No hiring managers found</SelectEmpty>
-                  ) : (
-                    managers.map((m) => (
-                      <SelectItem key={m.id} value={String(m.id)}>
-                        {m.full_name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={field.value}
+                onValueChange={field.onChange}
+                placeholder="Select hiring manager"
+                searchPlaceholder="Search managers…"
+                emptyText="No hiring managers found"
+                options={managers.map((m) => ({
+                  value: String(m.id),
+                  label: m.full_name,
+                }))}
+              />
             )}
           />
         </FieldRow>

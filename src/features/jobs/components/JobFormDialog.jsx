@@ -3,17 +3,10 @@ import { FileText, Target, UserCog } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import { Combobox } from '@/components/ui/combobox'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectEmpty,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useConsultants } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
@@ -80,18 +73,13 @@ export function JobFormDialog({
         control={control}
         name={name}
         render={({ field }) => (
-          <Select value={field.value} onValueChange={field.onChange}>
-            <SelectTrigger><SelectValue placeholder={`Select ${label.toLowerCase()}`} /></SelectTrigger>
-            <SelectContent>
-              {opts.length === 0 ? (
-                <SelectEmpty>{emptyText}</SelectEmpty>
-              ) : (
-                opts.map((o) => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
+          <Combobox
+            value={field.value}
+            onValueChange={field.onChange}
+            options={opts}
+            placeholder={`Select ${label.toLowerCase()}`}
+            emptyText={emptyText}
+          />
         )}
       />
     </FieldRow>
@@ -132,20 +120,17 @@ export function JobFormDialog({
             control={control}
             name="assigned_consultant_id"
             render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger><SelectValue placeholder="Select consultant" /></SelectTrigger>
-                <SelectContent>
-                  {consultants.length === 0 ? (
-                    <SelectEmpty>No consultants found</SelectEmpty>
-                  ) : (
-                    consultants.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>
-                        {c.full_name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+              <Combobox
+                value={field.value}
+                onValueChange={field.onChange}
+                placeholder="Select consultant"
+                searchPlaceholder="Search consultants…"
+                emptyText="No consultants found"
+                options={consultants.map((c) => ({
+                  value: String(c.id),
+                  label: c.full_name,
+                }))}
+              />
             )}
           />
         </FieldRow>

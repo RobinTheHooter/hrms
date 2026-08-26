@@ -11,15 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Combobox } from '@/components/ui/combobox'
 import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useJobs } from '@/features/jobs/hooks'
 import { offerSchema } from '@/lib/validation'
@@ -109,18 +103,13 @@ function OfferForm({ offer, defaultTitle, isSubmitting, onCancel, onSubmit }) {
               control={control}
               name="title"
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roleOptions.map((title) => (
-                      <SelectItem key={title} value={title}>
-                        {title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Combobox
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  placeholder="Select a role"
+                  searchPlaceholder="Search roles…"
+                  options={roleOptions.map((title) => ({ value: title, label: title }))}
+                />
               )}
             />
           </FieldRow>

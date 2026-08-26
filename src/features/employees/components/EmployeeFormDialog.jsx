@@ -3,16 +3,10 @@ import { Banknote, Briefcase, User } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import { Combobox } from '@/components/ui/combobox'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { EMPLOYEE_STATUSES, EMPLOYMENT_TYPES } from '@/features/employees/constants'
 import {
   emptyEmployee,
@@ -52,14 +46,12 @@ export function EmployeeFormDialog({
         control={control}
         name={name}
         render={({ field }) => (
-          <Select value={field.value} onValueChange={field.onChange}>
-            <SelectTrigger><SelectValue placeholder={`Select ${label.toLowerCase()}`} /></SelectTrigger>
-            <SelectContent>
-              {opts.map((o) => (
-                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Combobox
+            value={field.value}
+            onValueChange={field.onChange}
+            options={opts}
+            placeholder={`Select ${label.toLowerCase()}`}
+          />
         )}
       />
     </FieldRow>
