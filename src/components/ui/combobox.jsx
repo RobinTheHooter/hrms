@@ -9,8 +9,10 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
+import { Input } from '@/components/ui/input'
 import {
   Popover,
+  PopoverAnchor,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
@@ -94,6 +96,68 @@ export function Combobox({
             </CommandGroup>
           </CommandList>
         </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+export function ComboboxInput({
+  value,
+  onValueChange,
+  options = [],
+  placeholder,
+  disabled = false,
+  id,
+  className,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedby,
+}) {
+  const [open, setOpen] = useState(false)
+  const q = (value ?? '').trim().toLowerCase()
+  const matches = options
+    .filter((o) => {
+      const l = o.label.toLowerCase()
+      return l.includes(q) && l !== q
+    })
+    .slice(0, 8)
+
+  return (
+    <Popover open={open && matches.length > 0} onOpenChange={setOpen}>
+      <PopoverAnchor asChild>
+        <Input
+          id={id}
+          value={value ?? ''}
+          placeholder={placeholder}
+          disabled={disabled}
+          autoComplete="off"
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedby}
+          className={className}
+          onChange={(e) => {
+            onValueChange(e.target.value)
+            setOpen(true)
+          }}
+          onFocus={() => setOpen(true)}
+        />
+      </PopoverAnchor>
+      <PopoverContent
+        align="start"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="w-var(--radix-popover-trigger-width) p-1"
+      >
+        {matches.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => {
+              onValueChange(o.value)
+              setOpen(false)
+            }}
+            className="flex w-full items-center rounded-sm px-2 py-1.5 text-left text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+          >
+            <span className="truncate">{o.label}</span>
+          </button>
+        ))}
       </PopoverContent>
     </Popover>
   )

@@ -3,12 +3,12 @@ import { FileText, Target, UserCog } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
-import { Combobox } from '@/components/ui/combobox'
+import { Combobox, ComboboxInput } from '@/components/ui/combobox'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useConsultants } from '@/features/jobs/hooks'
+import { useConsultants, useJobs } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
 import { jobSchema } from '@/lib/validation'
 
@@ -38,6 +38,17 @@ export function JobFormDialog({
   const employmentTypes = options?.employment_types ?? []
   const jobStatuses = options?.job_statuses ?? []
   const priorities = options?.priorities ?? []
+
+  // Existing values as suggestions for the free-text title/department/location
+  // fields — deduped from the cached jobs list.
+  const { data: jobsPage } = useJobs({ page: 1, size: 1000 })
+  const suggestionsOf = (key) =>
+    Array.from(
+      new Set((jobsPage?.items ?? []).map((j) => j[key]).filter(Boolean)),
+    ).map((v) => ({ value: v, label: v }))
+  const titleOptions = suggestionsOf('title')
+  const departmentOptions = suggestionsOf('department')
+  const locationOptions = suggestionsOf('location')
   const {
     register,
     handleSubmit,
@@ -98,13 +109,46 @@ export function JobFormDialog({
     >
       <FormSection icon={Target} title="Role basics">
         <FieldRow label="Job title" span="half" error={errors.title}>
-          <Input placeholder="Senior Backend Engineer" {...register('title')} />
+          <Controller
+            control={control}
+            name="title"
+            render={({ field }) => (
+              <ComboboxInput
+                value={field.value}
+                onValueChange={field.onChange}
+                options={titleOptions}
+                placeholder="Senior Backend Engineer"
+              />
+            )}
+          />
         </FieldRow>
         <FieldRow label="Department" error={errors.department}>
-          <Input placeholder="Engineering" {...register('department')} />
+          <Controller
+            control={control}
+            name="department"
+            render={({ field }) => (
+              <ComboboxInput
+                value={field.value}
+                onValueChange={field.onChange}
+                options={departmentOptions}
+                placeholder="Engineering"
+              />
+            )}
+          />
         </FieldRow>
         <FieldRow label="Location" error={errors.location}>
-          <Input placeholder="Bengaluru / Remote" {...register('location')} />
+          <Controller
+            control={control}
+            name="location"
+            render={({ field }) => (
+              <ComboboxInput
+                value={field.value}
+                onValueChange={field.onChange}
+                options={locationOptions}
+                placeholder="Bengaluru / Remote"
+              />
+            )}
+          />
         </FieldRow>
         {selectRow('employment_type', 'Employment type', employmentTypes, 'No types found')}
       </FormSection>
