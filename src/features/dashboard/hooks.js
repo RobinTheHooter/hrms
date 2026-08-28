@@ -28,3 +28,31 @@ export function useConsultantBreakdown(enabled) {
     enabled: Boolean(enabled),
   })
 }
+
+async function getRecruitingAnalytics() {
+  const { data } = await apiClient.get('/dashboard/analytics/recruiting')
+  return data
+}
+
+export function useRecruitingAnalytics() {
+  return useQuery({
+    queryKey: ['dashboard', 'analytics', 'recruiting'],
+    queryFn: getRecruitingAnalytics,
+    placeholderData: keepPreviousData,
+  })
+}
+
+async function getAttrition(months) {
+  const { data } = await apiClient.get('/dashboard/analytics/attrition', {
+    params: { months },
+  })
+  return data
+}
+
+export function useAttrition(months = 12) {
+  return useQuery({
+    queryKey: ['dashboard', 'analytics', 'attrition', months],
+    queryFn: () => getAttrition(months),
+    placeholderData: keepPreviousData,
+  })
+}

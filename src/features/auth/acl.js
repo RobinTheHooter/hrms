@@ -10,6 +10,8 @@ export const PERMISSIONS = {
   INTERVIEWS_VIEW: 'interviews:view',
   INTERVIEWS_SCHEDULE: 'interviews:schedule',
   INTERVIEWS_CONDUCT: 'interviews:conduct',
+  EMPLOYEES_VIEW: 'employees:view',
+  EMPLOYEES_MANAGE: 'employees:manage',
 }
 
 const ALL = Object.values(PERMISSIONS)
