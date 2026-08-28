@@ -1,4 +1,6 @@
-import { CheckCircle2, Clock, Percent, TrendingUp } from 'lucide-react'
+import { CheckCircle2, Clock, Download, Percent, TrendingUp } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import {
   Bar,
   BarChart,
@@ -11,9 +13,10 @@ import {
   YAxis,
 } from 'recharts'
 
+import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
 import { StatCard } from '@/features/dashboard/components/StatCard'
-import { useRecruitingAnalytics } from '@/features/dashboard/hooks'
+import { downloadMisReport, useRecruitingAnalytics } from '@/features/dashboard/hooks'
 
 const cap = (s) =>
   String(s ?? '')
@@ -30,6 +33,18 @@ const STATUS_COLORS = ['var(--muted-foreground)', 'var(--info)', 'var(--success)
 
 export function AnalyticsPage() {
   const { data, isLoading } = useRecruitingAnalytics()
+  const [exporting, setExporting] = useState(false)
+
+  const exportReport = async () => {
+    setExporting(true)
+    try {
+      await downloadMisReport()
+    } catch {
+      toast.error('Could not generate the MIS report')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   if (isLoading || !data) {
     return <div className="p-6 text-sm text-muted-foreground">Loading analytics…</div>
@@ -44,11 +59,17 @@ export function AnalyticsPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">Recruiting analytics</h1>
-        <p className="text-sm text-muted-foreground">
-          Funnel, speed, and effectiveness across your live hiring pipeline.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Recruiting analytics</h1>
+          <p className="text-sm text-muted-foreground">
+            Funnel, speed, and effectiveness across your live hiring pipeline.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={exportReport} disabled={exporting}>
+          <Download className="size-4" />
+          {exporting ? 'Preparing…' : 'Export MIS report'}
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
