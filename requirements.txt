@@ -13,3 +13,4 @@ tzdata
 pypdf
 python-docx
 python-multipart
+openpyxl
