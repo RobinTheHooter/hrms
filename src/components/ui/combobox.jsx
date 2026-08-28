@@ -1,5 +1,5 @@
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import {
   Command,
@@ -113,6 +113,7 @@ export function ComboboxInput({
   'aria-describedby': ariaDescribedby,
 }) {
   const [open, setOpen] = useState(false)
+  const inputRef = useRef(null)
   const q = (value ?? '').trim().toLowerCase()
   const matches = options
     .filter((o) => {
@@ -125,6 +126,7 @@ export function ComboboxInput({
     <Popover open={open && matches.length > 0} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
         <Input
+          ref={inputRef}
           id={id}
           value={value ?? ''}
           placeholder={placeholder}
@@ -143,6 +145,9 @@ export function ComboboxInput({
       <PopoverContent
         align="start"
         onOpenAutoFocus={(e) => e.preventDefault()}
+        onInteractOutside={(e) => {
+          if (inputRef.current?.contains(e.target)) e.preventDefault()
+        }}
         className="w-var(--radix-popover-trigger-width) p-1"
       >
         {matches.map((o) => (
