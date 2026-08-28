@@ -26,4 +26,4 @@ services:
         value: "false"
       # Replace with your deployed frontend origin (no trailing slash).
       - key: CORS_ORIGINS
-        value: '["https://YOUR-FRONTEND-DOMAIN"]'
+        value: '["https://hrms-dev-test.netlify.app","http://localhost:5173"]'
