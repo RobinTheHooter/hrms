@@ -1,4 +1,4 @@
-import { CheckCircle2, Pencil, Trash2 } from 'lucide-react'
+import { CheckCircle2, MessageSquare, Pencil, Trash2 } from 'lucide-react'
 
 import { ActionsRenderer } from '@/components/GlobalComponents/TableComponents/ActionsRenderer'
 import { BadgeRenderer } from '@/components/GlobalComponents/TableComponents/BadgeRenderer'
@@ -15,6 +15,7 @@ import { priorityVariant } from '@/lib/priority'
 export function getInterviewColumns({
   onEdit,
   onOutcome,
+  onFeedback,
   onDelete,
   canSchedule,
   canConduct,
@@ -91,8 +92,8 @@ export function getInterviewColumns({
       colId: 'actions',
       headerClass: 'header-center',
       flex: 0,
-      width: 156,
-      minWidth: 156,
+      width: 192,
+      minWidth: 192,
       sortable: false,
       filter: false,
       resizable: false,
@@ -105,6 +106,12 @@ export function getInterviewColumns({
             onClick: onOutcome,
             className: 'text-success',
             hidden: !(canConduct && d.status !== 'completed'),
+          },
+          {
+            icon: MessageSquare,
+            title: 'Add feedback',
+            onClick: onFeedback,
+            hidden: !canConduct,
           },
           { icon: Pencil, title: 'Reschedule', onClick: onEdit, hidden: !canSchedule },
           {
