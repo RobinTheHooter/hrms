@@ -12,6 +12,7 @@ from app.core.tasks import enqueue
 from app.modules.auth.models import User
 from app.modules.candidates.models import Candidate
 from app.modules.candidates.service import CandidateService
+from app.modules.notifications.tasks import send_candidate_template_bg
 from app.modules.screening.ai import score_resume
 from app.modules.screening.extract import extract_text
 from app.modules.screening.tasks import screen_candidate
@@ -85,11 +86,19 @@ class ScreeningService:
         return candidate
 
     async def bulk_upload(
-        self, job_id: int, files: list[UploadFile], user: User
+        self,
+        job_id: int,
+        files: list[UploadFile],
+        user: User,
+        send_ack: bool = False,
     ) -> dict:
         """Create one candidate per uploaded resume, then screen each in the
         background. Name/email are parsed best-effort (email from the resume
         text, name from the file name) so they can be corrected afterwards.
+
+        When `send_ack` is set, an application-received email is queued — but
+        only for candidates whose email was actually detected in the resume
+        (never the generated placeholder addresses).
         """
         cs = CandidateService(self.db)
         job = await cs._job_or_404(job_id)
@@ -97,6 +106,7 @@ class ScreeningService:
 
         results: list[dict] = []
         new_ids: list[int] = []
+        ack_ids: list[int] = []
         for file in files:
             try:
                 data = await file.read()
@@ -106,7 +116,8 @@ class ScreeningService:
                 if not text.strip():
                     raise AppError("Couldn't read any text from that file")
 
-                email = _find_email(text) or f"import-{job_id}-{len(results) + 1}@unknown.local"
+                detected = _find_email(text)
+                email = detected or f"import-{job_id}-{len(results) + 1}@unknown.local"
                 candidate = Candidate(
                     job_id=job_id,
                     full_name=_guess_name(file.filename or ""),
@@ -122,6 +133,8 @@ class ScreeningService:
                 self.db.add(candidate)
                 await self.db.flush()
                 new_ids.append(candidate.id)
+                if detected:
+                    ack_ids.append(candidate.id)
                 results.append(
                     {
                         "filename": file.filename,
@@ -143,7 +156,19 @@ class ScreeningService:
             for cid in new_ids:
                 enqueue(screen_candidate, cid)
 
-        return {"total": len(files), "created": len(new_ids), "results": results}
+        # Acknowledgement emails — opt-in, and only to real detected addresses.
+        acked = 0
+        if send_ack and settings.email_enabled:
+            for cid in ack_ids:
+                enqueue(send_candidate_template_bg, cid, "application_received", user.id)
+            acked = len(ack_ids)
+
+        return {
+            "total": len(files),
+            "created": len(new_ids),
+            "emailed": acked,
+            "results": results,
+        }
 
     async def score(self, candidate_id: int, user: User) -> Candidate:
         """Manual (re)evaluation — surfaces errors to the caller."""

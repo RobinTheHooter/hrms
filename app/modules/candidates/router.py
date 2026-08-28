@@ -71,8 +71,11 @@ async def bulk_upload_candidates(
     db: Annotated[AsyncSession, Depends(get_db)],
     job_id: int = Form(...),
     files: list[UploadFile] = File(...),
+    send_ack: bool = Form(False),
 ) -> dict:
-    return await ScreeningService(db).bulk_upload(job_id, files, current_user)
+    return await ScreeningService(db).bulk_upload(
+        job_id, files, current_user, send_ack
+    )
 
 
 @router.post("/bulk-delete", response_model=BulkResult)

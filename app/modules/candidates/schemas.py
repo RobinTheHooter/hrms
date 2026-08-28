@@ -32,6 +32,9 @@ class CandidateBase(BaseModel):
 
 class CandidateCreate(CandidateBase):
     job_id: int
+    # Whether to send the applicant an "application received" email on create.
+    # Not a DB column — excluded before building the Candidate model.
+    send_ack: bool = True
 
 
 class CandidateUpdate(BaseModel):
