@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.modules.auth.router import router as auth_router
 from app.modules.candidates.router import router as candidates_router
 from app.modules.dashboard.router import router as dashboard_router
+from app.modules.employees.router import router as employees_router
 from app.modules.integrations.router import router as integrations_router
 from app.modules.interviews.router import router as interviews_router
 from app.modules.jobs.router import router as jobs_router
@@ -22,7 +23,4 @@ api_router.include_router(interviews_router)
 api_router.include_router(integrations_router)
 api_router.include_router(notifications_router)
 api_router.include_router(offers_router)
-
-# Employees module is hidden for the ATS pivot (files kept for later):
-#   from app.modules.employees.router import router as employees_router
-#   api_router.include_router(employees_router)
+api_router.include_router(employees_router)

@@ -1,23 +1,34 @@
-"""Seed the database with a default admin user and sample employees.
+"""Seed the database with a default admin user and (locally) sample employees.
 
 Run from the backend directory (after `alembic upgrade head`):
 
     python -m scripts.seed
 
-Idempotent: existing rows (matched by email) are skipped.
+The admin bootstrap always runs and is idempotent. Sample employees are only
+inserted when SEED_SAMPLE_DATA is true (set it in your local .env). When it's
+false — as on the deployed/demo database — any previously seeded sample
+employees are removed instead, so the demo stays clean automatically.
+
+To force-remove sample employees regardless of the flag:
+
+    python -m scripts.seed --clear
 """
 
 import asyncio
+import sys
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from app.common.enums import EmployeeStatus, EmploymentType, UserRole
+from app.core.config import get_settings
 from app.core.database import AsyncSessionLocal
 from app.core.security import hash_password
 from app.modules.auth.models import User
 from app.modules.employees.models import Employee
+
+settings = get_settings()
 
 DEFAULT_ADMIN = {
     "email": "admin@hrms.local",
@@ -81,10 +92,26 @@ async def seed_employees(session) -> None:
     print(f"  + ensured {len(SAMPLE_EMPLOYEES)} sample employees")
 
 
+async def clear_employees(session) -> None:
+    """Remove the sample employees (matched by their seed emails only)."""
+    emails = [row[2] for row in SAMPLE_EMPLOYEES]
+    result = await session.execute(
+        delete(Employee).where(Employee.email.in_(emails))
+    )
+    print(f"  - removed {result.rowcount or 0} sample employees")
+
+
 async def main() -> None:
+    force_clear = "--clear" in sys.argv
     async with AsyncSessionLocal() as session:
         await seed_admin(session)
-        await seed_employees(session)
+        if force_clear:
+            await clear_employees(session)
+        elif settings.SEED_SAMPLE_DATA:
+            await seed_employees(session)
+        else:
+            # Deployed/demo DBs: never keep sample data around.
+            await clear_employees(session)
         await session.commit()
     print("Seed complete.")
 

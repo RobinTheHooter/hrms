@@ -12,7 +12,8 @@ services:
     plan: free
     healthCheckPath: /health
     buildCommand: pip install -r requirements.txt
-    # Run migrations + seed the bootstrap admin, then start the server.
+    # Run migrations, bootstrap the admin (and purge any sample employees since
+    # SEED_SAMPLE_DATA is unset here), then start the server.
     startCommand: alembic upgrade head && python -m scripts.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL

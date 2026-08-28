@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.acl import Permission
 from app.core.database import get_db
 from app.modules.auth.dependencies import CurrentUser, require_permission
+from app.modules.dashboard.analytics import AnalyticsService
 from app.modules.dashboard.service import DashboardService
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -28,3 +29,24 @@ async def consultant_breakdown(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[dict]:
     return await DashboardService(db).consultant_breakdown()
+
+
+@router.get(
+    "/analytics/recruiting",
+    dependencies=[Depends(require_permission(Permission.JOBS_MANAGE))],
+)
+async def recruiting_analytics(
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    return await AnalyticsService(db).recruiting()
+
+
+@router.get(
+    "/analytics/attrition",
+    dependencies=[Depends(require_permission(Permission.JOBS_MANAGE))],
+)
+async def attrition_analytics(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    months: int = Query(12, ge=3, le=36),
+) -> dict:
+    return await AnalyticsService(db).attrition(months)
