@@ -7,7 +7,7 @@ from app.common.enums import (
     InterviewStatus,
     UserRole,
 )
-from app.common.exceptions import NotFoundError, PermissionError
+from app.common.exceptions import AppError, NotFoundError, PermissionError
 from app.common.pagination import Page, PageParams
 from app.core.config import get_settings
 from app.modules.auth.models import User
@@ -19,6 +19,7 @@ from app.modules.interviews.models import Interview
 from app.modules.interviews.repository import InterviewRepository
 from app.modules.interviews.schemas import (
     InterviewCreate,
+    InterviewFeedbackUpdate,
     InterviewOutcomeUpdate,
     InterviewRead,
     InterviewUpdate,
@@ -167,6 +168,11 @@ class InterviewService:
         self, interview_id: int, data: InterviewOutcomeUpdate, user: User
     ) -> Interview:
         interview = await self.get(interview_id, user)
+        # A reason is mandatory when rejecting.
+        if data.outcome == InterviewOutcome.REJECTED and not (
+            data.notes and data.notes.strip()
+        ):
+            raise AppError("A reason is required when rejecting a candidate")
         interview.outcome = data.outcome
         interview.status = InterviewStatus.COMPLETED
         if data.notes is not None:
@@ -181,6 +187,17 @@ class InterviewService:
                 candidate.stage = CandidateStage.OFFER
             elif data.outcome == InterviewOutcome.REJECTED:
                 candidate.stage = CandidateStage.REJECTED
+        return interview
+
+    async def set_feedback(
+        self, interview_id: int, data: "InterviewFeedbackUpdate", user: User
+    ) -> Interview:
+        """Add or edit feedback independent of the outcome — available any time,
+        including after the interview is completed."""
+        interview = await self.get(interview_id, user)
+        interview.feedback = data.feedback.model_dump(exclude_none=True)
+        if data.notes is not None:
+            interview.notes = data.notes
         return interview
 
     async def _is_latest_interview(self, interview: Interview) -> bool:
