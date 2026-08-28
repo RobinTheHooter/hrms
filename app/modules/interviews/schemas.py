@@ -57,6 +57,11 @@ class InterviewFeedback(BaseModel):
     ratings: dict[str, int] | None = None  # competency -> 1..5
     strengths: str | None = None
     concerns: str | None = None
+    # Structured next step chosen by the hiring manager.
+    next_step: str | None = None  # join | next_round | on_hold
+    tentative_joining_date: str | None = None  # yyyy-mm-dd (when next_step == join)
+    estimated_ctc: int | None = None  # when next_step == join
+    next_step_note: str | None = None  # for next_round / on_hold
 
 
 class InterviewOutcomeUpdate(BaseModel):
