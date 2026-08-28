@@ -1,35 +1,16 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { FileText, Target, UserCog } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
 
+import { Combobox, ComboboxInput } from '@/components/ui/combobox'
 import { FormDialog } from '@/components/ui/form-dialog'
+import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import { Field } from '@/components/ui/field'
-import {
-  Select,
-  SelectContent,
-  SelectEmpty,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { useConsultants } from '@/features/jobs/hooks'
+import { useConsultants, useJobs } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
-
-const schema = z.object({
-  title: z.string().min(1, 'Required'),
-  department: z.string().optional().or(z.literal('')),
-  location: z.string().optional().or(z.literal('')),
-  employment_type: z.string().min(1, 'Required'),
-  positions: z.coerce.number().int().min(1, 'Min 1').max(999),
-  status: z.string().min(1, 'Required'),
-  priority: z.string().min(1, 'Required'),
-  assigned_consultant_id: z.string(), // 'none' or numeric string
-  description: z.string().optional().or(z.literal('')),
-  required_skills: z.string().optional().or(z.literal('')),
-})
+import { jobSchema } from '@/lib/validation'
 
 const EMPTY = {
   title: '',
@@ -57,13 +38,24 @@ export function JobFormDialog({
   const employmentTypes = options?.employment_types ?? []
   const jobStatuses = options?.job_statuses ?? []
   const priorities = options?.priorities ?? []
+
+  // Existing values as suggestions for the free-text title/department/location
+  // fields — deduped from the cached jobs list.
+  const { data: jobsPage } = useJobs({ page: 1, size: 1000 })
+  const suggestionsOf = (key) =>
+    Array.from(
+      new Set((jobsPage?.items ?? []).map((j) => j[key]).filter(Boolean)),
+    ).map((v) => ({ value: v, label: v }))
+  const titleOptions = suggestionsOf('title')
+  const departmentOptions = suggestionsOf('department')
+  const locationOptions = suggestionsOf('location')
   const {
     register,
     handleSubmit,
     control,
     reset,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(schema), defaultValues: EMPTY })
+  } = useForm({ resolver: zodResolver(jobSchema), defaultValues: EMPTY })
 
   useEffect(() => {
     if (open) reset(initialValues ?? EMPTY)
@@ -86,6 +78,24 @@ export function JobFormDialog({
     })
   })
 
+  const selectRow = (name, label, opts, emptyText, span) => (
+    <FieldRow label={label} error={errors[name]} span={span}>
+      <Controller
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <Combobox
+            value={field.value}
+            onValueChange={field.onChange}
+            options={opts}
+            placeholder={`Select ${label.toLowerCase()}`}
+            emptyText={emptyText}
+          />
+        )}
+      />
+    </FieldRow>
+  )
+
   return (
     <FormDialog
       open={open}
@@ -94,124 +104,99 @@ export function JobFormDialog({
       description="Define the role and assign a consultant."
       onSubmit={submit}
       isSubmitting={isSubmitting}
-      contentClassName="max-w-2xl"
-      formClassName="grid grid-cols-1 gap-4 sm:grid-cols-2"
-      footerClassName="sm:col-span-2"
+      contentClassName="max-h-[90vh] max-w-3xl overflow-y-auto"
+      formClassName="space-y-6"
     >
-          <Field label="Job title" error={errors.title}>
-            <Input {...register('title')} />
-          </Field>
-          <Field label="Department" error={errors.department}>
-            <Input {...register('department')} />
-          </Field>
-          <Field label="Location" error={errors.location}>
-            <Input {...register('location')} />
-          </Field>
-          <Field label="Openings" error={errors.positions}>
-            <Input type="number" min="1" {...register('positions')} />
-          </Field>
-
-          <Field label="Employment type" error={errors.employment_type}>
-            <Controller
-              control={control}
-              name="employment_type"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {employmentTypes.length === 0 ? (
-                      <SelectEmpty>No types found</SelectEmpty>
-                    ) : (
-                      employmentTypes.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <Field label="Status" error={errors.status}>
-            <Controller
-              control={control}
-              name="status"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {jobStatuses.length === 0 ? (
-                      <SelectEmpty>No statuses found</SelectEmpty>
-                    ) : (
-                      jobStatuses.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <Field label="Priority" error={errors.priority}>
-            <Controller
-              control={control}
-              name="priority"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {priorities.length === 0 ? (
-                      <SelectEmpty>No priorities found</SelectEmpty>
-                    ) : (
-                      priorities.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <Field label="Assigned consultant" error={errors.assigned_consultant_id}>
-            <Controller
-              control={control}
-              name="assigned_consultant_id"
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger><SelectValue placeholder="Select consultant" /></SelectTrigger>
-                  <SelectContent>
-                    {consultants.length === 0 ? (
-                      <SelectEmpty>No consultants found</SelectEmpty>
-                    ) : (
-                      consultants.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.full_name}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </Field>
-
-          <div className="sm:col-span-2">
-            <Field label="Description" error={errors.description}>
-              <Textarea rows={3} {...register('description')} />
-            </Field>
-          </div>
-
-          <div className="sm:col-span-2">
-            <Field label="Required skills / keywords (for AI screening)" error={errors.required_skills}>
-              <Textarea
-                rows={2}
-                placeholder="e.g. React, TypeScript, REST APIs, 3+ years"
-                {...register('required_skills')}
+      <FormSection icon={Target} title="Role basics">
+        <FieldRow label="Job title" span="half" error={errors.title}>
+          <Controller
+            control={control}
+            name="title"
+            render={({ field }) => (
+              <ComboboxInput
+                value={field.value}
+                onValueChange={field.onChange}
+                options={titleOptions}
+                placeholder="Senior Backend Engineer"
               />
-            </Field>
-          </div>
+            )}
+          />
+        </FieldRow>
+        <FieldRow label="Department" error={errors.department}>
+          <Controller
+            control={control}
+            name="department"
+            render={({ field }) => (
+              <ComboboxInput
+                value={field.value}
+                onValueChange={field.onChange}
+                options={departmentOptions}
+                placeholder="Engineering"
+              />
+            )}
+          />
+        </FieldRow>
+        <FieldRow label="Location" error={errors.location}>
+          <Controller
+            control={control}
+            name="location"
+            render={({ field }) => (
+              <ComboboxInput
+                value={field.value}
+                onValueChange={field.onChange}
+                options={locationOptions}
+                placeholder="Bengaluru / Remote"
+              />
+            )}
+          />
+        </FieldRow>
+        {selectRow('employment_type', 'Employment type', employmentTypes, 'No types found')}
+      </FormSection>
+
+      <FormSection icon={UserCog} title="Hiring details">
+        <FieldRow label="Openings" error={errors.positions}>
+          <Input type="number" min="1" placeholder="1" {...register('positions')} />
+        </FieldRow>
+        {selectRow('status', 'Status', jobStatuses, 'No statuses found')}
+        {selectRow('priority', 'Priority', priorities, 'No priorities found')}
+        <FieldRow label="Assigned consultant" span="half" error={errors.assigned_consultant_id}>
+          <Controller
+            control={control}
+            name="assigned_consultant_id"
+            render={({ field }) => (
+              <Combobox
+                value={field.value}
+                onValueChange={field.onChange}
+                placeholder="Select consultant"
+                searchPlaceholder="Search consultants…"
+                emptyText="No consultants found"
+                options={consultants.map((c) => ({
+                  value: String(c.id),
+                  label: c.full_name,
+                }))}
+              />
+            )}
+          />
+        </FieldRow>
+      </FormSection>
+
+      <FormSection icon={FileText} title="Description & screening">
+        <FieldRow label="Description" span="full" error={errors.description}>
+          <Textarea rows={3} placeholder="Responsibilities, requirements, and what success looks like…" {...register('description')} />
+        </FieldRow>
+        <FieldRow
+          label="Required skills / keywords"
+          span="full"
+          description="Used for AI screening — e.g. React, TypeScript, REST APIs, 3+ years"
+          error={errors.required_skills}
+        >
+          <Textarea
+            rows={2}
+            placeholder="e.g. React, TypeScript, REST APIs, 3+ years"
+            {...register('required_skills')}
+          />
+        </FieldRow>
+      </FormSection>
     </FormDialog>
   )
 }

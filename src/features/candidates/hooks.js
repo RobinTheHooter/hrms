@@ -7,6 +7,7 @@ import {
 
 import {
   bulkDeleteCandidates,
+  bulkUploadCandidates,
   createCandidate,
   deleteCandidate,
   getCandidate,
@@ -19,6 +20,15 @@ import {
 } from '@/features/candidates/api'
 
 const KEY = ['candidates']
+
+export function useBulkUploadCandidates() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ jobId, files, sendAck }) =>
+      bulkUploadCandidates(jobId, files, sendAck),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  })
+}
 
 export function useCandidate(id) {
   return useQuery({

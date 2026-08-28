@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { Plus, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -11,6 +11,7 @@ import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { getCandidateColumns } from '@/features/candidates/columns'
 import { AiScreeningDialog } from '@/features/candidates/components/AiScreeningDialog'
+import { BulkUploadDialog } from '@/features/candidates/components/BulkUploadDialog'
 import { CandidateFormDialog } from '@/features/candidates/components/CandidateFormDialog'
 import { NotifyDialog } from '@/features/candidates/components/NotifyDialog'
 import { downloadResume } from '@/features/candidates/api'
@@ -73,6 +74,7 @@ export function CandidatesPage() {
   const [dialog, setDialog] = useState({ open: false, mode: 'create', candidate: null })
   const [notify, setNotify] = useState({ open: false, candidate: null })
   const [screen, setScreen] = useState({ open: false, candidate: null })
+  const [bulkOpen, setBulkOpen] = useState(false)
 
   // Filters come from the URL (e.g. dashboard drill-downs); no on-page dropdowns.
   const stage = params.get('stage') ?? undefined
@@ -219,9 +221,14 @@ export function CandidatesPage() {
         breadcrumb={['Recruitment', 'Candidates']}
         actions={
           canManage && (
-            <Button onClick={openCreate} size="sm">
-              <Plus className="size-4" /> Add candidate
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setBulkOpen(true)} size="sm" variant="outline">
+                <Upload className="size-4" /> Bulk add
+              </Button>
+              <Button onClick={openCreate} size="sm">
+                <Plus className="size-4" /> Add candidate
+              </Button>
+            </div>
           )
         }
       />
@@ -263,6 +270,10 @@ export function CandidatesPage() {
             />
           }
         />
+      )}
+
+      {canManage && (
+        <BulkUploadDialog open={bulkOpen} onOpenChange={setBulkOpen} />
       )}
 
       {canManage && (

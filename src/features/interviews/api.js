@@ -22,6 +22,11 @@ export async function updateInterview(id, payload) {
   return data
 }
 
+export async function saveFeedback(id, payload) {
+  const { data } = await apiClient.patch(`/interviews/${id}/feedback`, payload)
+  return data
+}
+
 export async function recordOutcome(id, payload) {
   const { data } = await apiClient.patch(`/interviews/${id}/outcome`, payload)
   return data

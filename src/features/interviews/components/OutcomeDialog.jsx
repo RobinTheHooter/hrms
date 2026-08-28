@@ -11,43 +11,12 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  COMPETENCIES,
+  RECOMMENDATIONS,
+  Rating,
+} from '@/features/interviews/components/scorecard'
 import { cn } from '@/lib/utils'
-
-const COMPETENCIES = [
-  { key: 'technical', label: 'Technical' },
-  { key: 'communication', label: 'Communication' },
-  { key: 'culture_fit', label: 'Culture fit' },
-  { key: 'problem_solving', label: 'Problem solving' },
-]
-
-const RECOMMENDATIONS = [
-  { value: 'strong_no', label: 'Strong No', positive: false },
-  { value: 'no', label: 'No', positive: false },
-  { value: 'yes', label: 'Yes', positive: true },
-  { value: 'strong_yes', label: 'Strong Yes', positive: true },
-]
-
-function Rating({ value, onChange }) {
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          onClick={() => onChange(value === n ? null : n)}
-          className={cn(
-            'flex size-8 items-center justify-center rounded-md border text-sm font-medium transition-colors',
-            value >= n
-              ? 'border-primary bg-primary/10 text-primary'
-              : 'text-muted-foreground hover:bg-muted',
-          )}
-        >
-          {n}
-        </button>
-      ))}
-    </div>
-  )
-}
 
 export function OutcomeDialog({ open, onOpenChange, interview, onSubmit, isSubmitting }) {
   return (
@@ -82,11 +51,18 @@ function ScorecardForm({ interview, isSubmitting, onCancel, onSubmit }) {
   const [strengths, setStrengths] = useState(fb.strengths ?? '')
   const [concerns, setConcerns] = useState(fb.concerns ?? '')
   const [notes, setNotes] = useState(interview?.notes ?? '')
+  const [error, setError] = useState('')
 
   const positive = RECOMMENDATIONS.find((r) => r.value === recommendation)?.positive
   const outcome = positive ? 'selected' : 'rejected'
 
   const submit = () => {
+    // A reason is mandatory when rejecting.
+    if (outcome === 'rejected' && !notes.trim()) {
+      setError('A reason is required when rejecting a candidate.')
+      return
+    }
+    setError('')
     onSubmit({
       outcome,
       notes: notes || null,
@@ -162,8 +138,24 @@ function ScorecardForm({ interview, isSubmitting, onCancel, onSubmit }) {
           </div>
 
           <div>
-            <Label className="mb-1">Summary notes</Label>
-            <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <Label className="mb-1">
+              {outcome === 'rejected' ? 'Reason for rejection' : 'Summary notes'}
+              {outcome === 'rejected' && <span className="text-destructive"> *</span>}
+            </Label>
+            <Textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => {
+                setNotes(e.target.value)
+                if (error) setError('')
+              }}
+              placeholder={
+                outcome === 'rejected'
+                  ? 'Why is this candidate being rejected?'
+                  : undefined
+              }
+            />
+            {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
           </div>
         </div>
 

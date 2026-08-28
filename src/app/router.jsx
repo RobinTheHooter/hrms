@@ -10,15 +10,16 @@ import { useAuthStore } from '@/features/auth/store'
 import { NotFoundPage } from '@/features/misc/NotFoundPage'
 import { RouteError } from '@/features/misc/RouteError'
 
-// NOTE: the dashboards and Employees module are hidden during the ATS pivot.
-// Their page components still exist under features/ but aren't routed here.
-
 // Code-split each page into its own chunk (named exports → default for lazy).
 const lazyPage = (factory, name) =>
   lazy(() => factory().then((m) => ({ default: m[name] })))
 
 const LoginPage = lazyPage(() => import('@/features/auth/pages/LoginPage'), 'LoginPage')
 const DashboardPage = lazyPage(() => import('@/features/dashboard/pages/DashboardPage'), 'DashboardPage')
+const AnalyticsPage = lazyPage(() => import('@/features/dashboard/pages/AnalyticsPage'), 'AnalyticsPage')
+const AttritionPage = lazyPage(() => import('@/features/dashboard/pages/AttritionPage'), 'AttritionPage')
+const PredictivePage = lazyPage(() => import('@/features/dashboard/pages/PredictivePage'), 'PredictivePage')
+const EmployeesPage = lazyPage(() => import('@/features/employees/pages/EmployeesPage'), 'EmployeesPage')
 const JobsPage = lazyPage(() => import('@/features/jobs/pages/JobsPage'), 'JobsPage')
 const JobDetailPage = lazyPage(() => import('@/features/jobs/pages/JobDetailPage'), 'JobDetailPage')
 const CandidatesPage = lazyPage(() => import('@/features/candidates/pages/CandidatesPage'), 'CandidatesPage')
@@ -83,6 +84,10 @@ export const router = createBrowserRouter([
             children: [
               { path: '/', element: <RoleHome /> },
               { path: '/dashboard', element: <DashboardPage /> },
+              { path: '/analytics', element: guarded(PERMISSIONS.JOBS_MANAGE, <AnalyticsPage />) },
+              { path: '/analytics/attrition', element: guarded(PERMISSIONS.JOBS_MANAGE, <AttritionPage />) },
+              { path: '/analytics/predictive', element: guarded(PERMISSIONS.JOBS_MANAGE, <PredictivePage />) },
+              { path: '/employees', element: guarded(PERMISSIONS.EMPLOYEES_VIEW, <EmployeesPage />) },
               { path: '/jobs', element: guarded(PERMISSIONS.JOBS_VIEW, <JobsPage />) },
               { path: '/jobs/:id', element: guarded(PERMISSIONS.JOBS_VIEW, <JobDetailPage />) },
               { path: '/candidates', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidatesPage />) },

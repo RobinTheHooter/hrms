@@ -12,6 +12,7 @@ import {
   listHiringManagers,
   listInterviews,
   recordOutcome,
+  saveFeedback,
   scheduleInterview,
   updateInterview,
 } from '@/features/interviews/api'
@@ -61,6 +62,10 @@ export function useUpdateInterview() {
 
 export function useRecordOutcome() {
   return useInterviewMutation(({ id, payload }) => recordOutcome(id, payload))
+}
+
+export function useSaveFeedback() {
+  return useInterviewMutation(({ id, payload }) => saveFeedback(id, payload))
 }
 
 export function useDeleteInterview() {

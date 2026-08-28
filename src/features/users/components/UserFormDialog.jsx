@@ -1,34 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ShieldCheck, UserCircle } from 'lucide-react'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
 
+import { Combobox } from '@/components/ui/combobox'
 import { FormDialog } from '@/components/ui/form-dialog'
+import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
-import { Field } from '@/components/ui/field'
-import {
-  Select,
-  SelectContent,
-  SelectEmpty,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useOptions } from '@/features/meta/hooks'
-
-const passwordField = (required) =>
-  required
-    ? z.string().min(8, 'At least 8 characters')
-    : z.string().min(8, 'At least 8 characters').or(z.literal(''))
-
-const makeSchema = (isEdit) =>
-  z.object({
-    full_name: z.string().min(1, 'Required'),
-    email: z.string().email('Enter a valid email'),
-    password: passwordField(!isEdit),
-    role: z.string().min(1, 'Required'),
-    is_active: z.enum(['true', 'false']),
-  })
+import { makeUserSchema } from '@/lib/validation'
 
 export function UserFormDialog({
   open,
@@ -47,7 +27,7 @@ export function UserFormDialog({
     control,
     reset,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(makeSchema(isEdit)) })
+  } = useForm({ resolver: zodResolver(makeUserSchema(isEdit)) })
 
   useEffect(() => {
     if (open) {
@@ -86,70 +66,63 @@ export function UserFormDialog({
       }
       onSubmit={submit}
       isSubmitting={isSubmitting}
+      contentClassName="max-w-2xl"
+      formClassName="space-y-6"
     >
-          <Field label="Full name" error={errors.full_name}>
-            <Input {...register('full_name')} />
-          </Field>
+      <FormSection icon={UserCircle} title="Account">
+        <FieldRow label="Full name" error={errors.full_name}>
+          <Input placeholder="Aditi Sharma" {...register('full_name')} />
+        </FieldRow>
+        <FieldRow label="Email" error={errors.email}>
+          <Input type="email" placeholder="name@company.com" disabled={isEdit} {...register('email')} />
+        </FieldRow>
+        <FieldRow
+          label={isEdit ? 'Reset password' : 'Password'}
+          description={isEdit ? 'Leave blank to keep current' : undefined}
+          error={errors.password}
+        >
+          <Input
+            type="password"
+            placeholder={isEdit ? 'Leave blank to keep current' : 'At least 8 characters'}
+            {...register('password')}
+          />
+        </FieldRow>
+      </FormSection>
 
-          <Field label="Email" error={errors.email}>
-            <Input type="email" disabled={isEdit} {...register('email')} />
-          </Field>
-
-          <Field
-            label={isEdit ? 'Reset password (optional)' : 'Password'}
-            error={errors.password}
-          >
-            <Input
-              type="password"
-              placeholder={isEdit ? 'Leave blank to keep current' : ''}
-              {...register('password')}
-            />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Role" error={errors.role}>
-              <Controller
-                control={control}
-                name="role"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {roles.length === 0 ? (
-                        <SelectEmpty>No roles found</SelectEmpty>
-                      ) : (
-                        roles.map((r) => (
-                          <SelectItem key={r.value} value={r.value}>
-                            {r.label}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                )}
+      <FormSection icon={ShieldCheck} title="Access">
+        <FieldRow label="Role" error={errors.role}>
+          <Controller
+            control={control}
+            name="role"
+            render={({ field }) => (
+              <Combobox
+                value={field.value}
+                onValueChange={field.onChange}
+                options={roles}
+                placeholder="Select role"
+                emptyText="No roles found"
               />
-            </Field>
-
-            <Field label="Status" error={errors.is_active}>
-              <Controller
-                control={control}
-                name="is_active"
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Active</SelectItem>
-                      <SelectItem value="false">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
+            )}
+          />
+        </FieldRow>
+        <FieldRow label="Status" error={errors.is_active}>
+          <Controller
+            control={control}
+            name="is_active"
+            render={({ field }) => (
+              <Combobox
+                value={field.value}
+                onValueChange={field.onChange}
+                placeholder="Select status"
+                options={[
+                  { value: 'true', label: 'Active' },
+                  { value: 'false', label: 'Inactive' },
+                ]}
               />
-            </Field>
-          </div>
+            )}
+          />
+        </FieldRow>
+      </FormSection>
     </FormDialog>
   )
 }

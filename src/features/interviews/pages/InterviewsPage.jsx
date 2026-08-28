@@ -10,6 +10,7 @@ import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { getInterviewColumns } from '@/features/interviews/columns'
 import { toLocalInput } from '@/features/interviews/constants'
+import { FeedbackDialog } from '@/features/interviews/components/FeedbackDialog'
 import { InterviewScheduleDialog } from '@/features/interviews/components/InterviewScheduleDialog'
 import { OutcomeDialog } from '@/features/interviews/components/OutcomeDialog'
 import {
@@ -17,6 +18,7 @@ import {
   useDeleteInterview,
   useInterviews,
   useRecordOutcome,
+  useSaveFeedback,
   useScheduleInterview,
   useUpdateInterview,
 } from '@/features/interviews/hooks'
@@ -35,6 +37,7 @@ export function InterviewsPage() {
   const [params] = useSearchParams()
   const [schedule, setSchedule] = useState({ open: false, mode: 'create', interview: null })
   const [outcome, setOutcome] = useState({ open: false, interview: null })
+  const [feedback, setFeedback] = useState({ open: false, interview: null })
 
   // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
   const status = params.get('status') ?? undefined
@@ -44,6 +47,7 @@ export function InterviewsPage() {
   const scheduleMut = useScheduleInterview()
   const updateMut = useUpdateInterview()
   const outcomeMut = useRecordOutcome()
+  const feedbackMut = useSaveFeedback()
   const deleteMut = useDeleteInterview()
   const bulkDeleteMut = useBulkDeleteInterviews()
 
@@ -77,6 +81,7 @@ export function InterviewsPage() {
   const openSchedule = () => setSchedule({ open: true, mode: 'create', interview: null })
   const openReschedule = (interview) => setSchedule({ open: true, mode: 'edit', interview })
   const openOutcome = (interview) => setOutcome({ open: true, interview })
+  const openFeedback = (interview) => setFeedback({ open: true, interview })
 
   const handleDelete = async (interview) => {
     const ok = await confirm({
@@ -120,11 +125,25 @@ export function InterviewsPage() {
     )
   }
 
+  const handleFeedbackSubmit = (payload) => {
+    feedbackMut.mutate(
+      { id: feedback.interview.id, payload },
+      {
+        onSuccess: () => {
+          toast.success('Feedback saved')
+          setFeedback({ open: false, interview: null })
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to save feedback')),
+      },
+    )
+  }
+
   const columns = useMemo(
     () =>
       getInterviewColumns({
         onEdit: openReschedule,
         onOutcome: openOutcome,
+        onFeedback: openFeedback,
         onDelete: handleDelete,
         canSchedule,
         canConduct,
@@ -203,6 +222,16 @@ export function InterviewsPage() {
           interview={outcome.interview}
           onSubmit={handleOutcomeSubmit}
           isSubmitting={outcomeMut.isPending}
+        />
+      )}
+
+      {canConduct && (
+        <FeedbackDialog
+          open={feedback.open}
+          onOpenChange={(open) => setFeedback((f) => ({ ...f, open }))}
+          interview={feedback.interview}
+          onSubmit={handleFeedbackSubmit}
+          isSubmitting={feedbackMut.isPending}
         />
       )}
     </div>
