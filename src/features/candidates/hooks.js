@@ -24,7 +24,8 @@ const KEY = ['candidates']
 export function useBulkUploadCandidates() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ jobId, files }) => bulkUploadCandidates(jobId, files),
+    mutationFn: ({ jobId, files, sendAck }) =>
+      bulkUploadCandidates(jobId, files, sendAck),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   })
 }

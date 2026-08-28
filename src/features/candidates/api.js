@@ -49,14 +49,15 @@ export async function bulkDeleteCandidates(ids) {
   return data
 }
 
-export async function bulkUploadCandidates(jobId, files) {
+export async function bulkUploadCandidates(jobId, files, sendAck = false) {
   const form = new FormData()
   form.append('job_id', jobId)
+  form.append('send_ack', sendAck ? 'true' : 'false')
   for (const file of files) form.append('files', file)
   const { data } = await apiClient.post('/candidates/bulk-upload', form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
-  return data // { total, created, results: [{ filename, status, name, email, candidate_id, error }] }
+  return data // { total, created, emailed, results: [{ filename, status, name, email, candidate_id, error }] }
 }
 
 export async function getEmailTemplates(id) {

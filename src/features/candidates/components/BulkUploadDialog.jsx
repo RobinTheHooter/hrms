@@ -43,6 +43,7 @@ function BulkForm({ onDone }) {
 
   const [jobId, setJobId] = useState('')
   const [files, setFiles] = useState([])
+  const [sendAck, setSendAck] = useState(false)
   const [result, setResult] = useState(null)
   const mut = useBulkUploadCandidates()
 
@@ -50,11 +51,12 @@ function BulkForm({ onDone }) {
     if (!jobId) return toast.error('Select a job first')
     if (files.length === 0) return toast.error('Choose at least one resume')
     mut.mutate(
-      { jobId, files },
+      { jobId, files, sendAck },
       {
         onSuccess: (data) => {
           setResult(data)
-          toast.success(`${data.created} of ${data.total} candidates added`)
+          const emailed = data.emailed ? `, ${data.emailed} emailed` : ''
+          toast.success(`${data.created} of ${data.total} candidates added${emailed}`)
         },
         onError: () => toast.error('Bulk upload failed'),
       },
@@ -115,6 +117,21 @@ function BulkForm({ onDone }) {
           <p className="text-xs text-muted-foreground">{files.length} file(s) selected</p>
         )}
       </div>
+
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={sendAck}
+          onChange={(e) => setSendAck(e.target.checked)}
+          className="mt-0.5 size-4 accent-primary"
+        />
+        <span>
+          Send “application received” email
+          <span className="block text-xs text-muted-foreground">
+            Only sent to candidates whose email is detected in their resume.
+          </span>
+        </span>
+      </label>
 
       <DialogFooter>
         <Button variant="outline" onClick={onDone} disabled={mut.isPending}>

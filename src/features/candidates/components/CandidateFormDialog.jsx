@@ -49,6 +49,7 @@ export function CandidateFormDialog({
   const priorities = options?.priorities ?? []
 
   const [file, setFile] = useState(null)
+  const [sendAck, setSendAck] = useState(false)
   const {
     register,
     handleSubmit,
@@ -61,6 +62,7 @@ export function CandidateFormDialog({
     if (open) {
       reset(initialValues ?? EMPTY)
       setFile(null)
+      setSendAck(false)
     }
   }, [open, initialValues, reset])
 
@@ -81,7 +83,10 @@ export function CandidateFormDialog({
       priority: v.priority,
       notes: v.notes || null,
     }
-    if (!isEdit) payload.job_id = Number(v.job_id)
+    if (!isEdit) {
+      payload.job_id = Number(v.job_id)
+      payload.send_ack = sendAck
+    }
     onSubmit(payload, file)
   })
 
@@ -193,6 +198,23 @@ export function CandidateFormDialog({
           <Textarea rows={3} placeholder="Anything worth flagging about this candidate…" {...register('notes')} />
         </FieldRow>
       </FormSection>
+
+      {!isEdit && (
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={sendAck}
+            onChange={(e) => setSendAck(e.target.checked)}
+            className="mt-0.5 size-4 accent-primary"
+          />
+          <span>
+            Send “application received” email
+            <span className="block text-xs text-muted-foreground">
+              Only sent for candidates added at the “Applied” stage.
+            </span>
+          </span>
+        </label>
+      )}
     </FormDialog>
   )
 }
