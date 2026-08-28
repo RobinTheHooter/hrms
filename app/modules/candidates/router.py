@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -63,6 +63,16 @@ async def create_candidate(
 ) -> CandidateRead:
     candidate = await CandidateService(db).create(data, current_user)
     return CandidateRead.model_validate(candidate)
+
+
+@router.post("/bulk-upload", status_code=status.HTTP_201_CREATED)
+async def bulk_upload_candidates(
+    current_user: ManageUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    job_id: int = Form(...),
+    files: list[UploadFile] = File(...),
+) -> dict:
+    return await ScreeningService(db).bulk_upload(job_id, files, current_user)
 
 
 @router.post("/bulk-delete", response_model=BulkResult)
