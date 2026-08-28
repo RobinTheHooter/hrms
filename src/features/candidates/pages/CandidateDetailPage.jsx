@@ -58,13 +58,47 @@ const RECOMMENDATION = {
   no: { label: 'No', variant: 'destructive' },
   strong_no: { label: 'Strong No', variant: 'destructive' },
 }
+const NEXT_STEP = {
+  join: { label: 'Selected to join', variant: 'success' },
+  next_round: { label: 'Next round', variant: 'info' },
+  on_hold: { label: 'On hold', variant: 'warning' },
+}
 
 function InterviewFeedback({ feedback }) {
   const rec = RECOMMENDATION[feedback.recommendation]
+  const step = NEXT_STEP[feedback.next_step]
   const ratings = Object.entries(feedback.ratings ?? {}).filter(([, v]) => v)
   return (
     <div className="mt-2 space-y-2 rounded-lg border bg-muted/20 p-3">
-      {rec && <Badge variant={rec.variant}>{rec.label}</Badge>}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {step && <Badge variant={step.variant}>{step.label}</Badge>}
+        {rec && <Badge variant={rec.variant}>{rec.label}</Badge>}
+      </div>
+      {feedback.next_step === 'join' &&
+        (feedback.tentative_joining_date || feedback.estimated_ctc != null) && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            {feedback.tentative_joining_date && (
+              <span>
+                <span className="text-xs text-muted-foreground">Tentative joining: </span>
+                {feedback.tentative_joining_date}
+              </span>
+            )}
+            {feedback.estimated_ctc != null && (
+              <span>
+                <span className="text-xs text-muted-foreground">Est. CTC: </span>
+                {feedback.estimated_ctc.toLocaleString('en-IN')}
+              </span>
+            )}
+          </div>
+        )}
+      {feedback.next_step_note && (
+        <div>
+          <div className="text-xs font-medium text-muted-foreground">
+            {feedback.next_step === 'next_round' ? 'Next round' : 'On hold'}
+          </div>
+          <p className="text-sm">{feedback.next_step_note}</p>
+        </div>
+      )}
       {ratings.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {ratings.map(([k, v]) => (

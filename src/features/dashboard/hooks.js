@@ -29,6 +29,21 @@ export function useConsultantBreakdown(enabled) {
   })
 }
 
+async function getRecentDecisions(limit) {
+  const { data } = await apiClient.get('/dashboard/recent-decisions', {
+    params: { limit },
+  })
+  return data
+}
+
+export function useRecentDecisions(limit = 12) {
+  return useQuery({
+    queryKey: ['dashboard', 'recent-decisions', limit],
+    queryFn: () => getRecentDecisions(limit),
+    placeholderData: keepPreviousData,
+  })
+}
+
 async function getRecruitingAnalytics() {
   const { data } = await apiClient.get('/dashboard/analytics/recruiting')
   return data

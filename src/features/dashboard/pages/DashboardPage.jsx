@@ -38,6 +38,7 @@ import { useCurrentUser } from '@/features/auth/hooks'
 import { stageVariant } from '@/features/candidates/constants'
 import { ConsultantBreakdown } from '@/features/dashboard/components/ConsultantBreakdown'
 import { DashboardSkeleton } from '@/features/dashboard/components/DashboardSkeleton'
+import { RecentDecisions } from '@/features/dashboard/components/RecentDecisions'
 import { StatCard } from '@/features/dashboard/components/StatCard'
 import { useDashboardSummary } from '@/features/dashboard/hooks'
 import { formatWhen, googleCalendarUrl } from '@/features/interviews/constants'
@@ -350,6 +351,8 @@ export function DashboardPage() {
           </Panel>
         )}
       </div>
+
+      <RecentDecisions />
 
       {/* Admin/HR extras */}
       {manageAll && (
