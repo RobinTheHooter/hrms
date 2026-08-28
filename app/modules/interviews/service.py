@@ -181,12 +181,17 @@ class InterviewService:
             interview.feedback = data.feedback.model_dump(exclude_none=True)
 
         # Reflect the outcome back onto the candidate's pipeline stage, but only
+        # for the candidate's most recent interview. The next-step decision
+        # decides how far they move: only "join" advances them to Offer; a next
+        # round keeps them in the interview pipeline; on-hold leaves them as-is.
         if await self._is_latest_interview(interview):
             candidate = interview.candidate
-            if data.outcome == InterviewOutcome.SELECTED:
-                candidate.stage = CandidateStage.OFFER
-            elif data.outcome == InterviewOutcome.REJECTED:
+            next_step = data.feedback.next_step if data.feedback else None
+            if data.outcome == InterviewOutcome.REJECTED:
                 candidate.stage = CandidateStage.REJECTED
+            elif data.outcome == InterviewOutcome.SELECTED and next_step == "join":
+                candidate.stage = CandidateStage.OFFER
+            # next_round / on_hold / no next_step -> leave the stage unchanged.
         return interview
 
     async def set_feedback(

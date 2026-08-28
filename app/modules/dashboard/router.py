@@ -35,6 +35,15 @@ async def consultant_breakdown(
     return await DashboardService(db).consultant_breakdown()
 
 
+@router.get("/recent-decisions")
+async def recent_decisions(
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    limit: int = Query(12, ge=1, le=50),
+) -> list[dict]:
+    return await DashboardService(db).recent_decisions(current_user, limit)
+
+
 @router.get(
     "/analytics/recruiting",
     dependencies=[Depends(require_permission(Permission.JOBS_MANAGE))],

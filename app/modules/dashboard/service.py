@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from app.common.enums import (
     CandidateSource,
@@ -127,6 +128,47 @@ class DashboardService:
                 }
             )
         return result
+
+    async def recent_decisions(self, user: User, limit: int = 12) -> list[dict]:
+        """Latest hiring-manager decisions (completed interviews with feedback),
+        scoped to what the current user is allowed to see."""
+        cond = self._interview_cond(user)
+        manager = aliased(User)
+        stmt = (
+            select(
+                Interview.id,
+                Interview.candidate_id,
+                Candidate.full_name,
+                Job.title,
+                Interview.outcome,
+                Interview.scheduled_at,
+                Interview.updated_at,
+                Interview.feedback,
+                manager.full_name,
+            )
+            .join(Candidate, Interview.candidate_id == Candidate.id)
+            .join(Job, Candidate.job_id == Job.id)
+            .join(manager, Interview.hiring_manager_id == manager.id, isouter=True)
+            .where(Interview.status == InterviewStatus.COMPLETED)
+            .order_by(Interview.updated_at.desc())
+            .limit(limit)
+        )
+        stmt = _apply(stmt, cond)
+        rows = (await self.db.execute(stmt)).all()
+        return [
+            {
+                "interview_id": r[0],
+                "candidate_id": r[1],
+                "candidate_name": r[2],
+                "job_title": r[3],
+                "outcome": r[4].value,
+                "scheduled_at": r[5].isoformat() if r[5] else None,
+                "decided_at": r[6].isoformat() if r[6] else None,
+                "feedback": r[7],
+                "hiring_manager": r[8],
+            }
+            for r in rows
+        ]
 
     # --- summary -----------------------------------------------------------
     async def summary(self, user: User, days: int = 7) -> dict:
