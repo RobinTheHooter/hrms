@@ -83,14 +83,16 @@ class CandidateService:
     async def create(self, data: CandidateCreate, user: User) -> Candidate:
         job = await self._job_or_404(data.job_id)
         self._assert_can_touch_job(job, user)
-        candidate = Candidate(**data.model_dump(), created_by_id=user.id)
+        candidate = Candidate(
+            **data.model_dump(exclude={"send_ack"}), created_by_id=user.id
+        )
         candidate = await self.repo.create(candidate)
 
-        # Auto-acknowledge new applicants in the background (best-effort,
-        # config-gated). Commit first so the job can load the candidate.
+        # Acknowledge new applicants in the background (best-effort). Sending is
+        # opt-in per submission (send_ack) and only for new applications.
         if (
             settings.email_enabled
-            and settings.AUTO_EMAIL_APPLICATION_RECEIVED
+            and data.send_ack
             and candidate.stage == CandidateStage.APPLIED
         ):
             await self.db.commit()

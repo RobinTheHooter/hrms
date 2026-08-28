@@ -1,15 +1,18 @@
 import logging
+import re
 from datetime import datetime
 
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.enums import CandidateSource, CandidateStage
 from app.common.exceptions import AppError
 from app.core.config import get_settings
 from app.core.tasks import enqueue
 from app.modules.auth.models import User
 from app.modules.candidates.models import Candidate
 from app.modules.candidates.service import CandidateService
+from app.modules.notifications.tasks import send_candidate_template_bg
 from app.modules.screening.ai import score_resume
 from app.modules.screening.extract import extract_text
 from app.modules.screening.tasks import screen_candidate
@@ -19,6 +22,23 @@ logger = logging.getLogger("hrms.screening")
 
 _MAX_BYTES = 5_000_000
 _MAX_TEXT = 20_000
+_EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
+# Filename noise to strip when guessing a candidate name.
+_NAME_NOISE = re.compile(r"\b(resume|cv|curriculum|vitae|final|updated|copy)\b", re.I)
+
+
+def _find_email(text: str) -> str | None:
+    m = _EMAIL_RE.search(text or "")
+    return m.group(0).lower() if m else None
+
+
+def _guess_name(filename: str) -> str:
+    """Best-effort candidate name from the file name; consultant can fix later."""
+    stem = re.sub(r"\.[^.]+$", "", filename or "").strip()
+    stem = re.sub(r"[_\-]+", " ", stem)
+    stem = _NAME_NOISE.sub("", stem)
+    stem = re.sub(r"\s+", " ", stem).strip()
+    return stem.title() if stem else "Unknown candidate"
 
 
 class ScreeningService:
@@ -64,6 +84,91 @@ class ScreeningService:
             enqueue(screen_candidate, candidate.id)
 
         return candidate
+
+    async def bulk_upload(
+        self,
+        job_id: int,
+        files: list[UploadFile],
+        user: User,
+        send_ack: bool = False,
+    ) -> dict:
+        """Create one candidate per uploaded resume, then screen each in the
+        background. Name/email are parsed best-effort (email from the resume
+        text, name from the file name) so they can be corrected afterwards.
+
+        When `send_ack` is set, an application-received email is queued — but
+        only for candidates whose email was actually detected in the resume
+        (never the generated placeholder addresses).
+        """
+        cs = CandidateService(self.db)
+        job = await cs._job_or_404(job_id)
+        cs._assert_can_touch_job(job, user)
+
+        results: list[dict] = []
+        new_ids: list[int] = []
+        ack_ids: list[int] = []
+        for file in files:
+            try:
+                data = await file.read()
+                if len(data) > _MAX_BYTES:
+                    raise AppError("File too large (max 5 MB)")
+                text = extract_text(file.filename or "", data)
+                if not text.strip():
+                    raise AppError("Couldn't read any text from that file")
+
+                detected = _find_email(text)
+                email = detected or f"import-{job_id}-{len(results) + 1}@unknown.local"
+                candidate = Candidate(
+                    job_id=job_id,
+                    full_name=_guess_name(file.filename or ""),
+                    email=email,
+                    source=CandidateSource.APPLIED,
+                    stage=CandidateStage.APPLIED,
+                    created_by_id=user.id,
+                    resume_text=text[:_MAX_TEXT],
+                    resume_data=data,
+                    resume_filename=file.filename or "resume",
+                    resume_mime=file.content_type or "application/octet-stream",
+                )
+                self.db.add(candidate)
+                await self.db.flush()
+                new_ids.append(candidate.id)
+                if detected:
+                    ack_ids.append(candidate.id)
+                results.append(
+                    {
+                        "filename": file.filename,
+                        "candidate_id": candidate.id,
+                        "name": candidate.full_name,
+                        "email": email,
+                        "status": "created",
+                    }
+                )
+            except Exception as exc:  # noqa: BLE001
+                results.append(
+                    {"filename": file.filename, "status": "failed", "error": str(exc)}
+                )
+
+        await self.db.commit()
+
+        # Screen everything we created (background, best-effort).
+        if settings.AUTO_AI_SCREENING and settings.ai_enabled:
+            for cid in new_ids:
+                enqueue(screen_candidate, cid)
+
+        # Acknowledgement emails — opt-in, and only to real detected addresses.
+        acked = 0
+        if send_ack and settings.email_enabled:
+            for cid in ack_ids:
+                enqueue(send_candidate_template_bg, cid, "application_received", user.id)
+            acked = len(ack_ids)
+
+        return {
+            "total": len(files),
+            "created": len(new_ids),
+            "emailed": acked,
+            "results": results,
+        }
 
     async def score(self, candidate_id: int, user: User) -> Candidate:
         """Manual (re)evaluation — surfaces errors to the caller."""

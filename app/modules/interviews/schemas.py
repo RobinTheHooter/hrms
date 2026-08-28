@@ -65,6 +65,13 @@ class InterviewOutcomeUpdate(BaseModel):
     feedback: InterviewFeedback | None = None
 
 
+class InterviewFeedbackUpdate(BaseModel):
+    """Standalone feedback edit — does not change status or outcome."""
+
+    feedback: InterviewFeedback
+    notes: str | None = None
+
+
 class InterviewRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

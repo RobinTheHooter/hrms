@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     DEBUG: bool = False
 
+    # When true, the seed script also inserts sample employees (local demos).
+    # Left False everywhere it isn't explicitly set, so deployed/demo databases
+    # stay free of sample data.
+    SEED_SAMPLE_DATA: bool = False
+
     # postgresql+asyncpg://user:password@host:port/dbname
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/hrms"
 

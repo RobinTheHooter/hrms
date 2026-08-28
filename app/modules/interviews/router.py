@@ -18,6 +18,7 @@ from app.modules.auth.models import User
 from app.modules.integrations.calendar import GoogleCalendarService
 from app.modules.interviews.schemas import (
     InterviewCreate,
+    InterviewFeedbackUpdate,
     InterviewOutcomeUpdate,
     InterviewRead,
     InterviewUpdate,
@@ -122,6 +123,19 @@ async def record_outcome(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> InterviewRead:
     interview = await InterviewService(db).record_outcome(
+        interview_id, data, current_user
+    )
+    return InterviewRead.model_validate(interview)
+
+
+@router.patch("/{interview_id}/feedback", response_model=InterviewRead)
+async def set_feedback(
+    interview_id: int,
+    data: InterviewFeedbackUpdate,
+    current_user: ConductUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> InterviewRead:
+    interview = await InterviewService(db).set_feedback(
         interview_id, data, current_user
     )
     return InterviewRead.model_validate(interview)
