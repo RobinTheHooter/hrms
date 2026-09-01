@@ -164,6 +164,8 @@ export function DashboardPage() {
         ))}
       </div>
 
+      <RecentDecisions />
+
       {/* Activity window + needs attention */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel title={`Last ${days} days`}>
@@ -351,8 +353,6 @@ export function DashboardPage() {
           </Panel>
         )}
       </div>
-
-      <RecentDecisions />
 
       {/* Admin/HR extras */}
       {manageAll && (

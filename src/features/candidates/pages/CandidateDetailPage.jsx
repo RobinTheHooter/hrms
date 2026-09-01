@@ -63,6 +63,13 @@ const NEXT_STEP = {
   next_round: { label: 'Next round', variant: 'info' },
   on_hold: { label: 'On hold', variant: 'warning' },
 }
+// Banner shown at the top of the interview history, per latest decision.
+const DECISION_BANNER = {
+  join: { text: 'Candidate advanced to Offer.', label: 'Send offer email', template: 'offer' },
+  next_round: { text: 'Candidate moved to the next round.' },
+  on_hold: { text: 'Candidate is on hold.' },
+  reject: { text: 'Candidate marked Rejected.', label: 'Send rejection email', template: 'rejected' },
+}
 
 function InterviewFeedback({ feedback }) {
   const rec = RECOMMENDATION[feedback.recommendation]
@@ -154,7 +161,18 @@ export function CandidateDetailPage() {
   const { data: candidate, isLoading, isError } = useCandidate(id)
   const { data: interviewsPage } = useInterviews({ page: 1, size: 50, candidate_id: Number(id) })
   const interviews = interviewsPage?.items ?? []
-  const latestOutcome = interviews.find((iv) => iv.outcome)?.outcome ?? null
+  // The most recent decided interview drives the banner. Prefer the structured
+  // next-step decision; fall back to the raw outcome for older records.
+  const latestDecided = interviews.find(
+    (iv) => iv.feedback?.next_step || iv.outcome === 'selected' || iv.outcome === 'rejected',
+  )
+  const latestStep =
+    latestDecided?.feedback?.next_step ??
+    (latestDecided?.outcome === 'rejected'
+      ? 'reject'
+      : latestDecided?.outcome === 'selected'
+        ? 'join'
+        : null)
 
   const updateMut = useUpdateCandidate()
   const uploadMut = useUploadResume()
@@ -296,21 +314,19 @@ export function CandidateDetailPage() {
 
           {/* Interviews */}
           <Panel title="Interview history">
-            {canManage && (latestOutcome === 'selected' || latestOutcome === 'rejected') && (
+            {canManage && DECISION_BANNER[latestStep] && (
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-primary/5 px-3 py-2">
-                <span className="text-sm">
-                  {latestOutcome === 'selected'
-                    ? 'Candidate advanced to Offer.'
-                    : 'Candidate marked Rejected.'}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openEmail(latestOutcome === 'selected' ? 'offer' : 'rejected')}
-                >
-                  <Mail className="size-4" />
-                  {latestOutcome === 'selected' ? 'Send offer email' : 'Send rejection email'}
-                </Button>
+                <span className="text-sm">{DECISION_BANNER[latestStep].text}</span>
+                {DECISION_BANNER[latestStep].label && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEmail(DECISION_BANNER[latestStep].template)}
+                  >
+                    <Mail className="size-4" />
+                    {DECISION_BANNER[latestStep].label}
+                  </Button>
+                )}
               </div>
             )}
             {interviews.length === 0 ? (
