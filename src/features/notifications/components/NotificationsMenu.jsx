@@ -1,4 +1,4 @@
-import { Bell, CalendarClock, UserPlus } from 'lucide-react'
+import { Bell, CalendarClock, ClipboardCheck, UserPlus } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 const TYPE_STYLE = {
   candidate: { icon: UserPlus, className: 'bg-info/12 text-info' },
   interview: { icon: CalendarClock, className: 'bg-warning/15 text-warning' },
+  decision: { icon: ClipboardCheck, className: 'bg-success/12 text-success' },
 }
 
 export function NotificationsMenu() {
