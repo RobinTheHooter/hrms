@@ -57,10 +57,15 @@ class InterviewService:
         user: User,
         params: PageParams,
         status: InterviewStatus | None = None,
+        candidate_id: int | None = None,
     ) -> Page[InterviewRead]:
         consultant_id, manager_id = self._scope(user)
         items, total = await self.repo.paginate(
-            params, status=status, consultant_id=consultant_id, manager_id=manager_id
+            params,
+            status=status,
+            consultant_id=consultant_id,
+            manager_id=manager_id,
+            candidate_id=candidate_id,
         )
         return Page.create(
             items=[InterviewRead.model_validate(i) for i in items],

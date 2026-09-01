@@ -22,9 +22,15 @@ class InterviewRepository:
         status: InterviewStatus | None = None,
         consultant_id: int | None = None,
         manager_id: int | None = None,
+        candidate_id: int | None = None,
     ) -> tuple[list[Interview], int]:
         stmt = select(Interview)
         count_stmt = select(func.count()).select_from(Interview)
+
+        # A single candidate's interview history.
+        if candidate_id is not None:
+            stmt = stmt.where(Interview.candidate_id == candidate_id)
+            count_stmt = count_stmt.where(Interview.candidate_id == candidate_id)
 
         # Consultants: only interviews for candidates on their assigned jobs.
         if consultant_id is not None:
