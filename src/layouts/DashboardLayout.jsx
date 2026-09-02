@@ -1,8 +1,7 @@
 import { LogOut, Plug, Settings, SlidersHorizontal, Sparkles } from 'lucide-react'
-import { Suspense } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 
-import { ChunkLoader } from '@/components/ChunkLoader'
+import { RoutingOutlet } from '@/components/RoutingOutlet'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { GlobalSearch } from '@/features/search/components/GlobalSearch'
 import { NotificationsMenu } from '@/features/notifications/components/NotificationsMenu'
@@ -143,9 +142,7 @@ export function DashboardLayout() {
         </header>
 
         <main className="flex-1 px-6 py-6">
-          <Suspense fallback={<ChunkLoader />}>
-            <Outlet />
-          </Suspense>
+          <RoutingOutlet />
         </main>
       </div>
     </div>

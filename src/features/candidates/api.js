@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/apiClient'
+import { HttpClient } from '@/lib/httpClient'
 
 export async function listCandidates({
   page = 1,
@@ -10,7 +10,7 @@ export async function listCandidates({
   min_score,
   sort,
 } = {}) {
-  const { data } = await apiClient.get('/candidates', {
+  return HttpClient('/candidates', {
     params: {
       page,
       size,
@@ -22,31 +22,26 @@ export async function listCandidates({
       sort: sort || undefined,
     },
   })
-  return data
 }
 
 export async function getCandidate(id) {
-  const { data } = await apiClient.get(`/candidates/${id}`)
-  return data
+  return HttpClient(`/candidates/${id}`)
 }
 
 export async function createCandidate(payload) {
-  const { data } = await apiClient.post('/candidates', payload)
-  return data
+  return HttpClient('/candidates', { method: 'POST', data: payload })
 }
 
 export async function updateCandidate(id, payload) {
-  const { data } = await apiClient.patch(`/candidates/${id}`, payload)
-  return data
+  return HttpClient(`/candidates/${id}`, { method: 'PATCH', data: payload })
 }
 
 export async function deleteCandidate(id) {
-  await apiClient.delete(`/candidates/${id}`)
+  await HttpClient(`/candidates/${id}`, { method: 'DELETE' })
 }
 
 export async function bulkDeleteCandidates(ids) {
-  const { data } = await apiClient.post('/candidates/bulk-delete', { ids })
-  return data
+  return HttpClient('/candidates/bulk-delete', { method: 'POST', data: { ids } })
 }
 
 export async function bulkUploadCandidates(jobId, files, sendAck = false) {
@@ -54,37 +49,30 @@ export async function bulkUploadCandidates(jobId, files, sendAck = false) {
   form.append('job_id', jobId)
   form.append('send_ack', sendAck ? 'true' : 'false')
   for (const file of files) form.append('files', file)
-  const { data } = await apiClient.post('/candidates/bulk-upload', form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
-  return data // { total, created, emailed, results: [{ filename, status, name, email, candidate_id, error }] }
+
+  return HttpClient('/candidates/bulk-upload', { method: 'POST', data: form })
 }
 
 export async function getEmailTemplates(id) {
-  const { data } = await apiClient.get(`/candidates/${id}/email-templates`)
-  return data // { enabled, candidate_email, templates: [{ key, label, subject, body }] }
+  return HttpClient(`/candidates/${id}/email-templates`)
 }
 
 export async function notifyCandidate(id, payload) {
-  await apiClient.post(`/candidates/${id}/notify`, payload)
+  await HttpClient(`/candidates/${id}/notify`, { method: 'POST', data: payload })
 }
 
 export async function uploadResume(id, file) {
   const form = new FormData()
   form.append('file', file)
-  const { data } = await apiClient.post(`/candidates/${id}/resume`, form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
-  return data
+  return HttpClient(`/candidates/${id}/resume`, { method: 'POST', data: form })
 }
 
 export async function scoreCandidate(id) {
-  const { data } = await apiClient.post(`/candidates/${id}/score`)
-  return data
+  return HttpClient(`/candidates/${id}/score`, { method: 'POST' })
 }
 
 export async function downloadResume(id) {
-  const res = await apiClient.get(`/candidates/${id}/resume/file`, {
+  const res = await HttpClient(`/candidates/${id}/resume/file`, {
     responseType: 'blob',
   })
   return res.data

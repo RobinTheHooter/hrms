@@ -1,16 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { apiClient } from '@/lib/apiClient'
+import { HttpClient } from '@/lib/httpClient'
 
 async function getOptions() {
-  const { data } = await apiClient.get('/meta/options')
-  return data // { employment_types, job_statuses, candidate_sources, candidate_stages, user_roles }
+  return HttpClient('/meta/options')
 }
 
-/**
- * All selectable dropdown options, served by the backend (single source of
- * truth). Cached for the session.
- */
+/* All selectable dropdown options, served by the backend (single source of truth). Cached for the session. */
 export function useOptions() {
   return useQuery({
     queryKey: ['meta', 'options'],

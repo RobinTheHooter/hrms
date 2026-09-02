@@ -1,6 +1,5 @@
-import { apiClient } from '@/lib/apiClient'
+import { HttpClient } from '@/lib/httpClient'
 
 export async function getNotifications() {
-  const { data } = await apiClient.get('/notifications')
-  return data
+  return HttpClient('/notifications')
 }

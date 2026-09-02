@@ -1,4 +1,3 @@
-import { lazy } from 'react'
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 
 import { BlankLayout } from '@/layouts/BlankLayout'
@@ -6,29 +5,9 @@ import { DashboardLayout } from '@/layouts/DashboardLayout'
 import { PERMISSIONS, can, landingPathFor } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useAuthStore } from '@/features/auth/store'
-// Eager: the error boundary and 404 sit outside the Suspense-wrapped layouts.
 import { NotFoundPage } from '@/features/misc/NotFoundPage'
 import { RouteError } from '@/features/misc/RouteError'
-
-// Code-split each page into its own chunk (named exports → default for lazy).
-const lazyPage = (factory, name) =>
-  lazy(() => factory().then((m) => ({ default: m[name] })))
-
-const LoginPage = lazyPage(() => import('@/features/auth/pages/LoginPage'), 'LoginPage')
-const DashboardPage = lazyPage(() => import('@/features/dashboard/pages/DashboardPage'), 'DashboardPage')
-const AnalyticsPage = lazyPage(() => import('@/features/dashboard/pages/AnalyticsPage'), 'AnalyticsPage')
-const AttritionPage = lazyPage(() => import('@/features/dashboard/pages/AttritionPage'), 'AttritionPage')
-const PredictivePage = lazyPage(() => import('@/features/dashboard/pages/PredictivePage'), 'PredictivePage')
-const EmployeesPage = lazyPage(() => import('@/features/employees/pages/EmployeesPage'), 'EmployeesPage')
-const JobsPage = lazyPage(() => import('@/features/jobs/pages/JobsPage'), 'JobsPage')
-const JobDetailPage = lazyPage(() => import('@/features/jobs/pages/JobDetailPage'), 'JobDetailPage')
-const CandidatesPage = lazyPage(() => import('@/features/candidates/pages/CandidatesPage'), 'CandidatesPage')
-const CandidateDetailPage = lazyPage(() => import('@/features/candidates/pages/CandidateDetailPage'), 'CandidateDetailPage')
-const InterviewsPage = lazyPage(() => import('@/features/interviews/pages/InterviewsPage'), 'InterviewsPage')
-const UsersPage = lazyPage(() => import('@/features/users/pages/UsersPage'), 'UsersPage')
-const IntegrationsPage = lazyPage(() => import('@/features/integrations/pages/IntegrationsPage'), 'IntegrationsPage')
-const ComingSoonPage = lazyPage(() => import('@/features/misc/ComingSoonPage'), 'ComingSoonPage')
-const ForbiddenPage = lazyPage(() => import('@/features/misc/ForbiddenPage'), 'ForbiddenPage')
+import { ChunkLoader } from '@/components/ChunkLoader'
 
 /** Not logged in -> bounce to login. */
 function RequireAuth() {
@@ -40,7 +19,7 @@ function RequireAuth() {
 /** Logged in but lacking permission -> full-screen 403. */
 function RequirePermission({ permission, children }) {
   const { data: user, isLoading } = useCurrentUser()
-  if (isLoading) return null
+  if (isLoading) return <ChunkLoader />
   if (!can(user, permission)) return <Navigate to="/403" replace />
   return children
 }
@@ -48,34 +27,55 @@ function RequirePermission({ permission, children }) {
 /** Land users on the right page for their role/permissions. */
 function RoleHome() {
   const { data: user, isLoading } = useCurrentUser()
-  if (isLoading) return null
+  if (isLoading) return <ChunkLoader />
   return <Navigate to={landingPathFor(user)} replace />
 }
 
-const guarded = (permission, element) => (
-  <RequirePermission permission={permission}>{element}</RequirePermission>
-)
+const lazyRoute = (factory, name, permission) => ({
+  lazy: async () => {
+    const mod = await factory()
+    const Page = mod[name]
+    if (!permission) return { Component: Page }
+    return {
+      Component: function GuardedPage() {
+        return (
+          <RequirePermission permission={permission}>
+            <Page />
+          </RequirePermission>
+        )
+      },
+    }
+  },
+})
 
 export const router = createBrowserRouter([
   {
-    // Root error boundary: catches render errors and failed chunk loads
-    // anywhere below and shows a recovery screen instead of a blank page.
     errorElement: <RouteError />,
+    HydrateFallback: ChunkLoader,
     children: [
       // Public, full-screen
       {
         element: <BlankLayout />,
-        children: [{ path: '/login', element: <LoginPage /> }],
+        children: [
+          {
+            path: '/login',
+            ...lazyRoute(() => import('@/features/auth/pages/LoginPage'), 'LoginPage'),
+          },
+        ],
       },
 
       // Authenticated
       {
         element: <RequireAuth />,
         children: [
-          // Full-screen authenticated pages (no chrome)
           {
             element: <BlankLayout />,
-            children: [{ path: '/403', element: <ForbiddenPage /> }],
+            children: [
+              {
+                path: '/403',
+                ...lazyRoute(() => import('@/features/misc/ForbiddenPage'), 'ForbiddenPage'),
+              },
+            ],
           },
 
           // App shell
@@ -83,19 +83,58 @@ export const router = createBrowserRouter([
             element: <DashboardLayout />,
             children: [
               { path: '/', element: <RoleHome /> },
-              { path: '/dashboard', element: <DashboardPage /> },
-              { path: '/analytics', element: guarded(PERMISSIONS.JOBS_MANAGE, <AnalyticsPage />) },
-              { path: '/analytics/attrition', element: guarded(PERMISSIONS.JOBS_MANAGE, <AttritionPage />) },
-              { path: '/analytics/predictive', element: guarded(PERMISSIONS.JOBS_MANAGE, <PredictivePage />) },
-              { path: '/employees', element: guarded(PERMISSIONS.EMPLOYEES_VIEW, <EmployeesPage />) },
-              { path: '/jobs', element: guarded(PERMISSIONS.JOBS_VIEW, <JobsPage />) },
-              { path: '/jobs/:id', element: guarded(PERMISSIONS.JOBS_VIEW, <JobDetailPage />) },
-              { path: '/candidates', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidatesPage />) },
-              { path: '/candidates/:id', element: guarded(PERMISSIONS.CANDIDATES_VIEW, <CandidateDetailPage />) },
-              { path: '/interviews', element: guarded(PERMISSIONS.INTERVIEWS_VIEW, <InterviewsPage />) },
-              { path: '/users', element: guarded(PERMISSIONS.USERS_MANAGE, <UsersPage />) },
-              { path: '/integrations', element: <IntegrationsPage /> },
-              { path: '/coming-soon', element: <ComingSoonPage /> },
+              {
+                path: '/dashboard',
+                ...lazyRoute(() => import('@/features/dashboard/pages/DashboardPage'), 'DashboardPage'),
+              },
+              {
+                path: '/analytics',
+                ...lazyRoute(() => import('@/features/dashboard/pages/AnalyticsPage'), 'AnalyticsPage', PERMISSIONS.JOBS_MANAGE),
+              },
+              {
+                path: '/analytics/attrition',
+                ...lazyRoute(() => import('@/features/dashboard/pages/AttritionPage'), 'AttritionPage', PERMISSIONS.JOBS_MANAGE),
+              },
+              {
+                path: '/analytics/predictive',
+                ...lazyRoute(() => import('@/features/dashboard/pages/PredictivePage'), 'PredictivePage', PERMISSIONS.JOBS_MANAGE),
+              },
+              {
+                path: '/employees',
+                ...lazyRoute(() => import('@/features/employees/pages/EmployeesPage'), 'EmployeesPage', PERMISSIONS.EMPLOYEES_VIEW),
+              },
+              {
+                path: '/jobs',
+                ...lazyRoute(() => import('@/features/jobs/pages/JobsPage'), 'JobsPage', PERMISSIONS.JOBS_VIEW),
+              },
+              {
+                path: '/jobs/:id',
+                ...lazyRoute(() => import('@/features/jobs/pages/JobDetailPage'), 'JobDetailPage', PERMISSIONS.JOBS_VIEW),
+              },
+              {
+                path: '/candidates',
+                ...lazyRoute(() => import('@/features/candidates/pages/CandidatesPage'), 'CandidatesPage', PERMISSIONS.CANDIDATES_VIEW),
+              },
+              {
+                path: '/candidates/:id',
+                ...lazyRoute(() => import('@/features/candidates/pages/CandidateDetailPage'), 'CandidateDetailPage', PERMISSIONS.CANDIDATES_VIEW),
+              },
+              {
+                path: '/interviews',
+                ...lazyRoute(() => import('@/features/interviews/pages/InterviewsPage'), 'InterviewsPage', PERMISSIONS.INTERVIEWS_VIEW),
+              },
+              {
+                path: '/users',
+                ...lazyRoute(() => import('@/features/users/pages/UsersPage'), 'UsersPage', PERMISSIONS.USERS_MANAGE),
+              },
+              {
+                path: '/integrations',
+                ...lazyRoute(() => import('@/features/integrations/pages/IntegrationsPage'), 'IntegrationsPage'),
+              },
+              {
+                path: '/coming-soon',
+                ...lazyRoute(() => import('@/features/misc/ComingSoonPage'), 'ComingSoonPage'),
+              },
             ],
           },
         ],
