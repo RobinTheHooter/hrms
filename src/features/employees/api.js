@@ -6,10 +6,6 @@ export async function listEmployees({ page = 1, size = 20, search } = {}) {
   })
 }
 
-export async function getEmployee(id) {
-  return HttpClient(`/employees/${id}`)
-}
-
 export async function createEmployee(payload) {
   return HttpClient('/employees', { method: 'POST', data: payload })
 }

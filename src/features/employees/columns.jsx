@@ -1,8 +1,8 @@
-import { ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 
-import { Avatar } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { ActionsRenderer } from '@/components/GlobalComponents/TableComponents/ActionsRenderer'
+import { BadgeRenderer } from '@/components/GlobalComponents/TableComponents/BadgeRenderer'
+import { PersonRenderer } from '@/components/GlobalComponents/TableComponents/PersonRenderer'
 import {
   EMPLOYEE_STATUSES,
   EMPLOYMENT_TYPES,
@@ -22,84 +22,63 @@ const statusVariant = {
 export function getEmployeeColumns({ onEdit, onDelete, canWrite = false }) {
   const columns = [
     {
-      accessorFn: (row) => `${row.first_name} ${row.last_name}`,
-      id: 'name',
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-2"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
-          Employee
-          <ArrowUpDown className="size-3.5" />
-        </Button>
-      ),
-      cell: ({ row }) => {
-        const e = row.original
-        const name = `${e.first_name} ${e.last_name}`
-        return (
-          <div className="flex items-center gap-3">
-            <Avatar name={name} />
-            <div className="leading-tight">
-              <div className="font-medium">{name}</div>
-              <div className="text-xs text-muted-foreground">{e.email}</div>
-            </div>
-          </div>
-        )
+      headerName: 'Employee',
+      field: 'first_name',
+      flex: 2,
+      minWidth: 220,
+      cellRenderer: PersonRenderer,
+      cellRendererParams: {
+        getName: (d) => `${d.first_name} ${d.last_name}`,
+        getSubtitle: (d) => d.email,
+      },
+      // Drives quick-filter search and sorting on the full name + email.
+      valueGetter: (p) =>
+        `${p.data.first_name ?? ''} ${p.data.last_name ?? ''} ${p.data.email ?? ''}`,
+    },
+    { headerName: 'Job title', field: 'job_title', flex: 1, minWidth: 150 },
+    {
+      headerName: 'Department',
+      colId: 'department',
+      valueGetter: (p) => p.data.department || '—',
+    },
+    {
+      headerName: 'Type',
+      field: 'employment_type',
+      cellRenderer: BadgeRenderer,
+      cellRendererParams: {
+        getVariant: () => 'secondary',
+        getLabel: (v) => labelOf(EMPLOYMENT_TYPES, v),
       },
     },
-    { accessorKey: 'job_title', header: 'Job title' },
     {
-      accessorKey: 'department',
-      header: 'Department',
-      cell: ({ getValue }) => getValue() || '—',
-    },
-    {
-      accessorKey: 'employment_type',
-      header: 'Type',
-      cell: ({ getValue }) => (
-        <Badge variant="secondary">
-          {labelOf(EMPLOYMENT_TYPES, getValue())}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ getValue }) => {
-        const value = getValue()
-        return (
-          <Badge variant={statusVariant[value] ?? 'secondary'}>
-            {labelOf(EMPLOYEE_STATUSES, value)}
-          </Badge>
-        )
+      headerName: 'Status',
+      field: 'status',
+      cellRenderer: BadgeRenderer,
+      cellRendererParams: {
+        getVariant: (v) => statusVariant[v] ?? 'secondary',
+        getLabel: (v) => labelOf(EMPLOYEE_STATUSES, v),
       },
     },
   ]
 
   if (canWrite) {
     columns.push({
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => (
-        <div className="flex justify-end gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onEdit(row.original)}
-          >
-            <Pencil className="size-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onDelete(row.original)}
-          >
-            <Trash2 className="size-4 text-destructive" />
-          </Button>
-        </div>
-      ),
+      headerName: 'Actions',
+      colId: 'actions',
+      headerClass: 'header-center',
+      flex: 0,
+      width: 110,
+      minWidth: 110,
+      sortable: false,
+      filter: false,
+      resizable: false,
+      cellRenderer: ActionsRenderer,
+      cellRendererParams: {
+        getActions: () => [
+          { icon: Pencil, title: 'Edit', onClick: onEdit },
+          { icon: Trash2, title: 'Delete', danger: true, onClick: onDelete },
+        ],
+      },
     })
   }
 
