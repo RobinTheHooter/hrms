@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { Mail, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -27,6 +27,30 @@ const VARIANT = {
 const fmtDate = (d) =>
   d ? new Date(d).toLocaleDateString('en-IN', { dateStyle: 'medium' }) : '—'
 
+// Panel adapts to the candidate's latest hiring decision.
+const DECISION = {
+  join: {
+    title: 'Selected to Join',
+    desc: 'Extend an offer letter.',
+    letter: { key: 'offer', label: 'Send offer letter' },
+  },
+  next_round: {
+    title: 'Next round',
+    desc: 'Send the next round of interview letter.',
+    letter: { key: 'next_round', label: 'Send next round letter' },
+  },
+  on_hold: {
+    title: 'On hold',
+    desc: 'Optionally send an on-hold letter.',
+    letter: { key: 'on_hold', label: 'Send on hold letter', optional: true },
+  },
+  reject: {
+    title: 'Rejected',
+    desc: null,
+    letter: { key: 'rejected', label: 'Send rejection email' },
+  },
+}
+
 function Field({ label, children }) {
   return (
     <div>
@@ -36,7 +60,7 @@ function Field({ label, children }) {
   )
 }
 
-export function OfferPanel({ candidate, canManage }) {
+export function OfferPanel({ candidate, canManage, decision, onSendLetter }) {
   const { data: options } = useOptions()
   const confirm = useConfirm()
   const { data: offers = [] } = useOffers(candidate.id)
@@ -86,19 +110,35 @@ export function OfferPanel({ candidate, canManage }) {
   }
 
   const terminal = ['accepted', 'declined', 'withdrawn'].includes(offer?.status)
+  const cfg = DECISION[decision]
+  // Offer machinery only makes sense for "selected to join" (or before any
+  // decision has been recorded). Other states show just their letter action.
+  const showOffer = !decision || decision === 'join'
+  const letter = cfg?.letter
 
   return (
     <Panel
-      title="Offer"
+      title={cfg?.title ?? 'Offer'}
       action={
-        canManage && (!offer || terminal) ? (
+        showOffer && canManage && (!offer || terminal) ? (
           <Button variant="ghost" size="sm" onClick={openCreate}>
             <Plus className="size-4" /> {offer ? 'New offer' : 'Create'}
           </Button>
         ) : null
       }
     >
-      {!offer ? (
+      {cfg && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted-foreground">{cfg.desc}</p>
+          {canManage && letter && (
+            <Button variant="outline" size="sm" onClick={() => onSendLetter?.(letter.key)}>
+              <Mail className="size-4" /> {letter.label}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {!showOffer ? null : !offer ? (
         <p className="py-4 text-sm text-muted-foreground">No offer extended yet.</p>
       ) : (
         <div className="space-y-3">

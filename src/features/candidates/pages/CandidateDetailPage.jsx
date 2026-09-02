@@ -309,8 +309,13 @@ export function CandidateDetailPage() {
           </Panel>
 
         <div className="space-y-4">
-          {/* Offer */}
-          <OfferPanel candidate={candidate} canManage={canManage} />
+          {/* Offer / decision */}
+          <OfferPanel
+            candidate={candidate}
+            canManage={canManage}
+            decision={latestStep}
+            onSendLetter={openEmail}
+          />
 
           {/* Interviews */}
           <Panel title="Interview history">
