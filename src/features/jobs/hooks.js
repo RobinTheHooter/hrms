@@ -18,6 +18,12 @@ import {
 
 const JOBS_KEY = ['jobs']
 
+function invalidateJobViews(qc) {
+  qc.invalidateQueries({ queryKey: ['jobs'] })
+  qc.invalidateQueries({ queryKey: ['candidates'] })
+  qc.invalidateQueries({ queryKey: ['dashboard'] })
+}
+
 export function useJobs(params) {
   return useQuery({
     queryKey: [...JOBS_KEY, params],
@@ -43,7 +49,7 @@ export function useCreateJob() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: createJob,
-    onSuccess: () => qc.invalidateQueries({ queryKey: JOBS_KEY }),
+    onSuccess: () => invalidateJobViews(qc),
   })
 }
 
@@ -51,7 +57,7 @@ export function useUpdateJob() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, payload }) => updateJob(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: JOBS_KEY }),
+    onSuccess: () => invalidateJobViews(qc),
   })
 }
 
@@ -59,7 +65,7 @@ export function useDeleteJob() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: deleteJob,
-    onSuccess: () => qc.invalidateQueries({ queryKey: JOBS_KEY }),
+    onSuccess: () => invalidateJobViews(qc),
   })
 }
 
@@ -71,6 +77,6 @@ export function useBulkDeleteJobs() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: bulkDeleteJobs,
-    onSuccess: () => qc.invalidateQueries({ queryKey: JOBS_KEY }),
+    onSuccess: () => invalidateJobViews(qc),
   })
 }

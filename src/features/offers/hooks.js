@@ -17,7 +17,6 @@ export function useOffers(candidateId) {
   })
 }
 
-// Offer changes can move the candidate's pipeline stage, so invalidate both.
 function useOfferMutation(mutationFn) {
   const qc = useQueryClient()
   return useMutation({
@@ -25,6 +24,8 @@ function useOfferMutation(mutationFn) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY })
       qc.invalidateQueries({ queryKey: ['candidates'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['notifications'] })
     },
   })
 }

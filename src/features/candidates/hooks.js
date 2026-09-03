@@ -21,12 +21,19 @@ import {
 
 const KEY = ['candidates']
 
+function invalidateCandidateViews(qc) {
+  qc.invalidateQueries({ queryKey: ['candidates'] })
+  qc.invalidateQueries({ queryKey: ['jobs'] })
+  qc.invalidateQueries({ queryKey: ['dashboard'] })
+  qc.invalidateQueries({ queryKey: ['notifications'] })
+}
+
 export function useBulkUploadCandidates() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ jobId, files, sendAck }) =>
       bulkUploadCandidates(jobId, files, sendAck),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => invalidateCandidateViews(qc),
   })
 }
 
@@ -42,7 +49,7 @@ export function useUploadResume() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, file }) => uploadResume(id, file),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => invalidateCandidateViews(qc),
   })
 }
 
@@ -50,7 +57,7 @@ export function useScoreCandidate() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id) => scoreCandidate(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => invalidateCandidateViews(qc),
   })
 }
 
@@ -63,8 +70,10 @@ export function useEmailTemplates(candidateId, enabled) {
 }
 
 export function useNotifyCandidate() {
+  const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, payload }) => notifyCandidate(id, payload),
+    onSuccess: () => invalidateCandidateViews(qc),
   })
 }
 
@@ -81,7 +90,7 @@ export function useCreateCandidate() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: createCandidate,
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => invalidateCandidateViews(qc),
   })
 }
 
@@ -89,7 +98,7 @@ export function useUpdateCandidate() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ id, payload }) => updateCandidate(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => invalidateCandidateViews(qc),
   })
 }
 
@@ -97,7 +106,7 @@ export function useDeleteCandidate() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: deleteCandidate,
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => invalidateCandidateViews(qc),
   })
 }
 
@@ -105,6 +114,6 @@ export function useBulkDeleteCandidates() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: bulkDeleteCandidates,
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    onSuccess: () => invalidateCandidateViews(qc),
   })
 }

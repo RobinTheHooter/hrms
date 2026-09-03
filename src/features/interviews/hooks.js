@@ -40,7 +40,6 @@ export function useHiringManagers() {
   return useQuery({ queryKey: ['hiring-managers'], queryFn: listHiringManagers })
 }
 
-// Interview mutations also touch candidate stages, so invalidate both.
 function useInterviewMutation(mutationFn) {
   const qc = useQueryClient()
   return useMutation({
@@ -48,6 +47,9 @@ function useInterviewMutation(mutationFn) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY })
       qc.invalidateQueries({ queryKey: ['candidates'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      qc.invalidateQueries({ queryKey: ['notifications'] })
+      qc.invalidateQueries({ queryKey: ['availability'] })
     },
   })
 }
