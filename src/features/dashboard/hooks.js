@@ -11,7 +11,6 @@ export function useDashboardSummary(days = 7) {
     queryKey: ['dashboard', 'summary', days],
     queryFn: () => getSummary(days),
     placeholderData: keepPreviousData,
-    refetchInterval: 15_000,
   })
 }
 

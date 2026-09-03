@@ -12,6 +12,7 @@ import { useCurrentUser } from '@/features/auth/hooks'
 import { getInterviewColumns } from '@/features/interviews/columns'
 import { toLocalInput } from '@/features/interviews/constants'
 import { FeedbackDialog } from '@/features/interviews/components/FeedbackDialog'
+import { InterviewDetailsDialog } from '@/features/interviews/components/InterviewDetailsDialog'
 import { InterviewScheduleDialog } from '@/features/interviews/components/InterviewScheduleDialog'
 import { OutcomeDialog } from '@/features/interviews/components/OutcomeDialog'
 import {
@@ -39,6 +40,7 @@ export function InterviewsPage() {
   const [schedule, setSchedule] = useState({ open: false, mode: 'create', interview: null })
   const [outcome, setOutcome] = useState({ open: false, interview: null })
   const [feedback, setFeedback] = useState({ open: false, interview: null })
+  const [details, setDetails] = useState({ open: false, interview: null })
 
   // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
   const status = params.get('status') ?? undefined
@@ -83,6 +85,13 @@ export function InterviewsPage() {
   const openReschedule = (interview) => setSchedule({ open: true, mode: 'edit', interview })
   const openOutcome = (interview) => setOutcome({ open: true, interview })
   const openFeedback = (interview) => setFeedback({ open: true, interview })
+  const openDetails = (interview) => setDetails({ open: true, interview })
+
+  // From the details dialog: close it, then open the chosen action dialog.
+  const fromDetails = (fn) => (interview) => {
+    setDetails({ open: false, interview: null })
+    fn(interview)
+  }
 
   const handleDelete = async (interview) => {
     const ok = await confirm({
@@ -146,6 +155,7 @@ export function InterviewsPage() {
         onOutcome: openOutcome,
         onFeedback: openFeedback,
         onDelete: handleDelete,
+        onStatusClick: openDetails,
         canSchedule,
         canConduct,
         options,
@@ -235,6 +245,18 @@ export function InterviewsPage() {
           isSubmitting={feedbackMut.isPending}
         />
       )}
+
+      <InterviewDetailsDialog
+        open={details.open}
+        onOpenChange={(open) => setDetails((d) => ({ ...d, open }))}
+        interview={details.interview}
+        options={options}
+        canConduct={canConduct}
+        canSchedule={canSchedule}
+        onReschedule={fromDetails(openReschedule)}
+        onRecordOutcome={fromDetails(openOutcome)}
+        onAddFeedback={fromDetails(openFeedback)}
+      />
     </div>
   )
 }

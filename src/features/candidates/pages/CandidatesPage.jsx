@@ -63,6 +63,7 @@ export function CandidatesPage() {
   const { data: user } = useCurrentUser()
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
+  const canDecide = can(user, PERMISSIONS.CANDIDATES_DECIDE)
   const confirm = useConfirm()
 
   const [params] = useSearchParams()
@@ -207,9 +208,10 @@ export function CandidatesPage() {
         onScreen: openScreen,
         onViewResume: handleViewResume,
         canManage,
+        canDecide,
         options,
       }),
-    [canManage, options],
+    [canManage, canDecide, options],
   )
 
   return (

@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Table } from '@/components/GlobalComponents/Table/Table'
@@ -46,7 +46,32 @@ export function JobsPage() {
   const confirm = useConfirm()
 
   const [params] = useSearchParams()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [dialog, setDialog] = useState({ open: false, mode: 'create', job: null })
+
+  useEffect(() => {
+    const aiJob = location.state?.aiJob
+    if (!aiJob) return
+    setDialog({
+      open: true,
+      mode: 'create',
+      job: null,
+      initial: {
+        title: aiJob.title ?? '',
+        department: '',
+        location: '',
+        employment_type: aiJob.employment_type || 'full_time',
+        positions: 1,
+        status: 'open',
+        priority: 'medium',
+        assigned_consultant_id: '',
+        description: aiJob.description ?? '',
+        required_skills: aiJob.required_skills ?? '',
+      },
+    })
+    navigate(location.pathname, { replace: true, state: {} })
+  }, [])
 
   // Active tab = open jobs; Inactive = closed. Seed from a status deep-link.
   const [tab, setTab] = useState(() =>
@@ -224,7 +249,9 @@ export function JobsPage() {
           onOpenChange={(open) => (open ? null : closeDialog())}
           mode={dialog.mode}
           initialValues={
-            dialog.mode === 'edit' && dialog.job ? toFormValues(dialog.job) : undefined
+            dialog.mode === 'edit' && dialog.job
+              ? toFormValues(dialog.job)
+              : dialog.initial
           }
           onSubmit={handleSubmit}
           isSubmitting={createMut.isPending || updateMut.isPending}

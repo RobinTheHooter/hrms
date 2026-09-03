@@ -31,6 +31,10 @@ export async function bulkDeleteJobs(ids) {
   return HttpClient('/jobs/bulk-delete', { method: 'POST', data: { ids } })
 }
 
+export async function generateJobDescription(payload) {
+  return HttpClient('/jobs/ai/description', { method: 'POST', data: payload })
+}
+
 /* Consultants for the "assign" dropdown (admin/HR only). */
 export async function listConsultants() {
   const data = await HttpClient('/users', {

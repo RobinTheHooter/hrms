@@ -8,6 +8,9 @@ import { FormDialog } from '@/components/ui/form-dialog'
 import { FieldRow, FormSection } from '@/components/ui/form-section'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { PERMISSIONS, can } from '@/features/auth/acl'
+import { useCurrentUser } from '@/features/auth/hooks'
+import { DECISION_STAGES } from '@/features/candidates/constants'
 import { useJobs } from '@/features/jobs/hooks'
 import { useOptions } from '@/features/meta/hooks'
 import { candidateSchema } from '@/lib/validation'
@@ -47,6 +50,15 @@ export function CandidateFormDialog({
   const sources = options?.candidate_sources ?? []
   const stages = options?.candidate_stages ?? []
   const priorities = options?.priorities ?? []
+
+  const { data: currentUser } = useCurrentUser()
+  const canDecide = can(currentUser, PERMISSIONS.CANDIDATES_DECIDE)
+  const stageOptions = canDecide
+    ? stages
+    : stages.filter(
+        (s) =>
+          !DECISION_STAGES.includes(s.value) || s.value === initialValues?.stage,
+      )
 
   const [file, setFile] = useState(null)
   const [sendAck, setSendAck] = useState(false)
@@ -162,7 +174,7 @@ export function CandidateFormDialog({
           />
         </FieldRow>
         {selectRow('source', 'Source', sources, 'No sources found')}
-        {selectRow('stage', 'Stage', stages, 'No stages found')}
+        {selectRow('stage', 'Stage', stageOptions, 'No stages found')}
         {selectRow('priority', 'Priority', priorities, 'No priorities found')}
       </FormSection>
 

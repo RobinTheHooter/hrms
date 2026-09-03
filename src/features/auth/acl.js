@@ -1,12 +1,10 @@
-// Mirrors the backend ACL (app/common/acl.py). The backend is the real
-// security boundary; this drives UX (routes, nav, buttons).
-
 export const PERMISSIONS = {
   USERS_MANAGE: 'users:manage',
   JOBS_VIEW: 'jobs:view',
   JOBS_MANAGE: 'jobs:manage',
   CANDIDATES_VIEW: 'candidates:view',
   CANDIDATES_MANAGE: 'candidates:manage',
+  CANDIDATES_DECIDE: 'candidates:decide',
   INTERVIEWS_VIEW: 'interviews:view',
   INTERVIEWS_SCHEDULE: 'interviews:schedule',
   INTERVIEWS_CONDUCT: 'interviews:conduct',
@@ -28,11 +26,13 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.INTERVIEWS_VIEW,
     PERMISSIONS.INTERVIEWS_SCHEDULE,
   ],
-  // Hiring manager: conducts interviews, views candidates.
+  // Hiring manager: conducts interviews and owns hiring decisions.
   hiring_manager: [
     PERMISSIONS.INTERVIEWS_VIEW,
     PERMISSIONS.INTERVIEWS_CONDUCT,
     PERMISSIONS.CANDIDATES_VIEW,
+    PERMISSIONS.CANDIDATES_MANAGE,
+    PERMISSIONS.CANDIDATES_DECIDE,
   ],
   // Candidate: external (phase 2).
   candidate: [],
@@ -48,10 +48,6 @@ export function can(user, permission) {
   return permissionsForRole(user.role).includes(permission)
 }
 
-/**
- * Default route for a user. ATS screens aren't built yet, so admins/HR land
- * on User Management and everyone else on a placeholder until we ship them.
- */
 export function landingPathFor(user) {
   // Everyone with any ATS access lands on the adaptive dashboard.
   if (user?.role && user.role !== 'candidate') return '/dashboard'
