@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.acl import Permission
@@ -9,17 +9,51 @@ from app.common.exceptions import AppError
 from app.common.pagination import Page
 from app.common.query import ListParamsDep
 from app.common.schemas import BulkIds, BulkResult
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.modules.auth.dependencies import require_permission
 from app.modules.auth.models import User
-from app.modules.jobs.schemas import JobCreate, JobRead, JobUpdate
+from app.modules.jobs.schemas import (
+    JobCreate,
+    JobDescriptionRequest,
+    JobDescriptionResponse,
+    JobRead,
+    JobUpdate,
+)
 from app.modules.jobs.service import JobService
+from app.modules.screening import ai as screening_ai
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 # These dependencies both enforce the permission and return the current user.
 ViewUser = Annotated[User, Depends(require_permission(Permission.JOBS_VIEW))]
 ManageUser = Annotated[User, Depends(require_permission(Permission.JOBS_MANAGE))]
+
+
+@router.post("/ai/description", response_model=JobDescriptionResponse)
+async def generate_job_description(
+    current_user: ManageUser,
+    payload: JobDescriptionRequest,
+) -> JobDescriptionResponse:
+    """Draft a job description from a title (+ optional hints) using AI."""
+    if not get_settings().ai_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI features aren't configured on the server yet.",
+        )
+    try:
+        result = await screening_ai.generate_job_description(
+            payload.title,
+            payload.skills,
+            payload.seniority,
+            payload.employment_type,
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="The AI service couldn't generate a description. Please try again.",
+        )
+    return JobDescriptionResponse(**result)
 
 
 @router.get("", response_model=Page[JobRead])

@@ -13,3 +13,18 @@ async def score_resume(required: str | None, job_title: str, resume_text: str) -
     if settings.ai_provider == "gemini":
         return await gemini_client.score_resume(required, job_title, resume_text)
     return await openai_client.score_resume(required, job_title, resume_text)
+
+
+async def generate_job_description(
+    title: str,
+    skills: str | None = None,
+    seniority: str | None = None,
+    employment_type: str | None = None,
+) -> dict:
+    if settings.ai_provider == "gemini":
+        return await gemini_client.generate_job_description(
+            title, skills, seniority, employment_type
+        )
+    return await openai_client.generate_job_description(
+        title, skills, seniority, employment_type
+    )
