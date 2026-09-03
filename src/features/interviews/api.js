@@ -1,7 +1,7 @@
-import { apiClient } from '@/lib/apiClient'
+import { HttpClient } from '@/lib/httpClient'
 
 export async function listInterviews({ page = 1, size = 20, status, candidate_id } = {}) {
-  const { data } = await apiClient.get('/interviews', {
+  return HttpClient('/interviews', {
     params: {
       page,
       size,
@@ -9,50 +9,42 @@ export async function listInterviews({ page = 1, size = 20, status, candidate_id
       candidate_id: candidate_id || undefined,
     },
   })
-  return data
 }
 
 export async function scheduleInterview(payload) {
-  const { data } = await apiClient.post('/interviews', payload)
-  return data
+  return HttpClient('/interviews', { method: 'POST', data: payload })
 }
 
 export async function updateInterview(id, payload) {
-  const { data } = await apiClient.patch(`/interviews/${id}`, payload)
-  return data
+  return HttpClient(`/interviews/${id}`, { method: 'PATCH', data: payload })
 }
 
 export async function saveFeedback(id, payload) {
-  const { data } = await apiClient.patch(`/interviews/${id}/feedback`, payload)
-  return data
+  return HttpClient(`/interviews/${id}/feedback`, { method: 'PATCH', data: payload })
 }
 
 export async function recordOutcome(id, payload) {
-  const { data } = await apiClient.patch(`/interviews/${id}/outcome`, payload)
-  return data
+  return HttpClient(`/interviews/${id}/outcome`, { method: 'PATCH', data: payload })
 }
 
 export async function bulkDeleteInterviews(ids) {
-  const { data } = await apiClient.post('/interviews/bulk-delete', { ids })
-  return data
+  return HttpClient('/interviews/bulk-delete', { method: 'POST', data: { ids } })
 }
 
 export async function deleteInterview(id) {
-  await apiClient.delete(`/interviews/${id}`)
+  await HttpClient(`/interviews/${id}`, { method: 'DELETE' })
 }
 
-/** Active hiring managers for the scheduling dropdown (any authed user). */
+/* Active hiring managers for the scheduling dropdown (any authed user). */
 export async function listHiringManagers() {
-  const { data } = await apiClient.get('/meta/users', {
+  return HttpClient('/meta/users', {
     params: { role: 'hiring_manager' },
   })
-  return data // [{ id, full_name }]
 }
 
-/** A manager's busy blocks for a given date (YYYY-MM-DD). */
+/* A manager's busy blocks for a given date (YYYY-MM-DD). */
 export async function getAvailability(managerId, date) {
-  const { data } = await apiClient.get('/interviews/availability', {
+  return HttpClient('/interviews/availability', {
     params: { manager_id: managerId, date },
   })
-  return data // { connected, busy: [{ start, end }] }
 }

@@ -3,6 +3,7 @@ import { useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Table } from '@/components/GlobalComponents/Table/Table'
+import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser } from '@/features/auth/hooks'
@@ -26,7 +27,7 @@ export function UsersPage() {
   const confirm = useConfirm()
   const [dialog, setDialog] = useState({ open: false, mode: 'create', user: null })
 
-  const { data, isLoading, isError } = useUsers({ page: 1, size: 1000 })
+  const { data, isLoading, isError, refetch } = useUsers({ page: 1, size: 1000 })
 
   const createMut = useCreateUser()
   const updateMut = useUpdateUser()
@@ -109,7 +110,6 @@ export function UsersPage() {
         currentUserId: currentUser?.id,
         options,
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [currentUser?.id, options],
   )
 
@@ -137,9 +137,10 @@ export function UsersPage() {
       />
 
       {isError ? (
-        <p className="p-6 text-sm text-destructive">
-          Couldn't load users. Is the backend running?
-        </p>
+        <ErrorState
+          description="We couldn't load your users right now. Please try again in a moment."
+          onRetry={refetch}
+        />
       ) : (
         <Table
           rowData={data?.items ?? []}

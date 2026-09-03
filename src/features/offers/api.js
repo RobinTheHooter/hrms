@@ -1,23 +1,19 @@
-import { apiClient } from '@/lib/apiClient'
+import { HttpClient } from '@/lib/httpClient'
 
 export async function listOffers(candidateId) {
-  const { data } = await apiClient.get('/offers', {
+  return HttpClient('/offers', {
     params: { candidate_id: candidateId },
   })
-  return data
 }
 
 export async function createOffer(payload) {
-  const { data } = await apiClient.post('/offers', payload)
-  return data
+  return HttpClient('/offers', { method: 'POST', data: payload })
 }
 
 export async function updateOffer(id, payload) {
-  const { data } = await apiClient.patch(`/offers/${id}`, payload)
-  return data
+  return HttpClient(`/offers/${id}`, { method: 'PATCH', data: payload })
 }
 
 export async function setOfferStatus(id, status) {
-  const { data } = await apiClient.post(`/offers/${id}/status`, { status })
-  return data
+  return HttpClient(`/offers/${id}/status`, { method: 'POST', data: { status } })
 }

@@ -1,27 +1,23 @@
-import { apiClient } from '@/lib/apiClient'
+import { HttpClient } from '@/lib/httpClient'
 
 export async function listUsers({ page = 1, size = 20, search } = {}) {
-  const { data } = await apiClient.get('/users', {
+  return HttpClient('/users', {
     params: { page, size, search: search || undefined },
   })
-  return data // Page: { items, total, page, size, pages }
 }
 
 export async function createUser(payload) {
-  const { data } = await apiClient.post('/users', payload)
-  return data
+  return HttpClient('/users', { method: 'POST', data: payload })
 }
 
 export async function updateUser(id, payload) {
-  const { data } = await apiClient.patch(`/users/${id}`, payload)
-  return data
+  return HttpClient(`/users/${id}`, { method: 'PATCH', data: payload })
 }
 
 export async function deleteUser(id) {
-  await apiClient.delete(`/users/${id}`)
+  await HttpClient(`/users/${id}`, { method: 'DELETE' })
 }
 
 export async function bulkDeleteUsers(ids) {
-  const { data } = await apiClient.post('/users/bulk-delete', { ids })
-  return data
+  return HttpClient('/users/bulk-delete', { method: 'POST', data: { ids } })
 }

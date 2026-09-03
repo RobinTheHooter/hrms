@@ -8,7 +8,8 @@ import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
-import { LoadingBlock } from '@/components/ui/spinner'
+import { DetailSkeleton } from '@/components/ui/detail-skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useCandidates } from '@/features/candidates/hooks'
@@ -51,19 +52,23 @@ export function JobDetailPage() {
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.JOBS_MANAGE)
 
-  const { data: job, isLoading, isError } = useJob(id)
+  const { data: job, isLoading, isError, refetch } = useJob(id)
   const { data: candPage } = useCandidates({ page: 1, size: 100, jobId: Number(id) })
   const candidates = candPage?.items ?? []
 
   const updateMut = useUpdateJob()
   const [edit, setEdit] = useState(false)
 
-  if (isLoading) return <LoadingBlock />
+  if (isLoading) return <DetailSkeleton />
   if (isError || !job) {
     return (
       <div>
         <PageHeader title="Job" breadcrumb={['Recruitment', 'Jobs']} />
-        <p className="p-6 text-sm text-destructive">Job not found.</p>
+        <ErrorState
+          title="We couldn't open this job"
+          description="The job's details couldn't be loaded. It may have been removed, or the connection dropped. Please try again."
+          onRetry={refetch}
+        />
       </div>
     )
   }

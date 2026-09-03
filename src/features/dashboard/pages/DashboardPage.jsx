@@ -26,6 +26,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Panel } from '@/components/ui/panel'
 import {
   Select,
@@ -38,6 +39,7 @@ import { useCurrentUser } from '@/features/auth/hooks'
 import { stageVariant } from '@/features/candidates/constants'
 import { ConsultantBreakdown } from '@/features/dashboard/components/ConsultantBreakdown'
 import { DashboardSkeleton } from '@/features/dashboard/components/DashboardSkeleton'
+import { RecentDecisions } from '@/features/dashboard/components/RecentDecisions'
 import { StatCard } from '@/features/dashboard/components/StatCard'
 import { useDashboardSummary } from '@/features/dashboard/hooks'
 import { formatWhen, googleCalendarUrl } from '@/features/interviews/constants'
@@ -163,6 +165,8 @@ export function DashboardPage() {
         ))}
       </div>
 
+      <RecentDecisions />
+
       {/* Activity window + needs attention */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Panel title={`Last ${days} days`}>
@@ -279,7 +283,7 @@ export function DashboardPage() {
           className={hiringManager ? 'lg:col-span-3' : 'lg:col-span-2'}
         >
           {interviews.upcoming_list.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">No upcoming interviews.</p>
+            <EmptyState message="No upcoming interviews." />
           ) : (
             <ul className="divide-y">
               {interviews.upcoming_list.map((iv) => (

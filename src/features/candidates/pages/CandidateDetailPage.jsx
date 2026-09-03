@@ -8,7 +8,8 @@ import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
-import { LoadingBlock } from '@/components/ui/spinner'
+import { DetailSkeleton } from '@/components/ui/detail-skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { ResumePreview } from '@/features/candidates/components/ResumePreview'
@@ -58,13 +59,54 @@ const RECOMMENDATION = {
   no: { label: 'No', variant: 'destructive' },
   strong_no: { label: 'Strong No', variant: 'destructive' },
 }
+const NEXT_STEP = {
+  join: { label: 'Selected to join', variant: 'success' },
+  next_round: { label: 'Next round', variant: 'info' },
+  on_hold: { label: 'On hold', variant: 'warning' },
+}
+// Banner shown at the top of the interview history, per latest decision.
+const DECISION_BANNER = {
+  join: { text: 'Candidate advanced to Offer.', label: 'Send offer email', template: 'offer' },
+  next_round: { text: 'Candidate moved to the next round.' },
+  on_hold: { text: 'Candidate is on hold.' },
+  reject: { text: 'Candidate marked Rejected.', label: 'Send rejection email', template: 'rejected' },
+}
 
 function InterviewFeedback({ feedback }) {
   const rec = RECOMMENDATION[feedback.recommendation]
+  const step = NEXT_STEP[feedback.next_step]
   const ratings = Object.entries(feedback.ratings ?? {}).filter(([, v]) => v)
   return (
     <div className="mt-2 space-y-2 rounded-lg border bg-muted/20 p-3">
-      {rec && <Badge variant={rec.variant}>{rec.label}</Badge>}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {step && <Badge variant={step.variant}>{step.label}</Badge>}
+        {rec && <Badge variant={rec.variant}>{rec.label}</Badge>}
+      </div>
+      {feedback.next_step === 'join' &&
+        (feedback.tentative_joining_date || feedback.estimated_ctc != null) && (
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            {feedback.tentative_joining_date && (
+              <span>
+                <span className="text-xs text-muted-foreground">Tentative joining: </span>
+                {feedback.tentative_joining_date}
+              </span>
+            )}
+            {feedback.estimated_ctc != null && (
+              <span>
+                <span className="text-xs text-muted-foreground">Est. CTC: </span>
+                {feedback.estimated_ctc.toLocaleString('en-IN')}
+              </span>
+            )}
+          </div>
+        )}
+      {feedback.next_step_note && (
+        <div>
+          <div className="text-xs font-medium text-muted-foreground">
+            {feedback.next_step === 'next_round' ? 'Next round' : 'On hold'}
+          </div>
+          <p className="text-sm">{feedback.next_step_note}</p>
+        </div>
+      )}
       {ratings.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {ratings.map(([k, v]) => (
@@ -117,10 +159,19 @@ export function CandidateDetailPage() {
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
 
-  const { data: candidate, isLoading, isError } = useCandidate(id)
+  const { data: candidate, isLoading, isError, refetch } = useCandidate(id)
   const { data: interviewsPage } = useInterviews({ page: 1, size: 50, candidate_id: Number(id) })
   const interviews = interviewsPage?.items ?? []
-  const latestOutcome = interviews.find((iv) => iv.outcome)?.outcome ?? null
+  const latestDecided = interviews.find(
+    (iv) => iv.feedback?.next_step || iv.outcome === 'selected' || iv.outcome === 'rejected',
+  )
+  const latestStep =
+    latestDecided?.feedback?.next_step ??
+    (latestDecided?.outcome === 'rejected'
+      ? 'reject'
+      : latestDecided?.outcome === 'selected'
+        ? 'join'
+        : null)
 
   const updateMut = useUpdateCandidate()
   const uploadMut = useUploadResume()
@@ -131,12 +182,16 @@ export function CandidateDetailPage() {
 
   const openEmail = (templateKey) => setNotify({ open: true, templateKey })
 
-  if (isLoading) return <LoadingBlock />
+  if (isLoading) return <DetailSkeleton />
   if (isError || !candidate) {
     return (
       <div>
         <PageHeader title="Candidate" breadcrumb={['Recruitment', 'Candidates']} />
-        <p className="p-6 text-sm text-destructive">Candidate not found.</p>
+        <ErrorState
+          title="We couldn't open this candidate"
+          description="The candidate's details couldn't be loaded. They may have been removed, or the connection dropped. Please try again."
+          onRetry={refetch}
+        />
       </div>
     )
   }
@@ -257,26 +312,29 @@ export function CandidateDetailPage() {
           </Panel>
 
         <div className="space-y-4">
-          {/* Offer */}
-          <OfferPanel candidate={candidate} canManage={canManage} />
+          {/* Offer / decision */}
+          <OfferPanel
+            candidate={candidate}
+            canManage={canManage}
+            decision={latestStep}
+            onSendLetter={openEmail}
+          />
 
           {/* Interviews */}
           <Panel title="Interview history">
-            {canManage && (latestOutcome === 'selected' || latestOutcome === 'rejected') && (
+            {canManage && DECISION_BANNER[latestStep] && (
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-primary/5 px-3 py-2">
-                <span className="text-sm">
-                  {latestOutcome === 'selected'
-                    ? 'Candidate advanced to Offer.'
-                    : 'Candidate marked Rejected.'}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openEmail(latestOutcome === 'selected' ? 'offer' : 'rejected')}
-                >
-                  <Mail className="size-4" />
-                  {latestOutcome === 'selected' ? 'Send offer email' : 'Send rejection email'}
-                </Button>
+                <span className="text-sm">{DECISION_BANNER[latestStep].text}</span>
+                {DECISION_BANNER[latestStep].label && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEmail(DECISION_BANNER[latestStep].template)}
+                  >
+                    <Mail className="size-4" />
+                    {DECISION_BANNER[latestStep].label}
+                  </Button>
+                )}
               </div>
             )}
             {interviews.length === 0 ? (

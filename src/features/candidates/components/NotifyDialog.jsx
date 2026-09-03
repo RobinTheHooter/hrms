@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LoadingBlock } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Select,
   SelectContent,
@@ -52,7 +52,20 @@ export function NotifyDialog({ open, onOpenChange, candidate, initialTemplateKey
 
         {open &&
           (isLoading ? (
-            <LoadingBlock className="min-h-[240px] py-0" />
+            <div className="min-h-[240px] space-y-4">
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-40 w-full" />
+              </div>
+            </div>
           ) : !enabled ? (
             <p className="text-sm text-muted-foreground">
               Email isn't configured on the server yet, so messages can't be sent.

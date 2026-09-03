@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useConfirm } from '@/components/ui/confirm-dialog'
-import { Spinner } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import { getGoogleConnectUrl } from '@/features/integrations/api'
 import {
   useDisconnectGoogle,
@@ -85,7 +85,10 @@ export function IntegrationsPage() {
               </p>
 
               {isLoading ? (
-                <div className="mt-4"><Spinner /></div>
+                <div className="mt-4 flex items-center gap-3">
+                  <Skeleton className="size-4 rounded-full" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
               ) : !enabled ? (
                 <p className="mt-4 text-sm text-muted-foreground">
                   Google Calendar isn't configured on the server yet.

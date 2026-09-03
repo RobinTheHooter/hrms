@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Table } from '@/components/GlobalComponents/Table/Table'
+import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { PERMISSIONS, can } from '@/features/auth/acl'
@@ -42,7 +43,7 @@ export function InterviewsPage() {
   // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
   const status = params.get('status') ?? undefined
 
-  const { data, isLoading, isError } = useInterviews({ page: 1, size: 1000, status })
+  const { data, isLoading, isError, refetch } = useInterviews({ page: 1, size: 1000, status })
 
   const scheduleMut = useScheduleInterview()
   const updateMut = useUpdateInterview()
@@ -149,7 +150,6 @@ export function InterviewsPage() {
         canConduct,
         options,
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [canSchedule, canConduct, options],
   )
 
@@ -183,9 +183,10 @@ export function InterviewsPage() {
       />
 
       {isError ? (
-        <p className="p-6 text-sm text-destructive">
-          Couldn't load interviews. Is the backend running?
-        </p>
+        <ErrorState
+          description="We couldn't load your interviews right now. Please try again in a moment."
+          onRetry={refetch}
+        />
       ) : (
         <Table
           rowData={data?.items ?? []}

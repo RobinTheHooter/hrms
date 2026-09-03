@@ -1,10 +1,9 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
-import { apiClient } from '@/lib/apiClient'
+import { HttpClient } from '@/lib/httpClient'
 
 async function getSummary(days) {
-  const { data } = await apiClient.get('/dashboard/summary', { params: { days } })
-  return data
+  return HttpClient('/dashboard/summary', { params: { days } })
 }
 
 export function useDashboardSummary(days = 7) {
@@ -17,8 +16,7 @@ export function useDashboardSummary(days = 7) {
 }
 
 async function getConsultantBreakdown() {
-  const { data } = await apiClient.get('/dashboard/consultants')
-  return data
+  return HttpClient('/dashboard/consultants')
 }
 
 export function useConsultantBreakdown(enabled) {
@@ -29,9 +27,20 @@ export function useConsultantBreakdown(enabled) {
   })
 }
 
+async function getRecentDecisions(limit) {
+  return HttpClient('/dashboard/recent-decisions', { params: { limit } })
+}
+
+export function useRecentDecisions(limit = 12) {
+  return useQuery({
+    queryKey: ['dashboard', 'recent-decisions', limit],
+    queryFn: () => getRecentDecisions(limit),
+    placeholderData: keepPreviousData,
+  })
+}
+
 async function getRecruitingAnalytics() {
-  const { data } = await apiClient.get('/dashboard/analytics/recruiting')
-  return data
+  return HttpClient('/dashboard/analytics/recruiting')
 }
 
 export function useRecruitingAnalytics() {
@@ -43,7 +52,7 @@ export function useRecruitingAnalytics() {
 }
 
 export async function downloadMisReport() {
-  const res = await apiClient.get('/dashboard/mis-report', { responseType: 'blob' })
+  const res = await HttpClient('/dashboard/mis-report', { responseType: 'blob' })
   const cd = res.headers['content-disposition'] || ''
   const match = cd.match(/filename="?([^"]+)"?/)
   const url = URL.createObjectURL(res.data)
@@ -57,10 +66,7 @@ export async function downloadMisReport() {
 }
 
 async function getAttrition(months) {
-  const { data } = await apiClient.get('/dashboard/analytics/attrition', {
-    params: { months },
-  })
-  return data
+  return HttpClient('/dashboard/analytics/attrition', { params: { months } })
 }
 
 export function useAttrition(months = 12) {

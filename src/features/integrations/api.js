@@ -1,15 +1,14 @@
-import { apiClient } from '@/lib/apiClient'
+import { HttpClient } from '@/lib/httpClient'
 
 export async function getGoogleStatus() {
-  const { data } = await apiClient.get('/integrations/google/status')
-  return data // { enabled, connected, email }
+  return HttpClient('/integrations/google/status')
 }
 
 export async function getGoogleConnectUrl() {
-  const { data } = await apiClient.get('/integrations/google/connect')
+  const data = await HttpClient('/integrations/google/connect')
   return data.url
 }
 
 export async function disconnectGoogle() {
-  await apiClient.delete('/integrations/google')
+  await HttpClient('/integrations/google', { method: 'DELETE' })
 }
