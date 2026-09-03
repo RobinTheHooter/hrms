@@ -1,3 +1,5 @@
+import { Lock } from 'lucide-react'
+
 import { Badge } from '@/components/ui/badge'
 import {
   Select,
@@ -7,17 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { DECISION_STAGES } from '@/features/candidates/constants'
 
-/**
- * Candidate stage cell: an inline stage picker when the user can manage,
- * otherwise a read-only badge. Configure via cellRendererParams:
- * - canManage            → editable dropdown vs. badge
- * - stages               → [{ value, label }] options
- * - onStageChange(data, next)
- * - getVariant(value)    → badge variant
- */
 export function StageRenderer(params) {
-  const { value, data, canManage, stages = [], onStageChange, getVariant } = params
+  const {
+    value,
+    data,
+    canManage,
+    canDecide = true,
+    stages = [],
+    onStageChange,
+    getVariant,
+  } = params
 
   if (!canManage) {
     return (
@@ -36,11 +39,18 @@ export function StageRenderer(params) {
         {stages.length === 0 ? (
           <SelectEmpty>No stages found</SelectEmpty>
         ) : (
-          stages.map((s) => (
-            <SelectItem key={s.value} value={s.value}>
-              {s.label}
-            </SelectItem>
-          ))
+          stages.map((s) => {
+            const locked =
+              !canDecide && DECISION_STAGES.includes(s.value) && s.value !== value
+            return (
+              <SelectItem key={s.value} value={s.value} disabled={locked}>
+                <span className="flex items-center gap-1.5">
+                  {s.label}
+                  {locked && <Lock className="size-3 text-muted-foreground" />}
+                </span>
+              </SelectItem>
+            )
+          })
         )}
       </SelectContent>
     </Select>

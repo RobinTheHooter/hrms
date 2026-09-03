@@ -18,6 +18,7 @@ export function getCandidateColumns({
   onScreen,
   onViewResume,
   canManage,
+  canDecide,
   options,
 }) {
   const stages = options?.candidate_stages ?? []
@@ -65,6 +66,7 @@ export function getCandidateColumns({
       cellRenderer: StageRenderer,
       cellRendererParams: {
         canManage,
+        canDecide,
         stages,
         onStageChange,
         getVariant: stageVariant,
