@@ -8,7 +8,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
-import { LoadingBlock } from '@/components/ui/spinner'
+import { DetailSkeleton } from '@/components/ui/detail-skeleton'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { ResumePreview } from '@/features/candidates/components/ResumePreview'
@@ -183,7 +183,7 @@ export function CandidateDetailPage() {
 
   const openEmail = (templateKey) => setNotify({ open: true, templateKey })
 
-  if (isLoading) return <LoadingBlock />
+  if (isLoading) return <DetailSkeleton />
   if (isError || !candidate) {
     return (
       <div>

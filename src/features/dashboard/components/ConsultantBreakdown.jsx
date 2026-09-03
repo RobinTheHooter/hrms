@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
 import { Panel } from '@/components/ui/panel'
-import { LoadingBlock } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useConsultantBreakdown } from '@/features/dashboard/hooks'
 
 export function ConsultantBreakdown() {
@@ -16,7 +16,17 @@ export function ConsultantBreakdown() {
   return (
     <Panel title="Consultant breakdown" className="lg:col-span-2">
       {isLoading ? (
-        <LoadingBlock className="min-h-55 py-0" />
+        <div className="min-h-55 divide-y">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-2 py-2.5">
+              <Skeleton className="size-4 rounded" />
+              <Skeleton className="h-4 max-w-[180px] flex-1" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+              <Skeleton className="h-5 w-24 rounded-full" />
+              <Skeleton className="h-5 w-24 rounded-full" />
+            </div>
+          ))}
+        </div>
       ) : data.length === 0 ? (
         <p className="py-6 text-sm text-muted-foreground">No consultants yet.</p>
       ) : (

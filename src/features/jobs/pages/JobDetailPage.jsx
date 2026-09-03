@@ -8,7 +8,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
-import { LoadingBlock } from '@/components/ui/spinner'
+import { DetailSkeleton } from '@/components/ui/detail-skeleton'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { useCandidates } from '@/features/candidates/hooks'
@@ -58,7 +58,7 @@ export function JobDetailPage() {
   const updateMut = useUpdateJob()
   const [edit, setEdit] = useState(false)
 
-  if (isLoading) return <LoadingBlock />
+  if (isLoading) return <DetailSkeleton />
   if (isError || !job) {
     return (
       <div>
