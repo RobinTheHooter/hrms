@@ -38,6 +38,22 @@ def build_templates(candidate, job) -> list[dict]:
             f"the date, time, and details.\n\nBest regards,\n{sign}",
         ),
         t(
+            "next_round",
+            "Next round",
+            f"Next interview round — {role}",
+            f"Hi {first_name},\n\nGreat news — you've progressed to the next round of "
+            f"interviews for the {role} position. We'll follow up shortly with the "
+            f"details for the next round.\n\nBest regards,\n{sign}",
+        ),
+        t(
+            "on_hold",
+            "On hold",
+            f"Update on your application — {role}",
+            f"Hi {first_name},\n\nThank you for interviewing for the {role} position. "
+            f"Your application is currently on hold while we finalise our decision. "
+            f"We'll be in touch as soon as we have an update.\n\nBest regards,\n{sign}",
+        ),
+        t(
             "offer",
             "Offer",
             f"Job offer — {role}",

@@ -145,6 +145,10 @@ class DashboardService:
                 Interview.updated_at,
                 Interview.feedback,
                 manager.full_name,
+                Candidate.stage,
+                Candidate.priority,
+                Interview.mode,
+                Interview.notes,
             )
             .join(Candidate, Interview.candidate_id == Candidate.id)
             .join(Job, Candidate.job_id == Job.id)
@@ -166,6 +170,10 @@ class DashboardService:
                 "decided_at": r[6].isoformat() if r[6] else None,
                 "feedback": r[7],
                 "hiring_manager": r[8],
+                "stage": r[9].value if r[9] else None,
+                "priority": r[10].value if r[10] else None,
+                "mode": r[11].value if r[11] else None,
+                "reason": r[12],
             }
             for r in rows
         ]

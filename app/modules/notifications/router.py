@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.common.acl import Permission
-from app.common.enums import InterviewStatus, UserRole
+from app.common.enums import InterviewOutcome, InterviewStatus, UserRole
 from app.common.pagination import Page
 from app.common.query import ListParamsDep
 from app.core.database import get_db
@@ -30,6 +30,11 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 _MANAGE_ALL = (UserRole.ADMIN, UserRole.HR)
 
+_DECISION_TITLE = {
+    "join": "Candidate selected to join",
+    "next_round": "Moved to next round",
+    "on_hold": "Candidate put on hold",
+}
 _INTERVIEW_TITLE = {
     InterviewStatus.SCHEDULED: "Interview scheduled",
     InterviewStatus.COMPLETED: "Interview completed",
@@ -132,6 +137,39 @@ async def list_notifications(
                 message=name,
                 timestamp=iv.created_at,
                 link="/interviews",
+            )
+        )
+
+    # Recent hiring-manager decisions (completed interviews with an outcome).
+    d_stmt = (
+        select(Interview)
+        .options(selectinload(Interview.candidate))
+        .where(Interview.status == InterviewStatus.COMPLETED)
+        .order_by(Interview.updated_at.desc())
+        .limit(limit)
+    )
+    cond = _interview_cond(current_user)
+    if cond is not None:
+        d_stmt = d_stmt.where(cond)
+    decisions = (await db.execute(d_stmt)).scalars().all()
+
+    for iv in decisions:
+        fb = iv.feedback or {}
+        next_step = fb.get("next_step")
+        title = _DECISION_TITLE.get(next_step)
+        if title is None and iv.outcome == InterviewOutcome.REJECTED:
+            title = "Candidate rejected"
+        if title is None:
+            continue  # no decision recorded yet
+        cand = iv.candidate
+        items.append(
+            NotificationItem(
+                id=f"decision-{iv.id}",
+                type="decision",
+                title=title,
+                message=cand.full_name if cand else "Candidate",
+                timestamp=iv.updated_at,
+                link=f"/candidates/{iv.candidate_id}",
             )
         )
 
