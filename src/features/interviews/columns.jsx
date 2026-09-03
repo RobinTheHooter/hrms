@@ -4,11 +4,8 @@ import { ActionsRenderer } from '@/components/GlobalComponents/TableComponents/A
 import { BadgeRenderer } from '@/components/GlobalComponents/TableComponents/BadgeRenderer'
 import { MeetingRenderer } from '@/components/GlobalComponents/TableComponents/MeetingRenderer'
 import { PersonRenderer } from '@/components/GlobalComponents/TableComponents/PersonRenderer'
-import {
-  formatWhen,
-  outcomeVariant,
-  statusVariant,
-} from '@/features/interviews/constants'
+import { InterviewStatusRenderer } from '@/features/interviews/components/InterviewStatusRenderer'
+import { formatWhen } from '@/features/interviews/constants'
 import { optionLabel } from '@/features/meta/hooks'
 import { priorityVariant } from '@/lib/priority'
 
@@ -17,6 +14,7 @@ export function getInterviewColumns({
   onOutcome,
   onFeedback,
   onDelete,
+  onStatusClick,
   canSchedule,
   canConduct,
   options,
@@ -58,16 +56,14 @@ export function getInterviewColumns({
     {
       headerName: 'Status',
       colId: 'status',
-      valueGetter: (p) => optionLabel(options?.interview_statuses, p.data.status),
-      cellRenderer: BadgeRenderer,
-      cellRendererParams: { getVariant: (_v, d) => statusVariant(d.status) },
-    },
-    {
-      headerName: 'Outcome',
-      colId: 'outcome',
-      valueGetter: (p) => optionLabel(options?.interview_outcomes, p.data.outcome),
-      cellRenderer: BadgeRenderer,
-      cellRendererParams: { getVariant: (_v, d) => outcomeVariant(d.outcome) },
+      minWidth: 220,
+      valueGetter: (p) =>
+        `${optionLabel(options?.interview_statuses, p.data.status)} ${optionLabel(
+          options?.interview_outcomes,
+          p.data.outcome,
+        )}`,
+      cellRenderer: InterviewStatusRenderer,
+      cellRendererParams: { options, onStatusClick },
     },
     {
       headerName: 'Priority',

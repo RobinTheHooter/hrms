@@ -27,6 +27,19 @@ export const formatWhen = (iso) => {
 // datetime-local expects "YYYY-MM-DDTHH:MM" — which the stored value already is.
 export const toLocalInput = (iso) => (iso ? iso.slice(0, 16) : '')
 
+export function relativeWhen(iso) {
+  if (!iso) return ''
+  const [y, mo, da] = iso.split('T')[0].split('-').map(Number)
+  const [ny, nmo, nda] = nowInputIST().split('T')[0].split('-').map(Number)
+  const target = Date.UTC(y, (mo || 1) - 1, da || 1)
+  const today = Date.UTC(ny, nmo - 1, nda)
+  const diff = Math.round((target - today) / 86400000)
+  if (diff === 0) return 'Today'
+  if (diff === 1) return 'Tomorrow'
+  if (diff === -1) return 'Yesterday'
+  return diff > 0 ? `in ${diff} days` : `${Math.abs(diff)} days ago`
+}
+
 // Current moment as an IST "YYYY-MM-DDTHH:MM" string, for the picker's min.
 export function nowInputIST() {
   const p = new Intl.DateTimeFormat('en-CA', {
@@ -46,11 +59,6 @@ const pad = (n) => String(n).padStart(2, '0')
 const gcalStamp = (d) =>
   `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`
 
-/**
- * Build a Google Calendar "add event" link. `scheduledAt` is a naive IST
- * wall-clock string; we tag the link with ctz=Asia/Kolkata so Google reads
- * the times as IST. Default duration 60 min.
- */
 export function googleCalendarUrl({ title, scheduledAt, details, location }) {
   const [datePart, timePart = ''] = (scheduledAt || '').split('T')
   const [y, mo, da] = datePart.split('-').map(Number)
