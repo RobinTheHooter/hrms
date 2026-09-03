@@ -12,6 +12,18 @@ class ConsultantBrief(BaseModel):
     full_name: str
 
 
+class JobDescriptionRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=150)
+    skills: str | None = Field(default=None, max_length=500)
+    seniority: str | None = Field(default=None, max_length=50)
+    employment_type: str | None = Field(default=None, max_length=50)
+
+
+class JobDescriptionResponse(BaseModel):
+    description: str
+    required_skills: list[str] = []
+
+
 class JobBase(BaseModel):
     title: str = Field(min_length=1, max_length=150)
     department: str | None = Field(default=None, max_length=150)

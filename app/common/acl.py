@@ -11,6 +11,8 @@ class Permission(StrEnum):
     JOBS_MANAGE = "jobs:manage"
     CANDIDATES_VIEW = "candidates:view"
     CANDIDATES_MANAGE = "candidates:manage"
+    # Move a candidate to a hiring-decision stage (offer / hired / rejected).
+    CANDIDATES_DECIDE = "candidates:decide"
     INTERVIEWS_VIEW = "interviews:view"
     INTERVIEWS_SCHEDULE = "interviews:schedule"
     INTERVIEWS_CONDUCT = "interviews:conduct"
@@ -31,11 +33,14 @@ ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.INTERVIEWS_VIEW,
         Permission.INTERVIEWS_SCHEDULE,
     },
-    # Hiring manager: conducts interviews, views candidates.
+    # Hiring manager: conducts interviews and owns hiring decisions
+    # (offer/hired/rejected), so they can manage and decide on candidates.
     UserRole.HIRING_MANAGER: {
         Permission.INTERVIEWS_VIEW,
         Permission.INTERVIEWS_CONDUCT,
         Permission.CANDIDATES_VIEW,
+        Permission.CANDIDATES_MANAGE,
+        Permission.CANDIDATES_DECIDE,
     },
     # Candidate: external (phase 2); no internal permissions.
     UserRole.CANDIDATE: set(),
