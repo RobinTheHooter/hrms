@@ -82,7 +82,6 @@ export function useCandidates(params) {
     queryKey: [...KEY, params],
     queryFn: () => listCandidates(params),
     placeholderData: keepPreviousData,
-    refetchInterval: 15_000,
   })
 }
 
