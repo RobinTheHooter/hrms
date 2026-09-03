@@ -26,6 +26,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Panel } from '@/components/ui/panel'
 import {
   Select,
@@ -282,7 +283,7 @@ export function DashboardPage() {
           className={hiringManager ? 'lg:col-span-3' : 'lg:col-span-2'}
         >
           {interviews.upcoming_list.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">No upcoming interviews.</p>
+            <EmptyState message="No upcoming interviews." />
           ) : (
             <ul className="divide-y">
               {interviews.upcoming_list.map((iv) => (
