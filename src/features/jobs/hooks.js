@@ -9,6 +9,7 @@ import {
   bulkDeleteJobs,
   createJob,
   deleteJob,
+  generateJobDescription,
   getJob,
   listConsultants,
   listJobs,
@@ -60,6 +61,10 @@ export function useDeleteJob() {
     mutationFn: deleteJob,
     onSuccess: () => qc.invalidateQueries({ queryKey: JOBS_KEY }),
   })
+}
+
+export function useGenerateJobDescription() {
+  return useMutation({ mutationFn: generateJobDescription })
 }
 
 export function useBulkDeleteJobs() {

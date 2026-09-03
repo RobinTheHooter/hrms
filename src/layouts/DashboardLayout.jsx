@@ -1,6 +1,8 @@
 import { LogOut, Plug, Settings, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
+import { AiCenterDialog } from '@/features/ai/components/AiCenterDialog'
 import { RoutingOutlet } from '@/components/RoutingOutlet'
 import { HeaderMenu } from '@/components/layout/HeaderMenu'
 import { GlobalSearch } from '@/features/search/components/GlobalSearch'
@@ -29,6 +31,7 @@ function BrandMark() {
 
 export function DashboardLayout() {
   const navigate = useNavigate()
+  const [aiOpen, setAiOpen] = useState(false)
   const logout = useAuthStore((s) => s.logout)
   const { data: user } = useCurrentUser()
   const fullName = user?.full_name ?? 'User'
@@ -93,7 +96,7 @@ export function DashboardLayout() {
           <GlobalSearch />
 
           <div className="ml-auto flex items-center gap-1">
-            <Button className="mr-2 gap-1.5" size="sm">
+            <Button className="mr-2 gap-1.5" size="sm" onClick={() => setAiOpen(true)}>
               <Sparkles className="size-4" />
               AI Center
             </Button>
@@ -145,6 +148,8 @@ export function DashboardLayout() {
           <RoutingOutlet />
         </main>
       </div>
+
+      <AiCenterDialog open={aiOpen} onOpenChange={setAiOpen} />
     </div>
   )
 }
