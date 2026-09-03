@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Panel } from '@/components/ui/panel'
 import { DetailSkeleton } from '@/components/ui/detail-skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { ResumePreview } from '@/features/candidates/components/ResumePreview'
@@ -158,11 +159,9 @@ export function CandidateDetailPage() {
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
 
-  const { data: candidate, isLoading, isError } = useCandidate(id)
+  const { data: candidate, isLoading, isError, refetch } = useCandidate(id)
   const { data: interviewsPage } = useInterviews({ page: 1, size: 50, candidate_id: Number(id) })
   const interviews = interviewsPage?.items ?? []
-  // The most recent decided interview drives the banner. Prefer the structured
-  // next-step decision; fall back to the raw outcome for older records.
   const latestDecided = interviews.find(
     (iv) => iv.feedback?.next_step || iv.outcome === 'selected' || iv.outcome === 'rejected',
   )
@@ -188,7 +187,11 @@ export function CandidateDetailPage() {
     return (
       <div>
         <PageHeader title="Candidate" breadcrumb={['Recruitment', 'Candidates']} />
-        <p className="p-6 text-sm text-destructive">Candidate not found.</p>
+        <ErrorState
+          title="We couldn't open this candidate"
+          description="The candidate's details couldn't be loaded. They may have been removed, or the connection dropped. Please try again."
+          onRetry={refetch}
+        />
       </div>
     )
   }

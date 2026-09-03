@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Table } from '@/components/GlobalComponents/Table/Table'
+import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { useCurrentUser } from '@/features/auth/hooks'
@@ -22,7 +23,7 @@ export function EmployeesPage() {
   const [dialog, setDialog] = useState({ open: false, mode: 'create', employee: null })
 
   // Load the full set; the grid handles search, sort and pagination client-side.
-  const { data, isLoading, isError } = useEmployees({ page: 1, size: 1000 })
+  const { data, isLoading, isError, refetch } = useEmployees({ page: 1, size: 1000 })
 
   const { data: currentUser } = useCurrentUser()
   const canWrite = canManageEmployees(currentUser?.role)
@@ -74,7 +75,6 @@ export function EmployeesPage() {
 
   const columns = useMemo(
     () => getEmployeeColumns({ onEdit: openEdit, onDelete: handleDelete, canWrite }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [canWrite],
   )
 
@@ -94,9 +94,10 @@ export function EmployeesPage() {
       />
 
       {isError ? (
-        <p className="p-6 text-sm text-destructive">
-          Couldn't load employees. Is the backend running?
-        </p>
+        <ErrorState
+          description="We couldn't load your employees right now. Please try again in a moment."
+          onRetry={refetch}
+        />
       ) : (
         <Table
           rowData={data?.items ?? []}

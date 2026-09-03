@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { Table } from '@/components/GlobalComponents/Table/Table'
+import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { PERMISSIONS, can } from '@/features/auth/acl'
@@ -53,7 +54,7 @@ export function JobsPage() {
   )
   const status = tab === 'inactive' ? 'closed' : 'open'
 
-  const { data, isLoading, isError } = useJobs({ page: 1, size: 1000, status })
+  const { data, isLoading, isError, refetch } = useJobs({ page: 1, size: 1000, status })
 
   const createMut = useCreateJob()
   const updateMut = useUpdateJob()
@@ -153,7 +154,6 @@ export function JobsPage() {
         options,
         tab,
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [canManage, options, tab],
   )
 
@@ -194,9 +194,10 @@ export function JobsPage() {
       />
 
       {isError ? (
-        <p className="p-6 text-sm text-destructive">
-          Couldn't load jobs. Is the backend running?
-        </p>
+        <ErrorState
+          description="We couldn't load your jobs right now. Please try again in a moment."
+          onRetry={refetch}
+        />
       ) : (
         <Table
           rowData={data?.items ?? []}

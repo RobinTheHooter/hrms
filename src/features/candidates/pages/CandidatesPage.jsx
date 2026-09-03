@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 
 import { Pagination } from '@/components/GlobalComponents/Table/Pagination'
 import { Table } from '@/components/GlobalComponents/Table/Table'
+import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { PERMISSIONS, can } from '@/features/auth/acl'
@@ -65,8 +66,6 @@ export function CandidatesPage() {
   const confirm = useConfirm()
 
   const [params] = useSearchParams()
-  // Server-side pagination: only the current page is fetched, so the candidates
-  // list stays light even once the careers page starts adding applicants.
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [search, setSearch] = useState(() => params.get('search') ?? '')
@@ -95,7 +94,7 @@ export function CandidatesPage() {
   }
   useEffect(() => () => clearTimeout(timer.current), [])
 
-  const { data, isLoading, isFetching, isError } = useCandidates({
+  const { data, isLoading, isFetching, isError, refetch } = useCandidates({
     page,
     size: pageSize,
     search: debouncedSearch || undefined,
@@ -210,7 +209,6 @@ export function CandidatesPage() {
         canManage,
         options,
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [canManage, options],
   )
 
@@ -234,9 +232,10 @@ export function CandidatesPage() {
       />
 
       {isError ? (
-        <p className="p-6 text-sm text-destructive">
-          Couldn't load candidates. Is the backend running?
-        </p>
+        <ErrorState
+          description="We couldn't load your candidates right now. Please try again in a moment."
+          onRetry={refetch}
+        />
       ) : (
         <Table
           rowData={data?.items ?? []}
