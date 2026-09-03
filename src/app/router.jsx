@@ -8,6 +8,7 @@ import { useAuthStore } from '@/features/auth/store'
 import { NotFoundPage } from '@/features/misc/NotFoundPage'
 import { RouteError } from '@/features/misc/RouteError'
 import { ChunkLoader } from '@/components/ChunkLoader'
+import { AppSplash } from '@/components/AppSplash'
 
 /** Not logged in -> bounce to login. */
 function RequireAuth() {
@@ -51,7 +52,7 @@ const lazyRoute = (factory, name, permission) => ({
 export const router = createBrowserRouter([
   {
     errorElement: <RouteError />,
-    HydrateFallback: ChunkLoader,
+    HydrateFallback: AppSplash,
     children: [
       // Public, full-screen
       {
