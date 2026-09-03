@@ -1,36 +1,12 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 
 import { BlankLayout } from '@/layouts/BlankLayout'
 import { DashboardLayout } from '@/layouts/DashboardLayout'
-import { PERMISSIONS, can, landingPathFor } from '@/features/auth/acl'
-import { useCurrentUser } from '@/features/auth/hooks'
-import { useAuthStore } from '@/features/auth/store'
+import { PERMISSIONS } from '@/features/auth/acl'
+import { RequireAuth, RequirePermission, RoleHome } from '@/features/auth/guards'
 import { NotFoundPage } from '@/features/misc/NotFoundPage'
 import { RouteError } from '@/features/misc/RouteError'
-import { ChunkLoader } from '@/components/ChunkLoader'
 import { AppSplash } from '@/components/AppSplash'
-
-/** Not logged in -> bounce to login. */
-function RequireAuth() {
-  const token = useAuthStore((s) => s.token)
-  if (!token) return <Navigate to="/login" replace />
-  return <Outlet />
-}
-
-/** Logged in but lacking permission -> full-screen 403. */
-function RequirePermission({ permission, children }) {
-  const { data: user, isLoading } = useCurrentUser()
-  if (isLoading) return <ChunkLoader />
-  if (!can(user, permission)) return <Navigate to="/403" replace />
-  return children
-}
-
-/** Land users on the right page for their role/permissions. */
-function RoleHome() {
-  const { data: user, isLoading } = useCurrentUser()
-  if (isLoading) return <ChunkLoader />
-  return <Navigate to={landingPathFor(user)} replace />
-}
 
 const lazyRoute = (factory, name, permission) => ({
   lazy: async () => {
