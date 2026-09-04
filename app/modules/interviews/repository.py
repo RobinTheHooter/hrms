@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.enums import InterviewStatus
 from app.common.pagination import PageParams
+from app.modules.auth.models import User
 from app.modules.candidates.models import Candidate
 from app.modules.interviews.models import Interview
 from app.modules.jobs.models import Job
@@ -23,23 +24,41 @@ class InterviewRepository:
         consultant_id: int | None = None,
         manager_id: int | None = None,
         candidate_id: int | None = None,
+        search: str | None = None,
     ) -> tuple[list[Interview], int]:
         stmt = select(Interview)
         count_stmt = select(func.count()).select_from(Interview)
+
+        if search:
+            stmt = stmt.join(Candidate, Interview.candidate_id == Candidate.id)
+            count_stmt = count_stmt.join(
+                Candidate, Interview.candidate_id == Candidate.id
+            )
+        elif consultant_id is not None:
+            stmt = stmt.join(Candidate, Interview.candidate_id == Candidate.id)
+            count_stmt = count_stmt.join(
+                Candidate, Interview.candidate_id == Candidate.id
+            )
 
         # A single candidate's interview history.
         if candidate_id is not None:
             stmt = stmt.where(Interview.candidate_id == candidate_id)
             count_stmt = count_stmt.where(Interview.candidate_id == candidate_id)
 
+        if search:
+            pattern = f"%{search}%"
+            stmt = stmt.outerjoin(User, Interview.hiring_manager_id == User.id)
+            count_stmt = count_stmt.outerjoin(
+                User, Interview.hiring_manager_id == User.id
+            )
+            cond = Candidate.full_name.ilike(pattern) | User.full_name.ilike(pattern)
+            stmt = stmt.where(cond)
+            count_stmt = count_stmt.where(cond)
+
         # Consultants: only interviews for candidates on their assigned jobs.
         if consultant_id is not None:
-            stmt = stmt.join(Candidate, Interview.candidate_id == Candidate.id).join(
-                Job, Candidate.job_id == Job.id
-            )
-            count_stmt = count_stmt.join(
-                Candidate, Interview.candidate_id == Candidate.id
-            ).join(Job, Candidate.job_id == Job.id)
+            stmt = stmt.join(Job, Candidate.job_id == Job.id)
+            count_stmt = count_stmt.join(Job, Candidate.job_id == Job.id)
             stmt = stmt.where(Job.assigned_consultant_id == consultant_id)
             count_stmt = count_stmt.where(Job.assigned_consultant_id == consultant_id)
 
