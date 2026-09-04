@@ -1,6 +1,8 @@
 import { Plus, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { toast } from 'sonner'
 
 import { Pagination } from '@/components/GlobalComponents/Table/Pagination'
@@ -70,7 +72,7 @@ export function CandidatesPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
   const [search, setSearch] = useState(() => params.get('search') ?? '')
-  const [debouncedSearch, setDebouncedSearch] = useState(() => params.get('search') ?? '')
+  const debouncedSearch = useDebouncedValue(search, 400)
   const [dialog, setDialog] = useState({ open: false, mode: 'create', candidate: null })
   const [notify, setNotify] = useState({ open: false, candidate: null })
   const [screen, setScreen] = useState({ open: false, candidate: null })
@@ -83,17 +85,9 @@ export function CandidatesPage() {
   const minScore = params.get('min_score') ?? undefined
   const sort = params.get('sort') === 'score' ? 'score' : undefined
 
-  // Debounce free-text search, then reset to the first page.
-  const timer = useRef()
-  const handleSearchChange = (value) => {
-    setSearch(value)
-    clearTimeout(timer.current)
-    timer.current = setTimeout(() => {
-      setDebouncedSearch(value)
-      setPage(1)
-    }, 400)
-  }
-  useEffect(() => () => clearTimeout(timer.current), [])
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch])
 
   const { data, isLoading, isFetching, isError, refetch } = useCandidates({
     page,
@@ -254,7 +248,7 @@ export function CandidatesPage() {
             isDeleting: bulkDeleteMut.isPending,
           }}
           searchValue={search}
-          onSearchChange={handleSearchChange}
+          onSearchChange={setSearch}
           searchPlaceholder="Search by name or email…"
           footer={
             <Pagination

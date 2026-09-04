@@ -1,7 +1,9 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { Pagination } from '@/components/GlobalComponents/Table/Pagination'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -22,8 +24,20 @@ import { errorMessage } from '@/lib/api-error'
 export function EmployeesPage() {
   const [dialog, setDialog] = useState({ open: false, mode: 'create', employee: null })
 
-  // Load the full set; the grid handles search, sort and pagination client-side.
-  const { data, isLoading, isError, refetch } = useEmployees({ page: 1, size: 1000 })
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 400)
+
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch])
+
+  const { data, isLoading, isFetching, isError, refetch } = useEmployees({
+    page,
+    size: pageSize,
+    search: debouncedSearch || undefined,
+  })
 
   const { data: currentUser } = useCurrentUser()
   const canWrite = canManageEmployees(currentUser?.role)
@@ -103,7 +117,24 @@ export function EmployeesPage() {
           rowData={data?.items ?? []}
           columnData={columns}
           isLoading={isLoading}
+          useAgGridPagination={false}
+          searchValue={search}
+          onSearchChange={setSearch}
           searchPlaceholder="Search by name, email, or title…"
+          footer={
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={data?.total ?? 0}
+              pages={data?.pages ?? 0}
+              isFetching={isFetching}
+              onPageChange={setPage}
+              onPageSizeChange={(n) => {
+                setPageSize(n)
+                setPage(1)
+              }}
+            />
+          }
         />
       )}
 

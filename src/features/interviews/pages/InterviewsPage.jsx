@@ -1,8 +1,10 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { Pagination } from '@/components/GlobalComponents/Table/Pagination'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -45,7 +47,21 @@ export function InterviewsPage() {
   // Status filter comes from the URL (e.g. dashboard drill-down); no dropdown.
   const status = params.get('status') ?? undefined
 
-  const { data, isLoading, isError, refetch } = useInterviews({ page: 1, size: 1000, status })
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 400)
+
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, status])
+
+  const { data, isLoading, isFetching, isError, refetch } = useInterviews({
+    page,
+    size: pageSize,
+    status,
+    search: debouncedSearch || undefined,
+  })
 
   const scheduleMut = useScheduleInterview()
   const updateMut = useUpdateInterview()
@@ -202,6 +218,9 @@ export function InterviewsPage() {
           rowData={data?.items ?? []}
           columnData={columns}
           isLoading={isLoading}
+          useAgGridPagination={false}
+          searchValue={search}
+          onSearchChange={setSearch}
           searchPlaceholder="Search candidate, manager…"
           selectable={canSchedule}
           onSelectionChanged={setSelected}
@@ -212,6 +231,20 @@ export function InterviewsPage() {
             onClear: clearSelection,
             isDeleting: bulkDeleteMut.isPending,
           }}
+          footer={
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={data?.total ?? 0}
+              pages={data?.pages ?? 0}
+              isFetching={isFetching}
+              onPageChange={setPage}
+              onPageSizeChange={(n) => {
+                setPageSize(n)
+                setPage(1)
+              }}
+            />
+          }
         />
       )}
 

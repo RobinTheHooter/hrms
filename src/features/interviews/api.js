@@ -1,7 +1,7 @@
 import { HttpClient } from '@/lib/httpClient'
 
 export async function listInterviews(
-  { page = 1, size = 20, status, candidate_id } = {},
+  { page = 1, size = 20, status, candidate_id, search } = {},
   signal,
 ) {
   return HttpClient(
@@ -12,6 +12,7 @@ export async function listInterviews(
         size,
         status: status || undefined,
         candidate_id: candidate_id || undefined,
+        search: search || undefined,
       },
     },
     signal,

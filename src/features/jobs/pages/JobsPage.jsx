@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { Pagination } from '@/components/GlobalComponents/Table/Pagination'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -79,7 +81,21 @@ export function JobsPage() {
   )
   const status = tab === 'inactive' ? 'closed' : 'open'
 
-  const { data, isLoading, isError, refetch } = useJobs({ page: 1, size: 1000, status })
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [search, setSearch] = useState(() => params.get('search') ?? '')
+  const debouncedSearch = useDebouncedValue(search, 400)
+
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, status])
+
+  const { data, isLoading, isFetching, isError, refetch } = useJobs({
+    page,
+    size: pageSize,
+    status,
+    search: debouncedSearch || undefined,
+  })
 
   const createMut = useCreateJob()
   const updateMut = useUpdateJob()
@@ -228,7 +244,9 @@ export function JobsPage() {
           rowData={data?.items ?? []}
           columnData={columns}
           isLoading={isLoading}
-          initialSearch={params.get('search') ?? ''}
+          useAgGridPagination={false}
+          searchValue={search}
+          onSearchChange={setSearch}
           searchPlaceholder="Search by title, department, location…"
           selectable={canManage}
           onSelectionChanged={setSelected}
@@ -240,6 +258,20 @@ export function JobsPage() {
             isDeleting: bulkDeleteMut.isPending,
           }}
           toolbar={tabs}
+          footer={
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={data?.total ?? 0}
+              pages={data?.pages ?? 0}
+              isFetching={isFetching}
+              onPageChange={setPage}
+              onPageSizeChange={(n) => {
+                setPageSize(n)
+                setPage(1)
+              }}
+            />
+          }
         />
       )}
 
