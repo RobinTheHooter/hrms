@@ -1,9 +1,11 @@
 import { HttpClient } from '@/lib/httpClient'
 
-export async function listOffers(candidateId) {
-  return HttpClient('/offers', {
-    params: { candidate_id: candidateId },
-  })
+export async function listOffers(candidateId, signal) {
+  return HttpClient(
+    '/offers',
+    { params: { candidate_id: candidateId } },
+    signal,
+  )
 }
 
 export async function createOffer(payload) {

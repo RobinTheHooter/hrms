@@ -2,15 +2,15 @@ import { useQuery } from '@tanstack/react-query'
 
 import { HttpClient } from '@/lib/httpClient'
 
-async function getOptions() {
-  return HttpClient('/meta/options')
+async function getOptions(signal) {
+  return HttpClient('/meta/options', {}, signal)
 }
 
 /* All selectable dropdown options, served by the backend (single source of truth). Cached for the session. */
 export function useOptions() {
   return useQuery({
     queryKey: ['meta', 'options'],
-    queryFn: getOptions,
+    queryFn: ({ signal }) => getOptions(signal),
     staleTime: Infinity,
   })
 }

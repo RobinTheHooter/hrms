@@ -22,7 +22,7 @@ const KEY = ['interviews']
 export function useAvailability(managerId, date) {
   return useQuery({
     queryKey: ['availability', managerId, date],
-    queryFn: () => getAvailability(managerId, date),
+    queryFn: ({ signal }) => getAvailability(managerId, date, signal),
     enabled: Boolean(managerId && date),
   })
 }
@@ -30,13 +30,16 @@ export function useAvailability(managerId, date) {
 export function useInterviews(params) {
   return useQuery({
     queryKey: [...KEY, params],
-    queryFn: () => listInterviews(params),
+    queryFn: ({ signal }) => listInterviews(params, signal),
     placeholderData: keepPreviousData,
   })
 }
 
 export function useHiringManagers() {
-  return useQuery({ queryKey: ['hiring-managers'], queryFn: listHiringManagers })
+  return useQuery({
+    queryKey: ['hiring-managers'],
+    queryFn: ({ signal }) => listHiringManagers(signal),
+  })
 }
 
 function useInterviewMutation(mutationFn) {

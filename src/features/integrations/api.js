@@ -1,7 +1,7 @@
 import { HttpClient } from '@/lib/httpClient'
 
-export async function getGoogleStatus() {
-  return HttpClient('/integrations/google/status')
+export async function getGoogleStatus(signal) {
+  return HttpClient('/integrations/google/status', {}, signal)
 }
 
 export async function getGoogleConnectUrl() {

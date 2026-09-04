@@ -24,7 +24,7 @@ function invalidateUserViews(qc) {
 export function useUsers(params) {
   return useQuery({
     queryKey: [...USERS_KEY, params],
-    queryFn: () => listUsers(params),
+    queryFn: ({ signal }) => listUsers(params, signal),
     placeholderData: keepPreviousData,
   })
 }

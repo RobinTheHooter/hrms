@@ -1,9 +1,11 @@
 import { HttpClient } from '@/lib/httpClient'
 
-export async function listUsers({ page = 1, size = 20, search } = {}) {
-  return HttpClient('/users', {
-    params: { page, size, search: search || undefined },
-  })
+export async function listUsers({ page = 1, size = 20, search } = {}, signal) {
+  return HttpClient(
+    '/users',
+    { params: { page, size, search: search || undefined } },
+    signal,
+  )
 }
 
 export async function createUser(payload) {
