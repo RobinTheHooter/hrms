@@ -84,12 +84,9 @@ class Settings(BaseSettings):
     def email_enabled(self) -> bool:
         return bool(self.EMAIL_FROM and (self.RESEND_API_KEY or self.SMTP_HOST))
 
-    # AI resume screening. Gemini is preferred when its key is set (free tier);
-    # OpenAI is used as a fallback if only its key is present.
+    # AI resume screening, powered by Gemini. Leave the key blank to disable.
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.0-flash"
-    OPENAI_API_KEY: str = ""
-    OPENAI_MODEL: str = "gpt-4o-mini"
     # Auto-run screening as soon as a resume is uploaded/received.
     AUTO_AI_SCREENING: bool = True
 
@@ -97,8 +94,6 @@ class Settings(BaseSettings):
     def ai_provider(self) -> str | None:
         if self.GEMINI_API_KEY:
             return "gemini"
-        if self.OPENAI_API_KEY:
-            return "openai"
         return None
 
     @property
