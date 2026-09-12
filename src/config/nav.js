@@ -2,6 +2,7 @@ import {
   BarChart3,
   Briefcase,
   CalendarClock,
+  ClipboardCheck,
   LayoutDashboard,
   LineChart,
   Plug,
@@ -35,6 +36,7 @@ export const NAV_SECTIONS = [
   {
     label: 'People',
     items: [
+      { to: '/onboarding', label: 'Onboarding', icon: ClipboardCheck, permission: PERMISSIONS.ONBOARDING_VIEW },
       { to: '/employees', label: 'Employees', icon: UserCog, permission: PERMISSIONS.EMPLOYEES_VIEW },
     ],
   },

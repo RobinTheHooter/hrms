@@ -64,14 +64,6 @@ const NEXT_STEP = {
   next_round: { label: 'Next round', variant: 'info' },
   on_hold: { label: 'On hold', variant: 'warning' },
 }
-// Banner shown at the top of the interview history, per latest decision.
-const DECISION_BANNER = {
-  join: { text: 'Candidate advanced to Offer.', label: 'Send offer email', template: 'offer' },
-  next_round: { text: 'Candidate moved to the next round.' },
-  on_hold: { text: 'Candidate is on hold.' },
-  reject: { text: 'Candidate marked Rejected.', label: 'Send rejection email', template: 'rejected' },
-}
-
 function InterviewFeedback({ feedback }) {
   const rec = RECOMMENDATION[feedback.recommendation]
   const step = NEXT_STEP[feedback.next_step]
@@ -312,7 +304,8 @@ export function CandidateDetailPage() {
           </Panel>
 
         <div className="space-y-4">
-          {/* Offer / decision */}
+          {/* Offer / decision — the single source of truth for the candidate's
+              status and all letter/email actions across every decision. */}
           <OfferPanel
             candidate={candidate}
             canManage={canManage}
@@ -322,21 +315,6 @@ export function CandidateDetailPage() {
 
           {/* Interviews */}
           <Panel title="Interview history">
-            {canManage && DECISION_BANNER[latestStep] && (
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-primary/5 px-3 py-2">
-                <span className="text-sm">{DECISION_BANNER[latestStep].text}</span>
-                {DECISION_BANNER[latestStep].label && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEmail(DECISION_BANNER[latestStep].template)}
-                  >
-                    <Mail className="size-4" />
-                    {DECISION_BANNER[latestStep].label}
-                  </Button>
-                )}
-              </div>
-            )}
             {interviews.length === 0 ? (
               <p className="py-4 text-sm text-muted-foreground">No interviews scheduled.</p>
             ) : (
