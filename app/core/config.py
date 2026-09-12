@@ -73,6 +73,8 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     SMTP_STARTTLS: bool = True
+    # Implicit TLS/SSL (port 465). When true, SMTP_STARTTLS is ignored.
+    SMTP_SSL: bool = False
     EMAIL_FROM: str = ""
     EMAIL_FROM_NAME: str = "Recruitment Team"
     # HTTP email API (works on hosts that block SMTP ports, e.g. Render free).

@@ -57,6 +57,11 @@ class OfferService:
         candidate = offer.candidate
         if status == OfferStatus.ACCEPTED:
             candidate.stage = CandidateStage.HIRED
+            # Bridge into onboarding: auto-create the new hire's journey
+            # (idempotent — no-op if the candidate already has one).
+            from app.modules.onboarding.service import OnboardingService
+
+            await OnboardingService(self.db).create_from_offer(offer, user)
         elif status == OfferStatus.DECLINED:
             candidate.stage = CandidateStage.REJECTED
         return offer
