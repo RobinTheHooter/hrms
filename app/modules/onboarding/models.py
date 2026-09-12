@@ -110,3 +110,25 @@ class OnboardingTask(Base, TimestampMixin):
     onboarding: Mapped[Onboarding] = relationship(
         "Onboarding", back_populates="tasks"
     )
+
+
+class OnboardingNotification(Base, TimestampMixin):
+    """Audit + idempotency record for automated onboarding emails.
+
+    The service checks for an existing (onboarding_id, kind, ref) row before
+    sending, so scheduled reminders never double-send even if the sweep runs
+    more than once a day or on more than one instance.
+    """
+
+    __tablename__ = "onboarding_notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    onboarding_id: Mapped[int] = mapped_column(
+        ForeignKey("onboarding.id", ondelete="CASCADE"), index=True
+    )
+    kind: Mapped[str] = mapped_column(String(50), index=True)
+    to_email: Mapped[str] = mapped_column(String(255))
+    subject: Mapped[str] = mapped_column(String(300))
+    # Dedupe key for a given kind — e.g. a date ("2026-09-12") for daily
+    # reminders, or a task id. NULL for one-off events (welcome/alert).
+    ref: Mapped[str | None] = mapped_column(String(100))

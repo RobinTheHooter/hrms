@@ -82,9 +82,30 @@ class Settings(BaseSettings):
     # Auto-send the "application received" acknowledgment on new candidates.
     AUTO_EMAIL_APPLICATION_RECEIVED: bool = True
 
+    # --- Onboarding automations ---
+    # Internal recipient for new-hire alerts and the overdue-task digest
+    # (HR / IT distribution list). Falls back to EMAIL_FROM if unset.
+    ONBOARDING_NOTIFY_EMAIL: str = ""
+    # Email the new hire a welcome + checklist when onboarding starts.
+    ONBOARDING_WELCOME_EMAIL: bool = True
+    # Remind the new hire about pending documents this many days before start.
+    ONBOARDING_DOC_REMINDER_DAYS: int = 3
+    # In-app daily reminder scheduler (APScheduler). Runs inside the app
+    # process — no external cron needed. Keep enabled on a single-instance
+    # deploy; disable only if you run multiple instances (to avoid each one
+    # running the sweep).
+    ONBOARDING_REMINDERS_ENABLED: bool = True
+    # Local hour (APP_TIMEZONE) the in-app scheduler runs the daily sweep.
+    ONBOARDING_REMINDER_HOUR: int = 8
+
     @property
     def email_enabled(self) -> bool:
         return bool(self.EMAIL_FROM and (self.RESEND_API_KEY or self.SMTP_HOST))
+
+    @property
+    def onboarding_alerts_to(self) -> str:
+        """Internal recipient for onboarding alerts/digests."""
+        return self.ONBOARDING_NOTIFY_EMAIL or self.EMAIL_FROM
 
     # AI resume screening, powered by Gemini. Leave the key blank to disable.
     GEMINI_API_KEY: str = ""

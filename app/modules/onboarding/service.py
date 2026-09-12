@@ -29,6 +29,8 @@ from app.modules.onboarding.schemas import (
     OnboardingUpdate,
 )
 from app.modules.onboarding.tasks_template import DEFAULT_CHECKLIST
+from app.core.tasks import enqueue
+from app.modules.onboarding.tasks import notify_onboarding_started_bg
 
 # How many days before the start date each owner's tasks are due.
 _LEAD_DAYS = {
@@ -103,7 +105,9 @@ class OnboardingService:
                 )
         if data.seed_default_tasks:
             onboarding.tasks = self._build_tasks(data.start_date)
-        return await self.repo.add(onboarding)
+        onboarding = await self.repo.add(onboarding)
+        enqueue(notify_onboarding_started_bg, onboarding.id)
+        return onboarding
 
     async def create_from_offer(
         self, offer: Offer, user: User | None
@@ -132,7 +136,9 @@ class OnboardingService:
             created_by_id=user.id if user else None,
         )
         onboarding.tasks = self._build_tasks(offer.start_date)
-        return await self.repo.add(onboarding)
+        onboarding = await self.repo.add(onboarding)
+        enqueue(notify_onboarding_started_bg, onboarding.id)
+        return onboarding
 
     # ---------------------------------------------------------------- mutations
     async def update(
