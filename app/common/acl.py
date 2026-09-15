@@ -18,6 +18,8 @@ class Permission(StrEnum):
     INTERVIEWS_CONDUCT = "interviews:conduct"
     EMPLOYEES_VIEW = "employees:view"
     EMPLOYEES_MANAGE = "employees:manage"
+    ONBOARDING_VIEW = "onboarding:view"
+    ONBOARDING_MANAGE = "onboarding:manage"
 
 
 ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {

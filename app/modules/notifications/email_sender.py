@@ -41,11 +41,24 @@ async def _send_smtp(to: str, subject: str, body: str) -> None:
     msg["Subject"] = subject
     msg.set_content(body)
 
-    await aiosmtplib.send(
-        msg,
-        hostname=settings.SMTP_HOST,
-        port=settings.SMTP_PORT,
-        username=settings.SMTP_USER or None,
-        password=settings.SMTP_PASSWORD or None,
-        start_tls=settings.SMTP_STARTTLS,
-    )
+    if settings.SMTP_SSL:
+        # Implicit TLS (port 465): connection is encrypted from the start,
+        # so STARTTLS must be disabled.
+        await aiosmtplib.send(
+            msg,
+            hostname=settings.SMTP_HOST,
+            port=settings.SMTP_PORT,
+            username=settings.SMTP_USER or None,
+            password=settings.SMTP_PASSWORD or None,
+            use_tls=True,
+            start_tls=False,
+        )
+    else:
+        await aiosmtplib.send(
+            msg,
+            hostname=settings.SMTP_HOST,
+            port=settings.SMTP_PORT,
+            username=settings.SMTP_USER or None,
+            password=settings.SMTP_PASSWORD or None,
+            start_tls=settings.SMTP_STARTTLS,
+        )

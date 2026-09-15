@@ -45,9 +45,10 @@ async def list_interviews(
     params: ListParamsDep,
     status: InterviewStatus | None = Query(None),
     candidate_id: int | None = Query(None),
+    search: str | None = Query(None),
 ) -> Page[InterviewRead]:
     return await InterviewService(db).list(
-        current_user, params.page_params, status, candidate_id
+        current_user, params.page_params, status, candidate_id, search
     )
 
 

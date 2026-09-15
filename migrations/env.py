@@ -16,6 +16,8 @@ from app.modules.candidates import models as _candidate_models  # noqa: F401
 from app.modules.interviews import models as _interview_models  # noqa: F401
 from app.modules.integrations import models as _integration_models  # noqa: F401
 from app.modules.notifications import models as _notification_models  # noqa: F401
+from app.modules.offers import models as _offer_models  # noqa: F401
+from app.modules.onboarding import models as _onboarding_models  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().DATABASE_URL)

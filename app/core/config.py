@@ -73,6 +73,8 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     SMTP_STARTTLS: bool = True
+    # Implicit TLS/SSL (port 465). When true, SMTP_STARTTLS is ignored.
+    SMTP_SSL: bool = False
     EMAIL_FROM: str = ""
     EMAIL_FROM_NAME: str = "Recruitment Team"
     # HTTP email API (works on hosts that block SMTP ports, e.g. Render free).
@@ -80,16 +82,34 @@ class Settings(BaseSettings):
     # Auto-send the "application received" acknowledgment on new candidates.
     AUTO_EMAIL_APPLICATION_RECEIVED: bool = True
 
+    # --- Onboarding automations ---
+    # Internal recipient for new-hire alerts and the overdue-task digest
+    # (HR / IT distribution list). Falls back to EMAIL_FROM if unset.
+    ONBOARDING_NOTIFY_EMAIL: str = ""
+    # Email the new hire a welcome + checklist when onboarding starts.
+    ONBOARDING_WELCOME_EMAIL: bool = True
+    # Remind the new hire about pending documents this many days before start.
+    ONBOARDING_DOC_REMINDER_DAYS: int = 3
+    # In-app daily reminder scheduler (APScheduler). Runs inside the app
+    # process — no external cron needed. Keep enabled on a single-instance
+    # deploy; disable only if you run multiple instances (to avoid each one
+    # running the sweep).
+    ONBOARDING_REMINDERS_ENABLED: bool = True
+    # Local hour (APP_TIMEZONE) the in-app scheduler runs the daily sweep.
+    ONBOARDING_REMINDER_HOUR: int = 8
+
     @property
     def email_enabled(self) -> bool:
         return bool(self.EMAIL_FROM and (self.RESEND_API_KEY or self.SMTP_HOST))
 
-    # AI resume screening. Gemini is preferred when its key is set (free tier);
-    # OpenAI is used as a fallback if only its key is present.
+    @property
+    def onboarding_alerts_to(self) -> str:
+        """Internal recipient for onboarding alerts/digests."""
+        return self.ONBOARDING_NOTIFY_EMAIL or self.EMAIL_FROM
+
+    # AI resume screening, powered by Gemini. Leave the key blank to disable.
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.0-flash"
-    OPENAI_API_KEY: str = ""
-    OPENAI_MODEL: str = "gpt-4o-mini"
     # Auto-run screening as soon as a resume is uploaded/received.
     AUTO_AI_SCREENING: bool = True
 
@@ -97,8 +117,6 @@ class Settings(BaseSettings):
     def ai_provider(self) -> str | None:
         if self.GEMINI_API_KEY:
             return "gemini"
-        if self.OPENAI_API_KEY:
-            return "openai"
         return None
 
     @property

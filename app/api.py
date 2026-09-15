@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.modules.ai.router import router as ai_router
 from app.modules.auth.router import router as auth_router
 from app.modules.candidates.router import router as candidates_router
 from app.modules.dashboard.router import router as dashboard_router
@@ -10,6 +11,7 @@ from app.modules.jobs.router import router as jobs_router
 from app.modules.meta.router import router as meta_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.offers.router import router as offers_router
+from app.modules.onboarding.router import router as onboarding_router
 from app.modules.users.router import router as users_router
 
 api_router = APIRouter()
@@ -24,3 +26,5 @@ api_router.include_router(integrations_router)
 api_router.include_router(notifications_router)
 api_router.include_router(offers_router)
 api_router.include_router(employees_router)
+api_router.include_router(onboarding_router)
+api_router.include_router(ai_router)

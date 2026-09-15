@@ -18,6 +18,10 @@ from app.common.enums import (
     InterviewStatus,
     JobStatus,
     OfferStatus,
+    OnboardingStatus,
+    OnboardingTaskCategory,
+    OnboardingTaskOwner,
+    OnboardingTaskStatus,
     Priority,
     UserRole,
 )
@@ -38,6 +42,14 @@ _LABELS = {
     "hr": "HR Admin",
     "hiring_manager": "Hiring Manager",
     "wfh": "WFH",
+    "it": "IT",
+    "it_access": "IT & Access",
+    "hr_compliance": "HR & Compliance",
+    "pre_joining": "Pre-joining",
+    "in_progress": "In progress",
+    "people_ops": "People Ops",
+    "new_hire": "New hire",
+    "orientation": "Orientation & Manager",
 }
 
 
@@ -55,6 +67,10 @@ class OptionsResponse(BaseModel):
     interview_statuses: list[Option]
     interview_outcomes: list[Option]
     offer_statuses: list[Option]
+    onboarding_statuses: list[Option]
+    onboarding_task_categories: list[Option]
+    onboarding_task_owners: list[Option]
+    onboarding_task_statuses: list[Option]
     priorities: list[Option]
     user_roles: list[Option]
 
@@ -78,6 +94,10 @@ async def get_options() -> OptionsResponse:
         interview_statuses=_options(InterviewStatus),
         interview_outcomes=_options(InterviewOutcome),
         offer_statuses=_options(OfferStatus),
+        onboarding_statuses=_options(OnboardingStatus),
+        onboarding_task_categories=_options(OnboardingTaskCategory),
+        onboarding_task_owners=_options(OnboardingTaskOwner),
+        onboarding_task_statuses=_options(OnboardingTaskStatus),
         priorities=_options(Priority),
         # Only the assignable ATS roles (legacy manager/employee excluded).
         user_roles=_options(

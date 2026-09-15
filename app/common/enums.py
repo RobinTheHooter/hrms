@@ -77,3 +77,31 @@ class OfferStatus(StrEnum):
     ACCEPTED = "accepted"
     DECLINED = "declined"
     WITHDRAWN = "withdrawn"
+
+
+class OnboardingStatus(StrEnum):
+    PRE_JOINING = "pre_joining"
+    IN_PROGRESS = "in_progress"
+    READY = "ready"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class OnboardingTaskCategory(StrEnum):
+    DOCUMENTATION = "documentation"
+    HR_COMPLIANCE = "hr_compliance"
+    IT_ACCESS = "it_access"
+    ORIENTATION = "orientation"
+
+
+class OnboardingTaskStatus(StrEnum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    DONE = "done"
+
+
+class OnboardingTaskOwner(StrEnum):
+    PEOPLE_OPS = "people_ops"
+    IT = "it"
+    MANAGER = "manager"
+    NEW_HIRE = "new_hire"
