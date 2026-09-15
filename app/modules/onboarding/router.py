@@ -44,6 +44,14 @@ async def list_onboarding(
     )
 
 
+@router.get("/by-candidate/{candidate_id}", response_model=OnboardingRead)
+async def get_onboarding_by_candidate(
+    candidate_id: int, current_user: ViewUser, db: DbSession
+) -> OnboardingRead:
+    onboarding = await OnboardingService(db).get_by_candidate(candidate_id)
+    return OnboardingRead.model_validate(onboarding)
+
+
 @router.get("/{onboarding_id}", response_model=OnboardingRead)
 async def get_onboarding(
     onboarding_id: int, current_user: ViewUser, db: DbSession

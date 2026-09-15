@@ -66,6 +66,12 @@ class OnboardingService:
             raise NotFoundError("Onboarding record not found")
         return onboarding
 
+    async def get_by_candidate(self, candidate_id: int) -> Onboarding:
+        onboarding = await self.repo.get_by_candidate(candidate_id)
+        if onboarding is None:
+            raise NotFoundError("No onboarding record for this candidate")
+        return onboarding
+
     # ---------------------------------------------------------------- creation
     def _build_tasks(self, start_date) -> list[OnboardingTask]:
         tasks: list[OnboardingTask] = []
