@@ -1,31 +1,38 @@
 import { HttpClient } from '@/lib/httpClient'
 
-export async function listCandidates({
-  page = 1,
-  size = 20,
-  search,
-  stage,
-  source,
-  jobId,
-  min_score,
-  sort,
-} = {}) {
-  return HttpClient('/candidates', {
-    params: {
-      page,
-      size,
-      search: search || undefined,
-      stage: stage || undefined,
-      source: source || undefined,
-      job_id: jobId || undefined,
-      min_score: min_score ?? undefined,
-      sort: sort || undefined,
+export async function listCandidates(
+  {
+    page = 1,
+    size = 20,
+    search,
+    stage,
+    source,
+    jobId,
+    min_score,
+    sort,
+  } = {},
+  signal,
+) {
+  return HttpClient(
+    '/candidates',
+    {
+      params: {
+        page,
+        size,
+        search: search || undefined,
+        stage: stage || undefined,
+        source: source || undefined,
+        job_id: jobId || undefined,
+        min_score: min_score ?? undefined,
+        sort: sort || undefined,
+      },
     },
-  })
+    signal,
+  )
 }
 
-export async function getCandidate(id) {
-  return HttpClient(`/candidates/${id}`)
+export async function getCandidate(id, signal) {
+  return HttpClient(`/candidates/${id}`, {}, signal)
 }
 
 export async function createCandidate(payload) {
@@ -53,8 +60,8 @@ export async function bulkUploadCandidates(jobId, files, sendAck = false) {
   return HttpClient('/candidates/bulk-upload', { method: 'POST', data: form })
 }
 
-export async function getEmailTemplates(id) {
-  return HttpClient(`/candidates/${id}/email-templates`)
+export async function getEmailTemplates(id, signal) {
+  return HttpClient(`/candidates/${id}/email-templates`, {}, signal)
 }
 
 export async function notifyCandidate(id, payload) {

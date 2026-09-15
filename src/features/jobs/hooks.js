@@ -27,7 +27,7 @@ function invalidateJobViews(qc) {
 export function useJobs(params) {
   return useQuery({
     queryKey: [...JOBS_KEY, params],
-    queryFn: () => listJobs(params),
+    queryFn: ({ signal }) => listJobs(params, signal),
     placeholderData: keepPreviousData,
   })
 }
@@ -35,13 +35,16 @@ export function useJobs(params) {
 export function useJob(id) {
   return useQuery({
     queryKey: [...JOBS_KEY, 'detail', id],
-    queryFn: () => getJob(id),
+    queryFn: ({ signal }) => getJob(id, signal),
     enabled: Boolean(id),
   })
 }
 
 export function useConsultants() {
-  return useQuery({ queryKey: ['consultants'], queryFn: listConsultants })
+  return useQuery({
+    queryKey: ['consultants'],
+    queryFn: ({ signal }) => listConsultants(signal),
+  })
 }
 
 export function useCreateJob() {

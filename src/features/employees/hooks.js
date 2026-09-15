@@ -22,7 +22,7 @@ function invalidateEmployeeViews(qc) {
 export function useEmployees(params) {
   return useQuery({
     queryKey: [...EMPLOYEES_KEY, params],
-    queryFn: () => listEmployees(params),
+    queryFn: ({ signal }) => listEmployees(params, signal),
     placeholderData: keepPreviousData,
   })
 }

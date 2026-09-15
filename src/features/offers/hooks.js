@@ -12,7 +12,7 @@ const KEY = ['offers']
 export function useOffers(candidateId) {
   return useQuery({
     queryKey: [...KEY, candidateId],
-    queryFn: () => listOffers(candidateId),
+    queryFn: ({ signal }) => listOffers(candidateId, signal),
     enabled: Boolean(candidateId),
   })
 }

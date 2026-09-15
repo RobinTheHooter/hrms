@@ -81,6 +81,10 @@ export const router = createBrowserRouter([
                 ...lazyRoute(() => import('@/features/employees/pages/EmployeesPage'), 'EmployeesPage', PERMISSIONS.EMPLOYEES_VIEW),
               },
               {
+                path: '/onboarding',
+                ...lazyRoute(() => import('@/features/onboarding/pages/OnboardingPage'), 'OnboardingPage', PERMISSIONS.ONBOARDING_VIEW),
+              },
+              {
                 path: '/jobs',
                 ...lazyRoute(() => import('@/features/jobs/pages/JobsPage'), 'JobsPage', PERMISSIONS.JOBS_VIEW),
               },

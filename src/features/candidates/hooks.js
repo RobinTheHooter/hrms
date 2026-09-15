@@ -40,7 +40,7 @@ export function useBulkUploadCandidates() {
 export function useCandidate(id) {
   return useQuery({
     queryKey: [...KEY, 'detail', id],
-    queryFn: () => getCandidate(id),
+    queryFn: ({ signal }) => getCandidate(id, signal),
     enabled: Boolean(id),
   })
 }
@@ -64,7 +64,7 @@ export function useScoreCandidate() {
 export function useEmailTemplates(candidateId, enabled) {
   return useQuery({
     queryKey: ['candidate-email-templates', candidateId],
-    queryFn: () => getEmailTemplates(candidateId),
+    queryFn: ({ signal }) => getEmailTemplates(candidateId, signal),
     enabled: Boolean(candidateId && enabled),
   })
 }
@@ -80,7 +80,7 @@ export function useNotifyCandidate() {
 export function useCandidates(params) {
   return useQuery({
     queryKey: [...KEY, params],
-    queryFn: () => listCandidates(params),
+    queryFn: ({ signal }) => listCandidates(params, signal),
     placeholderData: keepPreviousData,
   })
 }

@@ -1,9 +1,11 @@
 import { HttpClient } from '@/lib/httpClient'
 
-export async function listEmployees({ page = 1, size = 20, search } = {}) {
-  return HttpClient('/employees', {
-    params: { page, size, search: search || undefined },
-  })
+export async function listEmployees({ page = 1, size = 20, search } = {}, signal) {
+  return HttpClient(
+    '/employees',
+    { params: { page, size, search: search || undefined } },
+    signal,
+  )
 }
 
 export async function createEmployee(payload) {

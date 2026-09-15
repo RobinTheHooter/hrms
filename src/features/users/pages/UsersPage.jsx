@@ -1,7 +1,9 @@
 import { Plus } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { Pagination } from '@/components/GlobalComponents/Table/Pagination'
 import { Table } from '@/components/GlobalComponents/Table/Table'
 import { ErrorState } from '@/components/ui/error-state'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -27,7 +29,20 @@ export function UsersPage() {
   const confirm = useConfirm()
   const [dialog, setDialog] = useState({ open: false, mode: 'create', user: null })
 
-  const { data, isLoading, isError, refetch } = useUsers({ page: 1, size: 1000 })
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(20)
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 400)
+
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch])
+
+  const { data, isLoading, isFetching, isError, refetch } = useUsers({
+    page,
+    size: pageSize,
+    search: debouncedSearch || undefined,
+  })
 
   const createMut = useCreateUser()
   const updateMut = useUpdateUser()
@@ -146,6 +161,9 @@ export function UsersPage() {
           rowData={data?.items ?? []}
           columnData={columns}
           isLoading={isLoading}
+          useAgGridPagination={false}
+          searchValue={search}
+          onSearchChange={setSearch}
           searchPlaceholder="Search by name or email…"
           selectable
           onSelectionChanged={setSelected}
@@ -156,6 +174,20 @@ export function UsersPage() {
             onClear: clearSelection,
             isDeleting: bulkDeleteMut.isPending,
           }}
+          footer={
+            <Pagination
+              page={page}
+              pageSize={pageSize}
+              total={data?.total ?? 0}
+              pages={data?.pages ?? 0}
+              isFetching={isFetching}
+              onPageChange={setPage}
+              onPageSizeChange={(n) => {
+                setPageSize(n)
+                setPage(1)
+              }}
+            />
+          }
         />
       )}
 

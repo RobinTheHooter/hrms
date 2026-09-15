@@ -1,18 +1,22 @@
 import { HttpClient } from '@/lib/httpClient'
 
-export async function listJobs({ page = 1, size = 20, search, status } = {}) {
-  return HttpClient('/jobs', {
-    params: {
-      page,
-      size,
-      search: search || undefined,
-      status: status || undefined,
+export async function listJobs({ page = 1, size = 20, search, status } = {}, signal) {
+  return HttpClient(
+    '/jobs',
+    {
+      params: {
+        page,
+        size,
+        search: search || undefined,
+        status: status || undefined,
+      },
     },
-  })
+    signal,
+  )
 }
 
-export async function getJob(id) {
-  return HttpClient(`/jobs/${id}`)
+export async function getJob(id, signal) {
+  return HttpClient(`/jobs/${id}`, {}, signal)
 }
 
 export async function createJob(payload) {
@@ -36,9 +40,11 @@ export async function generateJobDescription(payload) {
 }
 
 /* Consultants for the "assign" dropdown (admin/HR only). */
-export async function listConsultants() {
-  const data = await HttpClient('/users', {
-    params: { role: 'consultant', size: 100 },
-  })
+export async function listConsultants(signal) {
+  const data = await HttpClient(
+    '/users',
+    { params: { role: 'consultant', size: 100 } },
+    signal,
+  )
   return data.items ?? []
 }

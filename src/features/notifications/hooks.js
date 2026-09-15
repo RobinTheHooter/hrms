@@ -30,7 +30,7 @@ export function formatRelative(ts) {
 export function useNotifications() {
   return useQuery({
     queryKey: notificationKeys.list(),
-    queryFn: getNotifications,
+    queryFn: ({ signal }) => getNotifications(signal),
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
     staleTime: 30_000,

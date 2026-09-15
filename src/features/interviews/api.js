@@ -1,14 +1,22 @@
 import { HttpClient } from '@/lib/httpClient'
 
-export async function listInterviews({ page = 1, size = 20, status, candidate_id } = {}) {
-  return HttpClient('/interviews', {
-    params: {
-      page,
-      size,
-      status: status || undefined,
-      candidate_id: candidate_id || undefined,
+export async function listInterviews(
+  { page = 1, size = 20, status, candidate_id, search } = {},
+  signal,
+) {
+  return HttpClient(
+    '/interviews',
+    {
+      params: {
+        page,
+        size,
+        status: status || undefined,
+        candidate_id: candidate_id || undefined,
+        search: search || undefined,
+      },
     },
-  })
+    signal,
+  )
 }
 
 export async function scheduleInterview(payload) {
@@ -36,15 +44,19 @@ export async function deleteInterview(id) {
 }
 
 /* Active hiring managers for the scheduling dropdown (any authed user). */
-export async function listHiringManagers() {
-  return HttpClient('/meta/users', {
-    params: { role: 'hiring_manager' },
-  })
+export async function listHiringManagers(signal) {
+  return HttpClient(
+    '/meta/users',
+    { params: { role: 'hiring_manager' } },
+    signal,
+  )
 }
 
 /* A manager's busy blocks for a given date (YYYY-MM-DD). */
-export async function getAvailability(managerId, date) {
-  return HttpClient('/interviews/availability', {
-    params: { manager_id: managerId, date },
-  })
+export async function getAvailability(managerId, date, signal) {
+  return HttpClient(
+    '/interviews/availability',
+    { params: { manager_id: managerId, date } },
+    signal,
+  )
 }
