@@ -4,13 +4,16 @@ import {
   Check,
   CheckCircle2,
   Clock,
+  Pencil,
   Plus,
+  Trash2,
   Search,
   UserCheck,
   UserCog,
   Users,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -32,7 +35,9 @@ import { Spinner } from '@/components/ui/spinner'
 import { useCurrentUser } from '@/features/auth/hooks'
 import { PERMISSIONS, can } from '@/features/auth/acl'
 import { ConvertDialog } from '@/features/onboarding/components/ConvertDialog'
+import { EditOnboardingDialog } from '@/features/onboarding/components/EditOnboardingDialog'
 import { StartOnboardingDialog } from '@/features/onboarding/components/StartOnboardingDialog'
+import { TaskFormDialog } from '@/features/onboarding/components/TaskFormDialog'
 import {
   ONBOARDING_STATUSES,
   OWNER_LABELS,
@@ -44,11 +49,15 @@ import {
   statusVariant,
 } from '@/features/onboarding/constants'
 import {
+  useAddTask,
   useConvertOnboarding,
   useCreateOnboarding,
+  useDeleteTask,
   useOnboarding,
+  useOnboardingByCandidate,
   useOnboardingList,
   useSetOnboardingStatus,
+  useUpdateOnboarding,
   useUpdateTask,
 } from '@/features/onboarding/hooks'
 import { errorMessage } from '@/lib/api-error'
@@ -147,7 +156,7 @@ function HireRow({ item, selected, onClick }) {
   )
 }
 
-function TaskChecklist({ onboarding, canManage, onToggle, toggling }) {
+function TaskChecklist({ onboarding, canManage, onToggle, toggling, onEdit, onDelete }) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -178,7 +187,7 @@ function TaskChecklist({ onboarding, canManage, onToggle, toggling }) {
                   <div
                     key={task.id}
                     className={cn(
-                      'flex items-start gap-3 px-3 py-2.5',
+                      'group flex items-start gap-3 px-3 py-2.5',
                       i > 0 && 'border-t',
                     )}
                   >
@@ -219,6 +228,26 @@ function TaskChecklist({ onboarding, canManage, onToggle, toggling }) {
                         ) : null}
                       </div>
                     </div>
+                    {canManage && (
+                      <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                        <button
+                          type="button"
+                          onClick={() => onEdit(task)}
+                          aria-label="Edit task"
+                          className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onDelete(task)}
+                          aria-label="Delete task"
+                          className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -234,6 +263,12 @@ function OnboardingDetail({ id, canManage, onConvert }) {
   const { data: onboarding, isLoading, isError, refetch } = useOnboarding(id)
   const setStatusMut = useSetOnboardingStatus()
   const updateTaskMut = useUpdateTask()
+  const addTaskMut = useAddTask()
+  const deleteTaskMut = useDeleteTask()
+  const updateMut = useUpdateOnboarding()
+
+  const [editOpen, setEditOpen] = useState(false)
+  const [taskDialog, setTaskDialog] = useState({ open: false, mode: 'create', task: null })
 
   if (isLoading) {
     return (
@@ -268,117 +303,194 @@ function OnboardingDetail({ id, canManage, onConvert }) {
     )
   }
 
+  const submitTask = (payload) => {
+    const onError = (e) => toast.error(errorMessage(e, 'Failed to save task'))
+    if (taskDialog.mode === 'edit' && taskDialog.task) {
+      updateTaskMut.mutate(
+        { id: onboarding.id, taskId: taskDialog.task.id, payload },
+        {
+          onSuccess: () => {
+            toast.success('Task updated')
+            setTaskDialog((d) => ({ ...d, open: false }))
+          },
+          onError,
+        },
+      )
+    } else {
+      addTaskMut.mutate(
+        { id: onboarding.id, payload },
+        {
+          onSuccess: () => {
+            toast.success('Task added')
+            setTaskDialog((d) => ({ ...d, open: false }))
+          },
+          onError,
+        },
+      )
+    }
+  }
+
+  const deleteTask = (task) => {
+    if (!window.confirm(`Delete task "${task.title}"?`)) return
+    deleteTaskMut.mutate(
+      { id: onboarding.id, taskId: task.id },
+      {
+        onSuccess: () => toast.success('Task deleted'),
+        onError: (e) => toast.error(errorMessage(e, 'Failed to delete task')),
+      },
+    )
+  }
+
+  const submitEdit = (payload) => {
+    updateMut.mutate(
+      { id: onboarding.id, payload },
+      {
+        onSuccess: () => {
+          toast.success('Onboarding updated')
+          setEditOpen(false)
+        },
+        onError: (e) => toast.error(errorMessage(e, 'Failed to update onboarding')),
+      },
+    )
+  }
+
   const countdown = countdownLabel(onboarding.start_date)
   const isConverted = Boolean(onboarding.employee_id)
 
   return (
-    <Card>
-      {/* Header */}
-      <div className="flex flex-wrap items-start gap-4 p-5">
-        <Avatar name={onboarding.full_name} size="lg" className="size-14 text-base" />
-        <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-bold tracking-tight">{onboarding.full_name}</h2>
-          <p className="text-sm text-muted-foreground">
-            {[onboarding.job_title, onboarding.department, onboarding.location]
-              .filter(Boolean)
-              .join(' · ') || '—'}
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <Badge variant="secondary" className="gap-1.5">
-              <CalendarDays className="size-3.5" />
-              {formatDate(onboarding.start_date)}
-            </Badge>
-            {countdown && (
-              <Badge variant={daysUntil(onboarding.start_date) < 0 ? 'secondary' : 'warning'} className="gap-1.5">
-                <Clock className="size-3.5" />
-                {countdown}
+    <>
+      <Card>
+        {/* Header */}
+        <div className="flex flex-wrap items-start gap-4 p-5">
+          <Avatar name={onboarding.full_name} size="lg" className="size-14 text-base" />
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg font-bold tracking-tight">{onboarding.full_name}</h2>
+            <p className="text-sm text-muted-foreground">
+              {[onboarding.job_title, onboarding.department, onboarding.location]
+                .filter(Boolean)
+                .join(' · ') || '—'}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className="gap-1.5">
+                <CalendarDays className="size-3.5" />
+                {formatDate(onboarding.start_date)}
               </Badge>
-            )}
-            <Badge variant={statusVariant(onboarding.status)}>
-              {labelOf(ONBOARDING_STATUSES, onboarding.status)}
-            </Badge>
-            {isConverted && (
-              <Badge variant="success" className="gap-1.5">
-                <UserCheck className="size-3.5" /> Employee created
+              {countdown && (
+                <Badge variant={daysUntil(onboarding.start_date) < 0 ? 'secondary' : 'warning'} className="gap-1.5">
+                  <Clock className="size-3.5" />
+                  {countdown}
+                </Badge>
+              )}
+              <Badge variant={statusVariant(onboarding.status)}>
+                {labelOf(ONBOARDING_STATUSES, onboarding.status)}
               </Badge>
-            )}
-          </div>
-        </div>
-        <ProgressRing value={onboarding.progress ?? 0} />
-      </div>
-
-      {/* Action bar */}
-      {canManage && (
-        <div className="flex flex-wrap items-center gap-3 border-y bg-muted/40 px-5 py-3">
-          <span className="text-xs font-medium text-muted-foreground">Status</span>
-          <Select value={onboarding.status} onValueChange={changeStatus}>
-            <SelectTrigger className="h-8 w-44"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {ONBOARDING_STATUSES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="ml-auto">
-            <Button
-              size="sm"
-              onClick={() => onConvert(onboarding)}
-              disabled={isConverted}
-            >
-              <UserCheck className="size-4" />
-              {isConverted ? 'Converted' : 'Convert to employee'}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Body */}
-      <div className="grid grid-cols-1 gap-6 p-5 xl:grid-cols-[1fr_260px]">
-        <TaskChecklist
-          onboarding={onboarding}
-          canManage={canManage}
-          onToggle={toggleTask}
-          toggling={updateTaskMut.isPending}
-        />
-
-        <div className="space-y-5">
-          <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Reporting to
+              {isConverted && (
+                <Badge variant="success" className="gap-1.5">
+                  <UserCheck className="size-3.5" /> Employee created
+                </Badge>
+              )}
             </div>
-            {onboarding.manager_name ? (
-              <div className="flex items-center gap-2.5 rounded-lg bg-muted/60 p-2.5">
-                <Avatar name={onboarding.manager_name} size="sm" />
-                <span className="text-sm font-medium">{onboarding.manager_name}</span>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Not assigned</p>
-            )}
           </div>
-          <div>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Onboarding buddy
+          <ProgressRing value={onboarding.progress ?? 0} />
+        </div>
+
+        {/* Action bar */}
+        {canManage && (
+          <div className="flex flex-wrap items-center gap-3 border-y bg-muted/40 px-5 py-3">
+            <span className="text-xs font-medium text-muted-foreground">Status</span>
+            <Select value={onboarding.status} onValueChange={changeStatus}>
+              <SelectTrigger className="h-8 w-44"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {ONBOARDING_STATUSES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="ml-auto flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="size-4" /> Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setTaskDialog({ open: true, mode: 'create', task: null })}
+              >
+                <Plus className="size-4" /> Add task
+              </Button>
+              <Button size="sm" onClick={() => onConvert(onboarding)} disabled={isConverted}>
+                <UserCheck className="size-4" />
+                {isConverted ? 'Converted' : 'Convert to employee'}
+              </Button>
             </div>
-            {onboarding.buddy_name ? (
-              <div className="flex items-center gap-2.5 rounded-lg bg-muted/60 p-2.5">
-                <Avatar name={onboarding.buddy_name} size="sm" />
-                <span className="text-sm font-medium">{onboarding.buddy_name}</span>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">Not assigned</p>
-            )}
           </div>
-          {onboarding.notes && (
+        )}
+
+        {/* Body */}
+        <div className="grid grid-cols-1 gap-6 p-5 xl:grid-cols-[1fr_260px]">
+          <TaskChecklist
+            onboarding={onboarding}
+            canManage={canManage}
+            onToggle={toggleTask}
+            toggling={updateTaskMut.isPending}
+            onEdit={(task) => setTaskDialog({ open: true, mode: 'edit', task })}
+            onDelete={deleteTask}
+          />
+
+          <div className="space-y-5">
             <div>
               <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Notes
+                Reporting to
               </div>
-              <p className="text-sm text-muted-foreground">{onboarding.notes}</p>
+              {onboarding.manager_name ? (
+                <div className="flex items-center gap-2.5 rounded-lg bg-muted/60 p-2.5">
+                  <Avatar name={onboarding.manager_name} size="sm" />
+                  <span className="text-sm font-medium">{onboarding.manager_name}</span>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Not assigned</p>
+              )}
             </div>
-          )}
+            <div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Onboarding buddy
+              </div>
+              {onboarding.buddy_name ? (
+                <div className="flex items-center gap-2.5 rounded-lg bg-muted/60 p-2.5">
+                  <Avatar name={onboarding.buddy_name} size="sm" />
+                  <span className="text-sm font-medium">{onboarding.buddy_name}</span>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Not assigned</p>
+              )}
+            </div>
+            {onboarding.notes && (
+              <div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Notes
+                </div>
+                <p className="text-sm text-muted-foreground">{onboarding.notes}</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+
+      <EditOnboardingDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onboarding={onboarding}
+        onSubmit={submitEdit}
+        isSubmitting={updateMut.isPending}
+      />
+      <TaskFormDialog
+        open={taskDialog.open}
+        onOpenChange={(open) => setTaskDialog((d) => ({ ...d, open }))}
+        mode={taskDialog.mode}
+        task={taskDialog.task}
+        onSubmit={submitTask}
+        isSubmitting={addTaskMut.isPending || updateTaskMut.isPending}
+      />
+    </>
   )
 }
 
@@ -391,6 +503,12 @@ export function OnboardingPage() {
   const [selectedId, setSelectedId] = useState(null)
   const [startOpen, setStartOpen] = useState(false)
   const [convertFor, setConvertFor] = useState(null)
+
+  // Deep link: ?open=<onboardingId> or ?candidate=<candidateId>.
+  const [searchParams] = useSearchParams()
+  const openParam = searchParams.get('open')
+  const candidateParam = searchParams.get('candidate')
+  const { data: byCandidate } = useOnboardingByCandidate(candidateParam || undefined)
 
   const { data, isLoading, isError, refetch } = useOnboardingList({
     search: search || undefined,
@@ -409,6 +527,14 @@ export function OnboardingPage() {
       setSelectedId(items[0].id)
     }
   }, [items, selectedId])
+
+  // Honor a deep link once the params / lookup resolve.
+  useEffect(() => {
+    if (openParam) setSelectedId(Number(openParam))
+  }, [openParam])
+  useEffect(() => {
+    if (byCandidate?.id) setSelectedId(byCandidate.id)
+  }, [byCandidate?.id])
 
   const stats = useMemo(() => {
     const active = items.filter((i) => !['completed', 'cancelled'].includes(i.status))

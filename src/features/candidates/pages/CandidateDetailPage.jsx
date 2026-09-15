@@ -1,4 +1,4 @@
-import { Mail, Pencil, Sparkles } from 'lucide-react'
+import { ClipboardCheck, Mail, Pencil, Sparkles } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -150,6 +150,7 @@ export function CandidateDetailPage() {
   const { data: user } = useCurrentUser()
   const { data: options } = useOptions()
   const canManage = can(user, PERMISSIONS.CANDIDATES_MANAGE)
+  const canViewOnboarding = can(user, PERMISSIONS.ONBOARDING_VIEW)
 
   const { data: candidate, isLoading, isError, refetch } = useCandidate(id)
   const { data: interviewsPage } = useInterviews({ page: 1, size: 50, candidate_id: Number(id) })
@@ -210,6 +211,13 @@ export function CandidateDetailPage() {
         ]}
         actions={
           <div className="flex items-center gap-2">
+            {candidate.stage === 'hired' && canViewOnboarding && (
+              <Button asChild variant="outline" size="sm">
+                <Link to={`/onboarding?candidate=${candidate.id}`}>
+                  <ClipboardCheck className="size-4" /> View onboarding
+                </Link>
+              </Button>
+            )}
             {canManage && (
               <>
                 <Button variant="outline" size="sm" onClick={() => setScreen(true)}>

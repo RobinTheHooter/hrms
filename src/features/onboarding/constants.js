@@ -34,6 +34,13 @@ export const OWNER_LABELS = {
   new_hire: 'New hire',
 }
 
+export const TASK_OWNERS = [
+  { value: 'people_ops', label: 'People Ops' },
+  { value: 'it', label: 'IT' },
+  { value: 'manager', label: 'Manager' },
+  { value: 'new_hire', label: 'New hire' },
+]
+
 export const EMPLOYMENT_TYPES = [
   { value: 'full_time', label: 'Full-time' },
   { value: 'part_time', label: 'Part-time' },

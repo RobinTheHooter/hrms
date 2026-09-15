@@ -11,6 +11,7 @@ import {
   createOnboarding,
   deleteOnboardingTask,
   getOnboarding,
+  getOnboardingByCandidate,
   listOnboarding,
   setOnboardingStatus,
   updateOnboarding,
@@ -32,6 +33,15 @@ export function useOnboarding(id) {
     queryKey: [...KEY, 'detail', id],
     queryFn: ({ signal }) => getOnboarding(id, signal),
     enabled: Boolean(id),
+  })
+}
+
+export function useOnboardingByCandidate(candidateId) {
+  return useQuery({
+    queryKey: [...KEY, 'by-candidate', candidateId],
+    queryFn: ({ signal }) => getOnboardingByCandidate(candidateId, signal),
+    enabled: Boolean(candidateId),
+    retry: false,
   })
 }
 

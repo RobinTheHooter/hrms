@@ -22,6 +22,10 @@ export async function getOnboarding(id, signal) {
   return HttpClient(`/onboarding/${id}`, {}, signal)
 }
 
+export async function getOnboardingByCandidate(candidateId, signal) {
+  return HttpClient(`/onboarding/by-candidate/${candidateId}`, {}, signal)
+}
+
 export async function createOnboarding(payload) {
   return HttpClient('/onboarding', { method: 'POST', data: payload })
 }
